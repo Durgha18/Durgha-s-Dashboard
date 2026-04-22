@@ -133,9 +133,9 @@ select.input{cursor:pointer;appearance:none;}
 .empty-text{font-size:12px;line-height:1.6;}
 
 /* ── MODAL ── */
-.modal-overlay{position:fixed;inset:0;background:rgba(42,31,20,0.55);backdrop-filter:blur(8px);z-index:200;display:none;align-items:center;justify-content:center;padding:20px;}
+.modal-overlay{position:fixed;inset:0;background:rgba(42,31,20,0.45);backdrop-filter:blur(4px);z-index:200;display:none;align-items:center;justify-content:center;padding:20px;}
 .modal-overlay.show{display:flex;}
-.modal{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:28px 32px;max-width:520px;width:100%;max-height:88vh;overflow-y:auto;box-shadow:0 20px 60px rgba(42,31,20,0.2),0 4px 16px rgba(42,31,20,0.1);animation:modalPop 0.25s cubic-bezier(0.34,1.56,0.64,1) both;}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px;max-width:500px;width:100%;max-height:85vh;overflow-y:auto;box-shadow:var(--shadow-lg);animation:fadeIn 0.2s ease;}
 .modal-title{font-family:var(--serif);font-size:18px;font-weight:700;margin-bottom:16px;color:var(--text);}
 .modal-footer{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;padding-top:14px;border-top:1px solid var(--border);}
 
@@ -301,7 +301,10 @@ select.input{cursor:pointer;appearance:none;}
 
 /* ── ANIMATIONS ── */
 @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
-@keyframes modalPop{from{opacity:0;transform:scale(0.92) translateY(8px)}to{opacity:1;transform:scale(1) translateY(0)}}
+/* Progress Ring */
+.progress-ring-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;}
+.progress-ring-label{font-family:var(--mono);font-size:10px;color:var(--text3);letter-spacing:0.06em;text-transform:uppercase;text-align:center;}
+.progress-ring-pct{font-family:var(--serif);font-size:22px;font-weight:700;color:var(--accent);line-height:1;}
 @keyframes spin{to{transform:rotate(360deg)}}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
 
@@ -348,7 +351,10 @@ select.input{cursor:pointer;appearance:none;}
 .pdf-tool-btn.active{background:var(--accent);color:#fff;border-color:var(--accent);}
 .pdf-body{flex:1;overflow:auto;display:flex;gap:0;}
 .pdf-canvas-wrap{flex:1;overflow:auto;display:flex;flex-direction:column;align-items:center;padding:20px;gap:16px;}
-.pdf-canvas-wrap canvas{box-shadow:0 4px 20px rgba(0,0,0,0.2);max-width:100%;}
+.pdf-canvas-wrap canvas{box-shadow:0 4px 20px rgba(0,0,0,0.2);max-width:100%;display:block;}
+.pdf-canvas-wrap{position:relative;}
+.pdf-highlight-canvas{position:absolute;top:0;left:0;pointer-events:none;z-index:2;}
+.pdf-draw-canvas{position:absolute;top:0;left:0;z-index:3;cursor:crosshair;}
 .pdf-annot-panel{width:260px;border-left:1px solid var(--border);background:var(--surface);overflow-y:auto;padding:14px;flex-shrink:0;}
 .pdf-annot-title{font-family:var(--mono);font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:10px;}
 .pdf-annot-item{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:8px;font-size:12px;color:var(--text2);line-height:1.5;cursor:pointer;transition:border-color 0.15s;}
@@ -497,7 +503,7 @@ select.input{cursor:pointer;appearance:none;}
     <div class="field"><div class="input-label">Title</div><input class="input" id="t-title" placeholder="What needs to be done?"/></div>
     <div class="grid-2">
       <div class="field">
-        <div class="input-label">Project</div>
+        <div class="input-label">Space</div>
         <select class="input" id="t-space"></select>
       </div>
       <div class="field">
@@ -516,7 +522,6 @@ select.input{cursor:pointer;appearance:none;}
         </select>
       </div>
     </div>
-    <div class="field"><div class="input-label">Sub-category (optional)</div><input class="input" id="t-subject" placeholder="e.g. Financial Accounting, Internship Application, CFA..."/></div>
     <div class="field"><div class="input-label">Notes (optional)</div><textarea class="input" id="t-notes" style="min-height:60px" placeholder="Add context..."></textarea></div>
     <div class="modal-footer">
       <button class="btn btn-ghost btn-sm" onclick="closeModal('taskModal')">Cancel</button>
@@ -582,8 +587,8 @@ select.input{cursor:pointer;appearance:none;}
 <!-- Add Space -->
 <div class="modal-overlay" id="spaceModal">
   <div class="modal" style="max-width:360px">
-    <div class="modal-title">Add Project</div>
-    <div class="field"><div class="input-label">Space Name</div><input class="input" id="sp-name" placeholder="e.g. Internship, CFA Prep, Side Project..."/></div>
+    <div class="modal-title">Add Space</div>
+    <div class="field"><div class="input-label">Space Name</div><input class="input" id="sp-name" placeholder="e.g. Internship, Research, Club..."/></div>
     <div class="field"><div class="input-label">Icon (emoji)</div><input class="input" id="sp-icon" placeholder="📁" maxlength="2"/></div>
     <div class="modal-footer">
       <button class="btn btn-ghost btn-sm" onclick="closeModal('spaceModal')">Cancel</button>
@@ -683,7 +688,7 @@ select.input{cursor:pointer;appearance:none;}
       <div class="nav-item" onclick="nav('habits')" id="nav-habits"><span class="nav-icon">💪</span>Habits</div>
 
       <div class="nav-section">Study</div>
-      <div class="nav-item" onclick="nav('vault')" id="nav-vault"><span class="nav-icon">🗂️</span>Vault</div>
+      <div class="nav-item" onclick="nav('vault')" id="nav-vault"><span class="nav-icon">📚</span>Study Vault</div>
       <div class="nav-item" onclick="nav('notes')" id="nav-notes"><span class="nav-icon">📝</span>All Notes</div>
       <div class="nav-item" onclick="nav('focus')" id="nav-focus"><span class="nav-icon">⏱️</span>Focus Mode</div>
       <div class="nav-item" onclick="nav('gpa')" id="nav-gpa"><span class="nav-icon">🎓</span>GPA</div>
@@ -766,12 +771,13 @@ select.input{cursor:pointer;appearance:none;}
             </div>
 
             <!-- Quick captures -->
-            <div class="card">
-              <div class="card-header">
-                <div class="card-title">Recent Captures</div>
-                <button class="btn btn-ghost btn-sm" onclick="nav('captures')">All →</button>
+            <div class="card" style="display:flex;gap:16px;align-items:flex-start">
+              <div id="morningProgressRing" style="flex-shrink:0"></div>
+              <div style="flex:1">
+                <div class="card-label" style="margin-bottom:8px">Quick Captures</div>
+                <div id="morningCaptures"></div>
+                <button class="btn btn-ghost btn-sm" style="margin-top:8px;width:100%" onclick="nav('captures')">See all →</button>
               </div>
-              <div id="morningCaptures"></div>
             </div>
           </div>
         </div>
@@ -837,21 +843,8 @@ select.input{cursor:pointer;appearance:none;}
           <div class="topbar-sub">All spaces · click any task for details</div>
         </div>
         <div class="topbar-actions">
-          <select class="input" id="taskSortSel" onchange="renderTasks()" style="max-width:130px;font-size:11px;padding:5px 10px">
-            <option value="created">Newest first</option>
-            <option value="due">By due date</option>
-            <option value="priority">By priority</option>
-            <option value="subject">By sub-category</option>
-            <option value="alpha">A – Z</option>
-          </select>
-          <select class="input" id="taskPrioFilter" onchange="renderTasks()" style="max-width:120px;font-size:11px;padding:5px 10px">
-            <option value="all">All priorities</option>
-            <option value="high">🔴 High</option>
-            <option value="medium">🟡 Medium</option>
-            <option value="low">🟢 Low</option>
-          </select>
           <button class="btn btn-primary btn-sm" onclick="openModal('taskModal')">+ Task</button>
-          <button class="btn btn-ghost btn-sm" onclick="openModal('spaceModal')">+ Project</button>
+          <button class="btn btn-ghost btn-sm" onclick="openModal('spaceModal')">+ Space</button>
         </div>
       </div>
       <div class="content">
@@ -879,8 +872,8 @@ select.input{cursor:pointer;appearance:none;}
     <div class="view" id="view-vault">
       <div class="topbar">
         <div class="topbar-left">
-          <div class="topbar-title">Vault</div>
-          <div class="topbar-sub">Documents, notes &amp; resources by project</div>
+          <div class="topbar-title">Study Vault</div>
+          <div class="topbar-sub">Notes, resources &amp; AI tools by subject</div>
         </div>
         <div class="topbar-actions">
           <button class="btn btn-primary btn-sm" onclick="openModal('subjectModal')">+ Subject</button>
@@ -1069,9 +1062,16 @@ select.input{cursor:pointer;appearance:none;}
   <div class="pdf-topbar">
     <button class="btn btn-ghost btn-sm" onclick="closePdfViewer()">← Back</button>
     <div class="pdf-title" id="pdfTitle">Document</div>
-    <button class="pdf-tool-btn" id="pdfHighlightBtn" onclick="setPdfTool('highlight')" title="Highlight tool">🖊 Highlight</button>
-    <button class="pdf-tool-btn" id="pdfNoteBtn" onclick="setPdfTool('note')" title="Add note">📝 Note</button>
-    <button class="pdf-tool-btn" onclick="setPdfTool(null)">✋ Select</button>
+    <div style="display:flex;gap:4px;align-items:center;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:3px 6px">
+      <button class="pdf-tool-btn" id="pdfSelectBtn" onclick="setPdfTool(null)" title="Select / scroll">✋</button>
+      <button class="pdf-tool-btn" id="pdfHighlightBtn" onclick="setPdfTool('highlight')" title="Highlight — drag over text">🟡 Highlight</button>
+      <button class="pdf-tool-btn" id="pdfPenBtn" onclick="setPdfTool('pen')" title="Freehand pen draw">🖊 Draw</button>
+      <button class="pdf-tool-btn" id="pdfEraseBtn" onclick="setPdfTool('erase')" title="Erase drawings">◻ Erase</button>
+    </div>
+    <div style="display:flex;gap:6px;align-items:center">
+      <label style="font-size:10px;color:var(--text3);font-family:var(--mono)">Colour:</label>
+      <input type="color" id="pdfColourPick" value="#ffeb3b" style="width:28px;height:24px;border-radius:4px;border:1px solid var(--border);cursor:pointer;padding:1px"/>
+    </div>
     <div style="width:1px;height:20px;background:var(--border);margin:0 4px"></div>
     <button class="pdf-tool-btn" onclick="pdfPrevPage()">← Prev</button>
     <div class="pdf-page-info" id="pdfPageInfo">1 / 1</div>
@@ -1079,10 +1079,12 @@ select.input{cursor:pointer;appearance:none;}
     <button class="pdf-tool-btn" onclick="exportPdfAnnotsAsNote()">📤 To Note</button>
   </div>
   <div class="pdf-body">
-    <div class="pdf-canvas-wrap" id="pdfCanvasWrap"></div>
+    <div class="pdf-canvas-wrap" id="pdfCanvasWrap" style="position:relative"></div>
     <div class="pdf-annot-panel">
-      <div class="pdf-annot-title">Annotations</div>
-      <div id="pdfAnnotList"><div style="font-size:12px;color:var(--text3);text-align:center;padding:20px">No annotations yet.<br/>Use tools above.</div></div>
+      <div class="pdf-annot-title">Page Notes</div>
+      <textarea id="pdfPageNotes" placeholder="Type your notes for this page here..." style="width:100%;min-height:160px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px;font-size:12px;color:var(--text);font-family:var(--sans);resize:vertical;outline:none;line-height:1.6" onblur="savePdfPageNote()"></textarea>
+      <div class="pdf-annot-title" style="margin-top:14px">Highlights</div>
+      <div id="pdfAnnotList"><div style="font-size:12px;color:var(--text3);text-align:center;padding:12px">No highlights yet.<br/>Select Highlight tool and drag over text.</div></div>
     </div>
   </div>
 </div>
@@ -1465,6 +1467,33 @@ function renderMorning(){
       '<span class="habit-tick-streak">🔥 '+h.streak+'</span></div>';
   }).join('')||'<div class="empty" style="padding:12px"><div class="empty-text">No habits yet</div></div>';
 
+  // Progress Ring
+  const totalHabits=s.habits.length;
+  const doneHabits=s.habits.filter(function(h){return (h.history||[]).includes(today);}).length;
+  const todayTasks=s.tasks.filter(function(t){return !t.done;});
+  const todayPlanned=(s.plannedTasks||[]).length;
+  const todayDone=todayTasks.filter(function(t){return t.doneDate===today;}).length;
+  // Overall progress = habits done + planned tasks done
+  const totalItems=(totalHabits)+(todayPlanned||3);
+  const doneItems=doneHabits+(todayDone);
+  const pct=totalItems>0?Math.min(100,Math.round(doneItems/totalItems*100)):0;
+  const ringEl=document.getElementById('morningProgressRing');
+  if(ringEl){
+    const circumference=2*Math.PI*44;
+    const offset=circumference-(pct/100)*circumference;
+    const ringColour=pct>=80?'var(--green)':pct>=40?'var(--gold)':'var(--accent)';
+    ringEl.innerHTML=
+      '<svg width="100" height="100" viewBox="0 0 100 100">'+
+        '<circle cx="50" cy="50" r="44" fill="none" stroke="var(--border)" stroke-width="7"/>'+
+        '<circle cx="50" cy="50" r="44" fill="none" stroke="'+ringColour+'" stroke-width="7" stroke-linecap="round"'+
+          ' stroke-dasharray="'+circumference.toFixed(1)+'" stroke-dashoffset="'+offset.toFixed(1)+'"'+
+          ' transform="rotate(-90 50 50)" style="transition:stroke-dashoffset 0.8s ease"/>'+
+        '<text x="50" y="46" text-anchor="middle" font-family="var(--serif)" font-size="16" font-weight="700" fill="'+ringColour+'">'+pct+'%</text>'+
+        '<text x="50" y="62" text-anchor="middle" font-family="var(--mono)" font-size="8" fill="var(--text3)">TODAY</text>'+
+      '</svg>'+
+      '<div style="font-size:10px;color:var(--text3);font-family:var(--mono);text-align:center;line-height:1.5">'+doneHabits+'/'+totalHabits+' habits<br/>'+todayDone+' tasks done</div>';
+  }
+
   // Captures
   const caps=s.captures.slice(0,3);
   const capEl=document.getElementById('morningCaptures');
@@ -1499,64 +1528,42 @@ let showCompleted=false;
 
 function renderTaskItem(t,compact){
   const days=t.due?daysUntil(t.due):null;
-  const dueClass=days===0?'urgent':days<=3?'soon':'';
+  const dueClass=days!==null&&days===0?'urgent':days!==null&&days<=3?'soon':'';
   const lbl=getLabelById(t.labelId);
-  const dotStyle=lbl?'background:'+lbl.colour+';':'background:var(--text3);';
-  return '<div class="task-item'+(t.done?' done':'')+'" onclick="openTaskDetail(\''+t.id+'\')" >'+
+  const prioColour={high:'var(--red)',medium:'var(--gold)',low:'var(--green)'}[t.priority]||'';
+  const prioLabel={high:'🔴 High',medium:'🟡 Med',low:'🟢 Low'}[t.priority]||'';
+  const space=getS().spaces.find(function(sp){return sp.id===t.space;});
+  return '<div class="task-item'+(t.done?' done':'')+'" onclick="openTaskDetail(\''+t.id+'\')">'+
     '<div class="task-check'+(t.done?' done':'')+'" onclick="event.stopPropagation();toggleTask(\''+t.id+'\')">'+( t.done?'✓':'')+'</div>'+
     '<div class="task-content">'+
       '<div class="task-title">'+t.title+'</div>'+
       '<div class="task-meta">'+
-        (lbl?'<span class="label-dot" style="'+dotStyle+'"></span>':'  ')+
-        (lbl?renderLabelPill(t.labelId,true):'')+
-        (t.due?'<span class="task-due '+dueClass+'">📅 '+fmtDate(t.due)+(days===0?' · TODAY':days===1?' · tomorrow':'')+'</span>':'')+
-        (t.subject?'<span style="font-size:9px;color:var(--text3);font-family:var(--mono);background:var(--surface2);border-radius:3px;padding:1px 5px">'+t.subject+'</span>':'')+
-        (t.notes&&!compact?'<span style="font-size:9px;color:var(--text3);font-family:var(--mono)">📝 notes</span>':'')+
+        (lbl?'<span class="label-pill" style="background:'+lbl.colour+'22;color:'+lbl.colour+';border-color:'+lbl.colour+'44;font-size:9px">'+lbl.icon+' '+lbl.name+'</span>':'')+
+        (t.priority&&prioLabel?'<span style="font-size:9px;color:'+prioColour+';font-family:var(--mono);font-weight:600">'+prioLabel+'</span>':'')+
+        (t.due?'<span class="task-due '+dueClass+'">📅 '+fmtDate(t.due)+(days===0?' · TODAY':days===1?' · tmrw':days!==null&&days<=7?' · '+days+'d':'')+'</span>':'')+
+        (!compact&&space?'<span style="font-size:9px;color:var(--text3);font-family:var(--mono)">'+space.icon+' '+space.name+'</span>':'')+
+        (t.subject?'<span style="font-size:9px;color:var(--text3);background:var(--surface2);border-radius:3px;padding:1px 5px;font-family:var(--mono)">'+t.subject+'</span>':'')+
+        (t.notes&&t.notes.length>0?'<span style="font-size:9px;color:var(--text3);font-family:var(--mono)">📝</span>':'')+
       '</div>'+
     '</div>'+
   '</div>';
 }
 
 function _renderTasksBase(){
-  const s=getS();
   const tabsEl=document.getElementById('spaceTabs');
   tabsEl.innerHTML='<button class="space-tab'+(currentSpace==='all'?' active':'')+'" onclick="switchSpace(\'all\',this)">All</button>'+
     s.spaces.map(function(sp){
       return '<button class="space-tab'+(currentSpace===sp.id?' active':'')+'" onclick="switchSpace(\''+sp.id+'\',this)">'+sp.icon+' '+sp.name+'</button>';
     }).join('')+
-    '<button class="space-tab" onclick="openModal(\'spaceModal\')" style="border-style:dashed;opacity:0.6">+ Project</button>';
+    '<button class="space-tab" onclick="openModal(\'spaceModal\')" style="border-style:dashed;opacity:0.6">+ Space</button>';
 
   let tasks=s.tasks.filter(function(t){return !t.done;});
   if(currentSpace!=='all')tasks=tasks.filter(function(t){return t.space===currentSpace;});
 
-  // Priority filter
-  const pf=document.getElementById('taskPrioFilter');
-  if(pf&&pf.value!=='all')tasks=tasks.filter(function(t){return t.priority===pf.value;});
-
-  // Sort
-  const ss=document.getElementById('taskSortSel');
-  const sortBy=ss?ss.value:'created';
-  const PO={high:0,medium:1,low:2};
-  tasks.sort(function(a,b){
-    if(sortBy==='due'){if(!a.due&&!b.due)return 0;if(!a.due)return 1;if(!b.due)return -1;return new Date(a.due)-new Date(b.due);}
-    if(sortBy==='priority')return (PO[a.priority]||1)-(PO[b.priority]||1);
-    if(sortBy==='subject')return (a.subject||'').localeCompare(b.subject||'');
-    if(sortBy==='alpha')return a.title.localeCompare(b.title);
-    return new Date(b.created)-new Date(a.created);
-  });
-
   const listEl=document.getElementById('taskList');
-  if(sortBy==='subject'&&tasks.length>0){
-    const groups={};
-    tasks.forEach(function(t){const k=t.subject||'Uncategorised';if(!groups[k])groups[k]=[];groups[k].push(t);});
-    listEl.innerHTML=Object.entries(groups).map(function(e){
-      return '<div style="margin-bottom:16px"><div style="font-family:var(--mono);font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.1em;padding:4px 0;border-bottom:1px solid var(--border);margin-bottom:8px">'+e[0]+'</div>'+e[1].map(function(t){return renderTaskItem(t,false);}).join('')+'</div>';
-    }).join('');
-  } else {
-    listEl.innerHTML=tasks.length>0
-      ?tasks.map(function(t){return renderTaskItem(t,false);}).join('')
-      :'<div class="empty"><div class="empty-icon">✅</div><div class="empty-text">No tasks here.<br/>Add one to get started.</div></div>';
-  }
+  listEl.innerHTML=tasks.length>0
+    ?tasks.map(function(t){return renderTaskItem(t,false);}).join('')
+    :'<div class="empty"><div class="empty-icon">✅</div><div class="empty-text">No tasks here.<br/>Add one to get started.</div></div>';
 
   // Completed section
   const compEl=document.getElementById('completedSection');
@@ -1605,7 +1612,6 @@ function toggleTask(id){
 function saveTask(){
   const title=document.getElementById('t-title').value.trim();
   if(!title){showToast('Enter a title','error');return;}
-  const subEl=document.getElementById('t-subject');
   const task={
     id:'t'+Date.now(),
     title:title,
@@ -1613,7 +1619,6 @@ function saveTask(){
     labelId:document.getElementById('t-label').value,
     due:document.getElementById('t-due').value,
     priority:document.getElementById('t-priority').value,
-    subject:subEl?subEl.value.trim():'',
     notes:document.getElementById('t-notes').value,
     content:'',
     links:[],
@@ -1625,7 +1630,6 @@ function saveTask(){
   closeModal('taskModal');
   ['t-title','t-notes'].forEach(function(id){document.getElementById(id).value='';});
   document.getElementById('t-due').value='';
-  if(document.getElementById('t-subject'))document.getElementById('t-subject').value='';
   showToast('Task added!','success');
   if(currentView==='tasks')renderTasks();
   if(currentView==='morning')renderMorning();
@@ -2079,28 +2083,6 @@ function openSubject(id){
     '<div class="card-label" style="margin-bottom:8px">PDFs &amp; Resources</div>'+
     '<div id="pdfList_'+id+'"></div>'+
 
-    (function(){
-      var projTasks=getS().tasks.filter(function(t){return t.space===id&&!t.done;});
-      var compTasks=(getS().completedTasks||[]).filter(function(t){return t.space===id;});
-      if(!projTasks.length&&!compTasks.length) return '';
-      return '<div class="card" style="margin-bottom:14px">'+
-        '<div class="card-header"><div class="card-title" style="font-size:14px">Tasks in this Project</div>'+
-        '<button class="btn btn-primary btn-xs" onclick="openModal(\'taskModal\');document.getElementById(\'t-space\').value=\''+id+'\'">+ Task</button></div>'+
-        (projTasks.length?projTasks.map(function(t){return renderTaskItem(t,true);}).join(''):'')+
-        (compTasks.length?'<div style="margin-top:8px"><div style="font-size:10px;color:var(--text3);font-family:var(--mono);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px">Completed</div>'+compTasks.slice(0,5).map(function(t){return renderTaskItem(t,true);}).join('')+'</div>':'')+
-      '</div>';
-    })()+
-    (function(){
-      var projTasks=getS().tasks.filter(function(t){return t.space===id&&!t.done;});
-      var compTasks=(getS().completedTasks||[]).filter(function(t){return t.space===id;});
-      if(!projTasks.length&&!compTasks.length) return '';
-      return '<div class="card" style="margin-bottom:14px">'+
-        '<div class="card-header"><div class="card-title" style="font-size:14px">Project Tasks</div>'+
-        '<button class="btn btn-primary btn-xs" onclick="openModal(\'taskModal\');setTimeout(function(){var s=document.getElementById(\'t-space\');if(s)s.value=\''+id+'\';},50)">+ Task</button></div>'+
-        (projTasks.length?projTasks.map(function(t){return renderTaskItem(t,true);}).join(''):'')+
-        (compTasks.length?'<div style="margin-top:8px"><div style="font-size:9px;color:var(--text3);font-family:var(--mono);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px">Completed</div>'+compTasks.slice(0,5).map(function(t){return renderTaskItem(t,true);}).join('')+'</div>':'')+
-      '</div>';
-    })()+
     '<div class="card-label" style="margin-bottom:8px">Notes ('+subNotes.length+')</div>'+
     (subNotes.length>0
       ?subNotes.map(function(n){
@@ -2503,29 +2485,31 @@ async function askGroq(prompt,system){
 }
 
 async function fetchNews(q,n){
-  n=n||6;
+  n=n||8;
   try{
-    // Get articles from last 7 days for freshness
-    var fromDate=new Date(Date.now()-7*86400000).toISOString().slice(0,10);
-    var url='https://newsapi.org/v2/everything?q='+encodeURIComponent(q)+'&language=en&sortBy=publishedAt&pageSize='+n+'&from='+fromDate+'&apiKey='+CFG.NEWS;
+    // Use top-headlines for world/finance which gives fresher results
+    var from=new Date(Date.now()-4*86400000).toISOString().slice(0,10);
+    var url='https://newsapi.org/v2/everything?q='+encodeURIComponent(q)+'&language=en&sortBy=publishedAt&pageSize='+n+'&from='+from+'&apiKey='+CFG.NEWS;
     const r=await fetch(url);
     const d=await r.json();
-    if(!d.articles||d.articles.length===0){
-      // fallback without date filter
+    var articles=(d.articles||[]).filter(function(a){
+      // Filter out articles older than 7 days
+      var age=(Date.now()-new Date(a.publishedAt))/86400000;
+      return age<=7 && a.title && a.title!=='[Removed]';
+    }).slice(0,n);
+    if(articles.length===0){
+      // Fallback: broader search without date filter
       const r2=await fetch('https://newsapi.org/v2/everything?q='+encodeURIComponent(q)+'&language=en&sortBy=publishedAt&pageSize='+n+'&apiKey='+CFG.NEWS);
       const d2=await r2.json();
-      return (d2.articles||[]).slice(0,n).map(function(a){
-        var pub=new Date(a.publishedAt);
-        var age=Math.floor((Date.now()-pub)/86400000);
-        return '- '+a.title+' ('+a.source.name+', '+pub.toLocaleDateString()+', '+age+' days ago)';
-      }).join('\n');
+      articles=(d2.articles||[]).filter(function(a){return a.title&&a.title!=='[Removed]';}).slice(0,n);
     }
-    return d.articles.slice(0,n).map(function(a){
+    return articles.map(function(a){
       var pub=new Date(a.publishedAt);
       var age=Math.floor((Date.now()-pub)/86400000);
-      return '- '+a.title+' ('+a.source.name+', '+pub.toLocaleDateString()+', '+age+' days ago)';
-    }).join('\n');
-  } catch(e){return '- Headlines unavailable';}
+      var ageLabel=age===0?'today':age===1?'yesterday':age+' days ago';
+      return '- ['+ageLabel+'] '+a.title+' ('+a.source.name+', '+pub.toLocaleDateString('en-MY',{day:'numeric',month:'short',year:'numeric'})+')';
+    }).join('\n')||'- No recent articles found';
+  } catch(e){return '- Headlines unavailable: '+e.message;}
 }
 
 // ═══════════════════════════════════════════════
@@ -2535,26 +2519,10 @@ var briefTabData={};
 var currentBriefTab='world';
 
 var BRIEF_CFG={
-  world:{
-    label:'World News',
-    q:'breaking news world politics 2025',
-    sys:'You are a sharp news analyst. Always reference specific recent dates. Cover what is actually happening RIGHT NOW this week, not general background. Be specific about dates, names, and numbers. Explain the deeper forces at play beyond the headline.'
-  },
-  finance:{
-    label:'Finance & Markets',
-    q:'Goldman Sachs Wall Street investment banking hedge fund private equity IPO deal 2025',
-    sys:'You are a former Goldman Sachs MD writing for an ambitious student who wants to break into high finance. Cover real deals, market moves, and what top firms are doing this week. Name firms, numbers, and people. Practitioner-level, not academic.'
-  },
-  geo:{
-    label:'Geopolitics',
-    q:'geopolitics trade war sanctions diplomacy US China 2025',
-    sys:'You are a geopolitical strategist. Cover what is actually happening this week — specific events, specific actors, specific stakes. Explain how geopolitical shifts create risks and opportunities for markets and business. Be precise about timing.'
-  },
-  learn:{
-    label:'Finance & Consulting',
-    q:'investment banking consulting McKinsey BCG strategy finance career Wall Street',
-    sys:'You are a former Goldman Sachs analyst and McKinsey consultant teaching the next generation. Teach one concept that a first-year analyst at a top firm would be expected to know cold. Be specific, use real examples, and teach like a practitioner not a professor.'
-  }
+  world:{label:'World News',q:'world news',sys:'You are a sharp analyst writing for a smart Malaysian student. Give deep context, not just headlines. Explain WHY things matter and the underlying forces at play.'},
+  finance:{label:'Finance',q:'financial markets economy stocks',sys:'You are a finance educator writing for a Year 2 Accounting & Finance student at Sunway University Malaysia. Connect market events to concepts they study. Make it relevant to their degree.'},
+  geo:{label:'Geopolitics',q:'geopolitics diplomacy international relations',sys:'You are a geopolitics analyst. Go beyond what happened — explain the power dynamics, historical context, and what it means for the region. Be analytical, not just descriptive.'},
+  learn:{label:'Learn',q:'economics business technology innovation',sys:'You are a world-class educator. Pick one genuinely fascinating concept relevant to A&F students. Teach it thoroughly with real examples. Make it memorable.'}
 };
 
 async function renderBrief(){
@@ -2571,10 +2539,10 @@ async function loadBriefTab(tab,el){
     const news=await fetchNews(BRIEF_CFG[tab].q,6);
     const today=new Date().toLocaleDateString('en-MY',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
     const prompt='Today is '+today+'.\n\nHere are today\'s headlines:\n'+news+'\n\n'+
-      (tab==='world'?'Write a deep analysis of the 3 most important world stories from THIS week (today is '+today+'). Always state the exact date each event happened. For each story: precisely when it happened, 2 sentences of background context, exactly what just happened, why it matters beyond the headline, what to watch next. Use <h3> for story titles with the date: e.g. <h3>Story Title · April 22, 2025</h3>. Do NOT just summarise headlines — give analysis that goes beyond a Google search.':'')+
-      (tab==='finance'?'Write a finance and markets briefing for '+today+'. Use the headlines as raw material. Cover: (1) the biggest market move or deal this week — institutional reasons why, who the key players are, (2) one notable deal, M&A or IPO in the news this week, (3) what this signals about where smart money is positioned. Name real firms, numbers, and people. Write like a Goldman Sachs morning research note. Use <h3> for sections.':'')+
-      (tab==='geo'?'Write a geopolitics briefing based on THIS week\'s news (today is '+today+'). State the specific date of each development. Cover 2-3 major developments. For each: exactly when it happened, the competing interests at play, what each side wants and why, what it means for markets, business, and Southeast Asia specifically. Use <h3> for each topic with the date.':'')+
-      (tab==='learn'?'Teach one concept that a first-year analyst at Goldman Sachs, McKinsey, or a top hedge fund would be expected to know cold. Pick one relevant to this week\'s news. Teach it as a practitioner: clear definition, how it is used in real deals or trades with firm names, a worked numerical example, and what experienced professionals know that books miss. Do not mention exams or academic modules. Use <h3> for sections.':'');
+      (tab==='world'?'Write a deep analysis of the 3 most important world stories. For each: background context (2-3 sentences), what just happened, why it matters beyond the headline, what to watch next. Use <h3> for story titles. Do NOT just summarise headlines — give me the analysis I cannot get from a Google search.':'')+
+      (tab==='finance'?'Write a finance briefing for a Year 2 A&F student. Cover: (1) what moved in markets today and the real reason why, (2) one macroeconomic concept illustrated by today\'s news, (3) what this means for Malaysia and the ringgit. Go deep. Use <h3> for sections.':'')+
+      (tab==='geo'?'Write a geopolitics briefing. Cover 2-3 major developments. For each: the situation, historical context, the competing interests at play, what each side wants and why, what it means for Southeast Asia. Use <h3> for each topic.':'')+
+      (tab==='learn'?'Choose the most interesting concept from today\'s news or from A&F studies. Teach it properly: what it is (simple analogy first), how it actually works (mechanics), why it matters for a student in Malaysia, a real-world example, and one counterintuitive insight. Use <h3> for sections. Make it genuinely educational — the kind of thing someone would tell a friend about.':'');
     const content=await askGroq(prompt,BRIEF_CFG[tab].sys);
     const html='<div class="card">'+
       '<div class="card-label" style="margin-bottom:4px">'+BRIEF_CFG[tab].label+' · '+today+'</div>'+
@@ -2606,7 +2574,7 @@ function saveArticleAsNote(tab){
 // ═══════════════════════════════════════════════
 // CONCEPT
 // ═══════════════════════════════════════════════
-var CONCEPTS=['How does a Leveraged Buyout (LBO) work?','What is DCF valuation and how do bankers build one?','How do comparable company analysis (comps) work?','What is EBITDA and why do deal professionals use it?','How does McKinsey structure problem solving — issue trees explained','What is MECE and how do consultants use it?','What is the difference between equity value and enterprise value?','How does an IPO work from mandate to listing?','What is a hedge fund and what are the main strategies?','How does M&A due diligence work?','What is private equity and how does a fund generate returns?','What is the carry trade and why do macro funds use it?','How do Goldman Sachs and JPMorgan actually make money?','What is the BCG Growth-Share Matrix?','How does options pricing work — delta, gamma, vega?','What is a pitch book and how do bankers structure one?','How does short selling work mechanically?','What is a credit default swap (CDS)?','What does a first-year analyst at Goldman Sachs do all day?','What is venture capital and how does the VC model work?','What is the Porter Five Forces framework?','What is yield curve inversion and why does it matter?','How does a consulting engagement run at McKinsey or BCG?','What is the 2-and-20 fee structure in hedge funds?','What is the difference between buy-side and sell-side?','What is a Special Purpose Acquisition Company (SPAC)?','How does fixed income trading work at a bank?','What is quantitative easing and how does it affect asset prices?'];
+var CONCEPTS=['What is DCF (Discounted Cash Flow) analysis?','What is double-entry bookkeeping?','What is WACC and how is it calculated?','How do financial statements connect to each other?','What is marginal costing vs absorption costing?','What is the time value of money?','What is capital budgeting?','What is working capital management?','What is a budget variance and how do you analyse it?','What is investment banking and what do they actually do?','How do interest rates affect business decisions?','What is the efficient market hypothesis?','What is financial leverage and its risks?','What is activity-based costing?','What is monetary policy and how does it work?','What are derivatives and why do they exist?','What is transfer pricing?','How does ratio analysis work?','What is the Black-Scholes model?','What is Basel III and why does it matter?'];
 
 async function renderConcept(){
   const s=getS();
@@ -2621,8 +2589,8 @@ async function renderConcept(){
     const pool=CONCEPTS.filter(function(c){return !learned.includes(c);});
     const topic=(pool.length>0?pool:CONCEPTS)[Math.floor(Math.random()*(pool.length>0?pool.length:CONCEPTS.length))];
     const content=await askGroq(
-      'Teach me: \"'+topic+'\"\n\nI want to understand this at a practitioner level — as a first-year analyst at Goldman Sachs or junior consultant at McKinsey would know it.\n\nStructure in HTML:\n<h3>The one-sentence version</h3><p>The clearest definition. Then one vivid analogy that makes it immediately stick.</p>\n<h3>How it actually works</h3><p>The real mechanics. How professionals use this in real deals, trades, or engagements. Name actual firms or situations. 2-3 paragraphs.</p>\n<h3>Walk me through the numbers</h3><p>A concrete worked example with real numbers, step by step as you would present it in an interview.</p>\n<h3>What beginners get wrong</h3><p>The nuances that separate someone who read about it from someone who has done it.</p>\n\nDo NOT mention exams, degrees, or academic relevance. Teach it purely as a practitioner would.',
-      'You are a former Goldman Sachs VP and McKinsey Senior Consultant. You teach with precision, real-world examples, and practitioner language. Never reference textbooks or academic courses. Every explanation uses actual firm names and real deal structures.'
+      'Teach me: "'+topic+'"\n\nI am a Year 2 Accounting & Finance student at Sunway University Malaysia.\n\nStructure in HTML:\n<h3>The simple version</h3><p>One paragraph. No jargon. Vivid real-world analogy that actually makes sense.</p>\n<h3>How it works in practice</h3><p>The real mechanics. 2-3 paragraphs. Use a specific Malaysian or ASEAN company example where possible.</p>\n<h3>Why this matters for your degree</h3><p>Specific modules where this appears. How it connects to things you already know.</p>\n<h3>The numbers</h3><p>A worked example with actual numbers. Show the calculation or process step by step.</p>\n<h3>What most people misunderstand</h3><p>One common misconception or non-obvious insight.</p>\n\nDo NOT include a section called "why you need to know this" or "exam tips". Just teach the concept deeply and let the value speak for itself.',
+      'You are the world\'s best Accounting & Finance tutor. You explain things with crystal clarity, vivid examples, and genuine insight. You never pad content or state the obvious. Every sentence teaches something.'
     );
     const todayStr=new Date().toLocaleDateString('en-MY',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
     const html='<div class="card">'+
@@ -3664,135 +3632,257 @@ function openPdfViewer(dataUrl, name, pdfId) {
 function renderPdfPage(pageNum) {
   if (!pdfCurrentDoc) return;
   pdfCurrentDoc.getPage(pageNum).then(function(page) {
-    var viewport = page.getViewport({ scale: pdfScale });
+    var scale = pdfScale || 1.5;
+    var viewport = page.getViewport({ scale: scale });
+
+    // Main PDF canvas
     var canvas = document.createElement('canvas');
+    canvas.id = 'pdfMainCanvas';
     canvas.width = viewport.width;
     canvas.height = viewport.height;
-    canvas.id = 'pdfCanvas_' + pageNum;
-    canvas.style.cursor = pdfActiveTool ? 'crosshair' : 'default';
+    canvas.style.position = 'relative';
+    canvas.style.zIndex = '1';
+
+    // Highlight overlay canvas (transparent, over PDF)
+    var hlCanvas = document.createElement('canvas');
+    hlCanvas.id = 'pdfHlCanvas';
+    hlCanvas.className = 'pdf-highlight-canvas';
+    hlCanvas.width = viewport.width;
+    hlCanvas.height = viewport.height;
+    hlCanvas.style.width = viewport.width + 'px';
+    hlCanvas.style.height = viewport.height + 'px';
+
+    // Draw canvas (freehand pen, on top)
+    var drawCanvas = document.createElement('canvas');
+    drawCanvas.id = 'pdfDrawCanvas';
+    drawCanvas.className = 'pdf-draw-canvas';
+    drawCanvas.width = viewport.width;
+    drawCanvas.height = viewport.height;
+    drawCanvas.style.width = viewport.width + 'px';
+    drawCanvas.style.height = viewport.height + 'px';
+
+    var wrap = document.getElementById('pdfCanvasWrap');
+    wrap.style.position = 'relative';
+    wrap.innerHTML = '';
+
+    var pageWrap = document.createElement('div');
+    pageWrap.style.cssText = 'position:relative;display:inline-block;box-shadow:0 4px 20px rgba(0,0,0,0.2);';
+    pageWrap.appendChild(canvas);
+    pageWrap.appendChild(hlCanvas);
+    pageWrap.appendChild(drawCanvas);
+    wrap.appendChild(pageWrap);
 
     var ctx = canvas.getContext('2d');
     page.render({ canvasContext: ctx, viewport: viewport }).promise.then(function() {
-      drawPageAnnotations(canvas, pageNum);
+      drawAllAnnotations(hlCanvas, drawCanvas, pageNum);
     });
 
-    canvas.addEventListener('click', function(e) {
-      if (!pdfActiveTool) return;
-      var rect = canvas.getBoundingClientRect();
-      var x = ((e.clientX - rect.left) / rect.width * 100).toFixed(1);
-      var y = ((e.clientY - rect.top) / rect.height * 100).toFixed(1);
-      if (pdfActiveTool === 'highlight') {
-        var sel = window.getSelection ? window.getSelection().toString().trim() : '';
-        var text = sel || prompt('Text to highlight (or enter text manually):');
-        if (text) addPdfAnnotation({ type: 'highlight', text: text, page: pageNum, x: parseFloat(x), y: parseFloat(y) });
-      } else if (pdfActiveTool === 'note') {
-        var noteText = prompt('Add a note for this location:');
-        if (noteText) addPdfAnnotation({ type: 'note', text: noteText, page: pageNum, x: parseFloat(x), y: parseFloat(y) });
-      }
-    });
-
-    var wrap = document.getElementById('pdfCanvasWrap');
-    wrap.innerHTML = '';
-    wrap.appendChild(canvas);
     document.getElementById('pdfPageInfo').textContent = pageNum + ' / ' + pdfTotalPages;
     pdfCurrentPage = pageNum;
+
+    // Load page notes
+    var s = getS();
+    var notes = (s.pdfPageNotes || {})[pdfCurrentId + '_' + pageNum] || '';
+    document.getElementById('pdfPageNotes').value = notes;
+
+    setupDrawCanvas(drawCanvas, hlCanvas, pageNum, viewport);
+    renderAnnotPanel();
   });
 }
 
-function drawPageAnnotations(canvas, pageNum) {
+function drawAllAnnotations(hlCanvas, drawCanvas, pageNum) {
   if (!pdfCurrentId) return;
   var s = getS();
   var allAnnots = (s.pdfAnnotations || {})[pdfCurrentId] || [];
   var pageAnnots = allAnnots.filter(function(a) { return a.page === pageNum; });
-  if (pageAnnots.length === 0) return;
 
-  var ctx = canvas.getContext('2d');
+  var hlCtx = hlCanvas.getContext('2d');
+  hlCtx.clearRect(0, 0, hlCanvas.width, hlCanvas.height);
+  var drCtx = drawCanvas.getContext('2d');
+  drCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+
   pageAnnots.forEach(function(a) {
-    var px = (a.x / 100) * canvas.width;
-    var py = (a.y / 100) * canvas.height;
-    if (a.type === 'highlight') {
-      ctx.save();
-      ctx.globalAlpha = 0.35;
-      ctx.fillStyle = '#ffeb3b';
-      ctx.fillRect(px - 4, py - 14, Math.min(200, ctx.measureText(a.text).width + 8), 18);
-      ctx.globalAlpha = 1;
-      ctx.fillStyle = '#b8860b';
-      ctx.font = '11px sans-serif';
-      ctx.fillText(a.text.slice(0, 30), px, py);
-      ctx.restore();
-    } else if (a.type === 'note') {
-      ctx.save();
-      ctx.fillStyle = '#3a7d5a';
-      ctx.beginPath();
-      ctx.arc(px, py, 8, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = '#fff';
-      ctx.font = 'bold 10px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText('N', px, py);
-      ctx.restore();
+    if (a.type === 'highlight' && a.rect) {
+      hlCtx.save();
+      hlCtx.globalAlpha = 0.38;
+      hlCtx.fillStyle = a.colour || '#ffeb3b';
+      hlCtx.fillRect(a.rect.x, a.rect.y, a.rect.w, a.rect.h);
+      hlCtx.globalAlpha = 1;
+      hlCtx.restore();
+    } else if (a.type === 'draw' && a.path) {
+      drCtx.save();
+      drCtx.strokeStyle = a.colour || '#ff4444';
+      drCtx.lineWidth = a.lineWidth || 2;
+      drCtx.lineCap = 'round';
+      drCtx.lineJoin = 'round';
+      drCtx.globalAlpha = 0.85;
+      drCtx.beginPath();
+      a.path.forEach(function(pt, i) {
+        if (i === 0) drCtx.moveTo(pt.x, pt.y);
+        else drCtx.lineTo(pt.x, pt.y);
+      });
+      drCtx.stroke();
+      drCtx.restore();
     }
   });
 }
 
-function addPdfAnnotation(annot) {
-  if (!pdfCurrentId) return;
+function setupDrawCanvas(drawCanvas, hlCanvas, pageNum, viewport) {
+  var isDrawing = false;
+  var isDragging = false;
+  var startX, startY;
+  var currentPath = [];
+
+  // Selection for highlight — track drag rectangle
+  var hlStartX, hlStartY;
+
+  drawCanvas.onmousedown = function(e) {
+    if (!pdfActiveTool) return;
+    e.preventDefault();
+    var rect = drawCanvas.getBoundingClientRect();
+    var scaleX = drawCanvas.width / rect.width;
+    var scaleY = drawCanvas.height / rect.height;
+    var x = (e.clientX - rect.left) * scaleX;
+    var y = (e.clientY - rect.top) * scaleY;
+
+    if (pdfActiveTool === 'highlight') {
+      isDragging = true;
+      hlStartX = x; hlStartY = y;
+    } else if (pdfActiveTool === 'pen') {
+      isDrawing = true;
+      currentPath = [{x: x, y: y}];
+    } else if (pdfActiveTool === 'erase') {
+      erasePdfAt(x, y, pageNum, hlCanvas, drawCanvas);
+    }
+  };
+
+  drawCanvas.onmousemove = function(e) {
+    if (!pdfActiveTool) return;
+    var rect = drawCanvas.getBoundingClientRect();
+    var scaleX = drawCanvas.width / rect.width;
+    var scaleY = drawCanvas.height / rect.height;
+    var x = (e.clientX - rect.left) * scaleX;
+    var y = (e.clientY - rect.top) * scaleY;
+
+    if (pdfActiveTool === 'highlight' && isDragging) {
+      // Live preview highlight rect
+      var hlCtx = hlCanvas.getContext('2d');
+      var s = getS();
+      var allAnnots = (s.pdfAnnotations || {})[pdfCurrentId] || [];
+      var pageAnnots = allAnnots.filter(function(a) { return a.page === pageNum; });
+      hlCtx.clearRect(0, 0, hlCanvas.width, hlCanvas.height);
+      // Redraw saved highlights
+      pageAnnots.forEach(function(a) {
+        if (a.type === 'highlight' && a.rect) {
+          hlCtx.save();
+          hlCtx.globalAlpha = 0.38;
+          hlCtx.fillStyle = a.colour || '#ffeb3b';
+          hlCtx.fillRect(a.rect.x, a.rect.y, a.rect.w, a.rect.h);
+          hlCtx.globalAlpha = 1;
+          hlCtx.restore();
+        }
+      });
+      // Draw live preview
+      hlCtx.save();
+      hlCtx.globalAlpha = 0.3;
+      hlCtx.fillStyle = document.getElementById('pdfColourPick').value || '#ffeb3b';
+      var rx = Math.min(hlStartX, x);
+      var ry = Math.min(hlStartY, y);
+      var rw = Math.abs(x - hlStartX);
+      var rh = Math.max(Math.abs(y - hlStartY), 18);
+      hlCtx.fillRect(rx, ry, rw, rh);
+      hlCtx.globalAlpha = 1;
+      hlCtx.restore();
+    } else if (pdfActiveTool === 'pen' && isDrawing) {
+      currentPath.push({x: x, y: y});
+      // Live draw preview
+      var drCtx = drawCanvas.getContext('2d');
+      drCtx.strokeStyle = document.getElementById('pdfColourPick').value || '#ff4444';
+      drCtx.lineWidth = 2.5;
+      drCtx.lineCap = 'round';
+      drCtx.lineJoin = 'round';
+      drCtx.globalAlpha = 0.85;
+      if (currentPath.length > 1) {
+        var prev = currentPath[currentPath.length - 2];
+        drCtx.beginPath();
+        drCtx.moveTo(prev.x, prev.y);
+        drCtx.lineTo(x, y);
+        drCtx.stroke();
+      }
+    }
+  };
+
+  drawCanvas.onmouseup = function(e) {
+    if (!pdfActiveTool) return;
+    var rect = drawCanvas.getBoundingClientRect();
+    var scaleX = drawCanvas.width / rect.width;
+    var scaleY = drawCanvas.height / rect.height;
+    var x = (e.clientX - rect.left) * scaleX;
+    var y = (e.clientY - rect.top) * scaleY;
+
+    if (pdfActiveTool === 'highlight' && isDragging) {
+      isDragging = false;
+      var rw = Math.abs(x - hlStartX);
+      var rh = Math.max(Math.abs(y - hlStartY), 18);
+      if (rw > 5) {
+        addPdfAnnotation({
+          type: 'highlight',
+          page: pageNum,
+          colour: document.getElementById('pdfColourPick').value || '#ffeb3b',
+          rect: { x: Math.min(hlStartX, x), y: Math.min(hlStartY, y), w: rw, h: rh }
+        });
+      }
+    } else if (pdfActiveTool === 'pen' && isDrawing) {
+      isDrawing = false;
+      if (currentPath.length > 2) {
+        addPdfAnnotation({
+          type: 'draw',
+          page: pageNum,
+          colour: document.getElementById('pdfColourPick').value || '#ff4444',
+          lineWidth: 2.5,
+          path: currentPath
+        });
+      }
+      currentPath = [];
+    }
+  };
+
+  drawCanvas.onmouseleave = function() { isDrawing = false; isDragging = false; };
+
+  // Cursor management
+  drawCanvas.style.cursor = pdfActiveTool ? (pdfActiveTool === 'erase' ? 'cell' : 'crosshair') : 'default';
+}
+
+function erasePdfAt(x, y, pageNum, hlCanvas, drawCanvas) {
   var s = getS();
   var allAnnots = s.pdfAnnotations || {};
-  allAnnots[pdfCurrentId] = allAnnots[pdfCurrentId] || [];
-  allAnnots[pdfCurrentId].push(Object.assign({ id: 'a' + Date.now() }, annot));
+  var annots = (allAnnots[pdfCurrentId] || []).filter(function(a) {
+    if (a.page !== pageNum) return true;
+    if (a.type === 'highlight' && a.rect) {
+      return !(x >= a.rect.x && x <= a.rect.x + a.rect.w && y >= a.rect.y && y <= a.rect.y + a.rect.h);
+    }
+    if (a.type === 'draw' && a.path) {
+      return !a.path.some(function(pt) { return Math.abs(pt.x - x) < 20 && Math.abs(pt.y - y) < 20; });
+    }
+    return true;
+  });
+  allAnnots[pdfCurrentId] = annots;
   saveS({ pdfAnnotations: allAnnots });
-  renderPdfPage(pdfCurrentPage);
+  drawAllAnnotations(hlCanvas, drawCanvas, pageNum);
   renderAnnotPanel();
-  showToast('Annotation added', 'success');
 }
 
-function renderAnnotPanel() {
+function savePdfPageNote() {
   if (!pdfCurrentId) return;
+  var val = document.getElementById('pdfPageNotes').value;
   var s = getS();
-  var annots = (s.pdfAnnotations || {})[pdfCurrentId] || [];
-  var el = document.getElementById('pdfAnnotList');
-  if (annots.length === 0) {
-    el.innerHTML = '<div style="font-size:12px;color:var(--text3);text-align:center;padding:20px">No annotations yet.<br/>Use tools above to add highlights or notes.</div>';
-    return;
-  }
-  el.innerHTML = annots.map(function(a, i) {
-    return '<div class="pdf-annot-item" onclick="renderPdfPage(' + a.page + ')">' +
-      '<div class="annot-type ' + a.type + '">' + (a.type === 'highlight' ? '🖊 Highlight' : '📝 Note') + '</div>' +
-      '<div>' + a.text + '</div>' +
-      '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px">' +
-        '<div class="annot-page">Page ' + a.page + '</div>' +
-        '<button onclick="event.stopPropagation();deletePdfAnnotation(' + i + ')" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:11px">✕</button>' +
-      '</div>' +
-    '</div>';
-  }).join('');
+  var notes = s.pdfPageNotes || {};
+  notes[pdfCurrentId + '_' + pdfCurrentPage] = val;
+  saveS({ pdfPageNotes: notes });
 }
-
-function deletePdfAnnotation(idx) {
-  var s = getS();
-  var allAnnots = s.pdfAnnotations || {};
-  if (allAnnots[pdfCurrentId]) {
-    allAnnots[pdfCurrentId].splice(idx, 1);
-    saveS({ pdfAnnotations: allAnnots });
-    renderAnnotPanel();
-    renderPdfPage(pdfCurrentPage);
-    showToast('Annotation removed', 'info');
-  }
-}
-
-function setPdfTool(tool) {
-  pdfActiveTool = tool;
-  document.getElementById('pdfHighlightBtn').classList.toggle('active', tool === 'highlight');
-  document.getElementById('pdfNoteBtn').classList.toggle('active', tool === 'note');
-  var canvas = document.querySelector('#pdfCanvasWrap canvas');
-  if (canvas) canvas.style.cursor = tool ? 'crosshair' : 'default';
-}
-
-function pdfPrevPage() { if (pdfCurrentPage > 1) renderPdfPage(pdfCurrentPage - 1); }
-function pdfNextPage() { if (pdfCurrentPage < pdfTotalPages) renderPdfPage(pdfCurrentPage + 1); }
 
 function closePdfViewer() {
+  savePdfPageNote();
   document.getElementById('pdfOverlay').classList.remove('show');
   pdfCurrentDoc = null; pdfCurrentId = null; pdfActiveTool = null;
   document.getElementById('pdfCanvasWrap').innerHTML = '';
