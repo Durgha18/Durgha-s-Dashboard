@@ -2670,14 +2670,15 @@ function calcWhatIf(){
   const neededTotal=target*(totalCredits+remaining);
   const neededPoints=neededTotal-totalPoints;
   const neededAvg=neededPoints/remaining;
+  const gradeNeeded=Object.entries(GRADE_POINTS).find(([,v])=>v>=neededAvg);
   let msg='';
   if(neededAvg<=4.0&&neededAvg>=0){
-    const gradeNeeded=Object.entries(GRADE_POINTS).find(([,v])=>v>=neededAvg);
-    msg=`To reach a GPA of <strong>${target}</strong>, you need an average of <strong>${neededAvg.toFixed(2)}</strong> grade points per credit hour in your remaining ${remaining} credits. That's roughly a <strong>${gradeNeeded?gradeNeeded[0]:'A'}</strong> average. ${neededAvg<=3.0?'That's achievable — stay consistent.':neededAvg<=3.7?'Push hard this semester.':'That's a stretch — but not impossible.'}`;
+    const enc=neededAvg<=3.0?'Achievable - stay consistent.':neededAvg<=3.7?'Push hard this semester.':'Tough but possible.';
+    msg='To reach GPA <strong>'+target+'</strong>, you need <strong>'+neededAvg.toFixed(2)+'</strong> points/credit over '+remaining+' credits remaining. Roughly a <strong>'+(gradeNeeded?gradeNeeded[0]:'A')+'</strong> average. '+enc;
   } else if(neededAvg>4.0){
-    msg=`Unfortunately a GPA of <strong>${target}</strong> is no longer achievable with ${remaining} credits remaining. Focus on maximising your current GPA instead.`;
+    msg='A GPA of <strong>'+target+'</strong> is no longer achievable. Focus on maximising what you have.';
   } else {
-    msg=`You've already secured a GPA above <strong>${target}</strong> — great work! Keep it up.`;
+    msg='You have already secured above <strong>'+target+'</strong> GPA. Keep it up!';
   }
   document.getElementById('whatIfResult').innerHTML=msg;
 }
