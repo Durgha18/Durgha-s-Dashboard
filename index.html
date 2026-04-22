@@ -434,16 +434,28 @@ select.input{cursor:pointer;appearance:none;}
     <div class="field"><div class="input-label">Title</div><input class="input" id="ev-title" placeholder="Event name..."/></div>
     <div class="grid-2">
       <div class="field"><div class="input-label">Date</div><input class="input" type="date" id="ev-date"/></div>
-      <div class="field"><div class="input-label">Time (optional)</div><input class="input" type="time" id="ev-time"/></div>
+      <div class="field"><div class="input-label">Label</div><select class="input" id="ev-label"></select></div>
     </div>
     <div class="grid-2">
-      <div class="field">
-        <div class="input-label">Label</div>
-        <select class="input" id="ev-label"></select>
-      </div>
-      <div class="field"><div class="input-label">End Time (optional)</div><input class="input" type="time" id="ev-endtime"/></div>
+      <div class="field"><div class="input-label">Start Time</div><input class="input" type="time" id="ev-time"/></div>
+      <div class="field"><div class="input-label">End Time</div><input class="input" type="time" id="ev-endtime"/></div>
     </div>
+    <div class="field"><div class="input-label">Location / Classroom (optional)</div><input class="input" id="ev-location" placeholder="e.g. Room A301, Block B, Library..."/></div>
     <div class="field"><div class="input-label">Notes (optional)</div><input class="input" id="ev-notes" placeholder="Extra details..."/></div>
+    <div class="field">
+      <div class="input-label">Recurring</div>
+      <select class="input" id="ev-recurring">
+        <option value="none">Not recurring (one-time)</option>
+        <option value="daily">Every day</option>
+        <option value="weekly">Every week (same day)</option>
+        <option value="biweekly">Every 2 weeks</option>
+        <option value="monthly">Every month (same date)</option>
+      </select>
+    </div>
+    <div class="field" id="ev-recurring-end-wrap" style="display:none">
+      <div class="input-label">Repeat Until</div>
+      <input class="input" type="date" id="ev-recurring-end"/>
+    </div>
     <div class="modal-footer">
       <button class="btn btn-ghost btn-sm" onclick="closeModal('eventModal')">Cancel</button>
       <button class="btn btn-primary btn-sm" onclick="saveEvent()">Add Event</button>
@@ -700,10 +712,17 @@ select.input{cursor:pointer;appearance:none;}
         </div>
       </div>
       <div class="content">
-        <div class="cal-nav">
-          <button class="btn btn-ghost btn-sm" onclick="calPrev()">← Prev</button>
-          <div class="cal-month" id="calMonthLabel"></div>
-          <button class="btn btn-ghost btn-sm" onclick="calNext()">Next →</button>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <div style="display:flex;align-items:center;gap:8px">
+            <button class="btn btn-ghost btn-sm" onclick="calPrev()">← Prev</button>
+            <div class="cal-month" id="calMonthLabel"></div>
+            <button class="btn btn-ghost btn-sm" onclick="calNext()">Next →</button>
+          </div>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-ghost btn-sm" onclick="nav('planning')" title="Day/Week planner">🗓️ Planner</button>
+            <button class="btn btn-ghost btn-sm" id="gcalBtn" onclick="handleGCalBtn()">☁️ Google Cal</button>
+            <button class="btn btn-ghost btn-sm" onclick="fetchGCalEvents()" id="gcalSync" style="display:none">↻ Sync</button>
+          </div>
         </div>
         <div class="cal-grid" id="calGrid"></div>
         <div id="dayPanel"></div>
@@ -1551,8 +1570,12 @@ function renderCalendar(){
     const isToday=d===now.getDate()&&calMonth===now.getMonth()&&calYear===now.getFullYear();
     const isSelected=selectedDay===dateStr;
 
-    // Events on this day
-    const dayEvents=s.events.filter(function(e){return e.date===dateStr;});
+    // Events on this day (including recurring)
+    const dayEvents=s.events.filter(function(e){
+      if(e.date===dateStr) return true;
+      if(!e.recurring||e.recurring==='none') return false;
+      return isRecurringOnDate(e,dateStr);
+    });
     // Tasks due this day
     const dayTasks=s.tasks.filter(function(t){return t.due===dateStr&&!t.done;});
 
@@ -1579,6 +1602,7 @@ function renderCalendar(){
 
   grid.innerHTML=html;
   if(selectedDay)renderDayPanel(selectedDay);
+  updateGCalUI();
 }
 
 function calPrev(){
@@ -1602,8 +1626,8 @@ function renderDayPanel(dateStr){
   const s=getS();
   const d=new Date(dateStr);
   const panel=document.getElementById('dayPanel');
-  const dayEvents=s.events.filter(function(e){return e.date===dateStr;});
-  const dayTasks=s.tasks.filter(function(t){return t.due===dateStr;});
+  const dayEvents=getEventsForDate(dateStr);
+  const dayTasks=s.tasks.filter(function(t){return t.due===dateStr&&!t.done;});
 
   panel.innerHTML='<div class="day-panel">'+
     '<div class="day-panel-title">'+d.toLocaleDateString('en-MY',{weekday:'long',day:'numeric',month:'long'})+
@@ -1616,6 +1640,7 @@ function renderDayPanel(dateStr){
         '<div style="width:10px;height:10px;border-radius:50%;background:'+col+';flex-shrink:0"></div>'+
         '<div style="flex:1"><div style="font-size:12px;font-weight:500;color:var(--text)">'+e.title+'</div>'+
         (e.time?'<div style="font-size:10px;color:var(--text3);font-family:var(--mono)">'+e.time+(e.endtime?' – '+e.endtime:'')+'</div>':'')+
+        (e.location?'<div style="font-size:10px;color:var(--blue);font-family:var(--mono)">📍 '+e.location+'</div>':'')+
         (e.notes?'<div style="font-size:11px;color:var(--text3)">'+e.notes+'</div>':'')+
         '</div><button onclick="deleteEvent(\''+e.id+'\')" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:12px">✕</button></div>';
     }).join(''):'')+
@@ -1638,6 +1663,8 @@ function openAddEventForDay(dateStr){
 function saveEvent(){
   const title=document.getElementById('ev-title').value.trim();
   if(!title){showToast('Enter a title','error');return;}
+  const recurring=document.getElementById('ev-recurring').value;
+  const recurringEnd=document.getElementById('ev-recurring-end').value;
   const ev={
     id:'ev'+Date.now(),
     title:title,
@@ -1645,12 +1672,17 @@ function saveEvent(){
     time:document.getElementById('ev-time').value,
     endtime:document.getElementById('ev-endtime').value,
     labelId:document.getElementById('ev-label').value,
-    notes:document.getElementById('ev-notes').value
+    location:document.getElementById('ev-location').value,
+    notes:document.getElementById('ev-notes').value,
+    recurring:recurring,
+    recurringEnd:recurringEnd||null
   };
   const s=getS();
   saveS({events:[...s.events,ev]});
   closeModal('eventModal');
-  ['ev-title','ev-time','ev-endtime','ev-notes'].forEach(function(id){document.getElementById(id).value='';});
+  ['ev-title','ev-time','ev-endtime','ev-notes','ev-location'].forEach(function(id){document.getElementById(id).value='';});
+  document.getElementById('ev-recurring').value='none';
+  document.getElementById('ev-recurring-end-wrap').style.display='none';
   showToast('Event added!','success');
   if(currentView==='calendar')renderCalendar();
 }
@@ -2594,6 +2626,7 @@ function importData(e){
 // INIT
 // ═══════════════════════════════════════════════
 function initApp(){
+  handleGCalRedirect();
   checkStreak();
   setTimeout(checkDeadlineCountdown, 2000);
   updateSidebarStats();
@@ -2649,96 +2682,87 @@ function renderPlanning() {
   var s = getS();
   var today = new Date();
   var todayStr = today.toISOString().slice(0, 10);
-  var dayOfWeek = today.getDay();
-  var isMonday = dayOfWeek === 1;
-  var isSunday = dayOfWeek === 0;
 
-  // Weekly priorities stored per week
-  var weekKey = getWeekKey();
-  var weeklyData = s.weeklyPlans && s.weeklyPlans[weekKey] ? s.weeklyPlans[weekKey] : {priorities: ['', '', ''], reflection: '', nextWeekFocus: ''};
+  var modeHtml = '<div style="display:flex;gap:6px;margin-bottom:16px">' +
+    '<button class="space-tab ' + (planningMode==='daily'?'active':'') + '" onclick="planningMode=\'daily\';renderPlanning()">📅 Day View</button>' +
+    '<button class="space-tab ' + (planningMode==='weekly'?'active':'') + '" onclick="planningMode=\'weekly\';renderPlanning()">📋 Week View</button>' +
+    '<button class="space-tab ' + (planningMode==='timetable'?'active':'') + '" onclick="planningMode=\'timetable\';renderPlanning()">🗓️ Timetable</button>' +
+  '</div>';
 
-  // Daily plan for today
-  var dailyKey = todayStr;
-  var dailyData = s.dailyPlans && s.dailyPlans[dailyKey] ? s.dailyPlans[dailyKey] : {intention: s.intention || '', topTasks: [], notes: ''};
+  var el = document.getElementById('planningContent');
 
-  var pendingTasks = s.tasks.filter(function(t) { return !t.done; });
+  if (planningMode === 'timetable') {
+    el.innerHTML = modeHtml + renderTimetable();
+    return;
+  }
 
-  document.getElementById('planningContent').innerHTML =
-    // Daily Planning Section
-    '<div class="card">' +
-      '<div class="card-header">' +
-        '<div class="card-title">📅 Daily Plan — ' + today.toLocaleDateString("en-MY", {weekday:"long", day:"numeric", month:"long"}) + '</div>' +
-      '</div>' +
-      '<div class="field"><div class="input-label">Daily Intention</div>' +
-        '<input class="input" id="dp-intention" value="' + (dailyData.intention || '').replace(/"/g, '&quot;') + '" placeholder="What matters most today"/>' +
-      '</div>' +
-      '<div class="input-label" style="margin-bottom:8px">Top 3 Tasks for Today</div>' +
-      '<div id="dp-tasks">' +
-        [0, 1, 2].map(function(i) {
-          var taskId = dailyData.topTasks && dailyData.topTasks[i] ? dailyData.topTasks[i] : '';
-          var task = taskId ? pendingTasks.find(function(t) { return t.id === taskId; }) : null;
+  if (planningMode === 'weekly') {
+    var weeklyData = s.weeklyPlans && s.weeklyPlans[getWeekKey()] ? s.weeklyPlans[getWeekKey()] : {priorities:['','',''],reflection:'',nextWeekFocus:''};
+    el.innerHTML = modeHtml +
+      '<div class="card" style="margin-bottom:14px">' +
+        '<div class="card-title" style="margin-bottom:12px">Week of ' + getWeekStart() + '</div>' +
+        '<div class="input-label" style="margin-bottom:8px">Top 3 Priorities This Week</div>' +
+        [0,1,2].map(function(i) {
           return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">' +
-            '<div style="width:20px;height:20px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-family:var(--mono);flex-shrink:0">' + (i+1) + '</div>' +
-            '<select class="input" id="dp-task-' + i + '" style="flex:1">' +
-              '<option value="">— Pick a task —</option>' +
-              pendingTasks.map(function(t) {
-                return '<option value="' + t.id + '"' + (taskId === t.id ? ' selected' : '') + '>' + t.title + '</option>';
-              }).join('') +
-            '</select>' +
+            '<div style="width:20px;height:20px;border-radius:50%;background:var(--gold);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0">' + (i+1) + '</div>' +
+            '<input class="input" id="wp-p' + i + '" value="' + ((weeklyData.priorities&&weeklyData.priorities[i])||'').replace(/"/g,'&quot;') + '" placeholder="Priority ' + (i+1) + '..."/>' +
           '</div>';
         }).join('') +
+        '<div class="field" style="margin-top:8px"><div class="input-label">Reflection</div><textarea class="input" id="wp-reflection" style="min-height:50px">' + (weeklyData.reflection||'') + '</textarea></div>' +
+        '<button class="btn btn-primary btn-sm" onclick="saveWeeklyPlan()">Save Weekly Plan</button>' +
       '</div>' +
-      '<div class="field" style="margin-top:10px"><div class="input-label">Notes / Plan for the day</div>' +
-        '<textarea class="input" id="dp-notes" style="min-height:60px" placeholder="Any notes for the day">' + (dailyData.notes || '') + '</textarea>' +
+      renderWeekGrid();
+    return;
+  }
+
+  // Daily mode
+  var dayOffset = 0;
+  var displayDate = new Date(plannerDate + 'T00:00:00');
+  var dailyKey = plannerDate;
+  var dailyData = s.dailyPlans && s.dailyPlans[dailyKey] ? s.dailyPlans[dailyKey] : {intention: s.intention||'', topTasks:[], notes:''};
+  var pendingTasks = s.tasks.filter(function(t) { return !t.done; });
+
+  el.innerHTML = modeHtml +
+    '<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">' +
+      '<button class="btn btn-ghost btn-sm" onclick="shiftPlannerDay(-1)">← Prev</button>' +
+      '<div style="flex:1;text-align:center;font-family:var(--serif);font-size:15px;font-weight:700;color:var(--text)">' +
+        displayDate.toLocaleDateString("en-MY",{weekday:"long",day:"numeric",month:"long"}) +
+        (plannerDate===todayStr ? ' <span style="font-size:10px;color:var(--accent);font-family:var(--mono)">(TODAY)</span>' : '') +
       '</div>' +
-      '<div style="display:flex;gap:8px;margin-top:4px">' +
-        '<button class="btn btn-primary btn-sm" onclick="saveDailyPlan()">Save Daily Plan</button>' +
+      '<button class="btn btn-ghost btn-sm" onclick="shiftPlannerDay(1)">Next →</button>' +
+    '</div>' +
+
+    '<div class="card" style="margin-bottom:14px">' +
+      '<div class="card-title" style="margin-bottom:10px">Daily Intention</div>' +
+      '<input class="input" id="dp-intention" value="' + (dailyData.intention||'').replace(/"/g,'&quot;') + '" placeholder="What matters most today"/>' +
+      '<div class="input-label" style="margin-top:10px;margin-bottom:8px">Top 3 Tasks for Today</div>' +
+      [0,1,2].map(function(i) {
+        var taskId = dailyData.topTasks&&dailyData.topTasks[i]?dailyData.topTasks[i]:'';
+        return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">' +
+          '<div style="width:20px;height:20px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0">' + (i+1) + '</div>' +
+          '<select class="input" id="dp-task-' + i + '">' +
+            '<option value="">No task selected</option>' +
+            pendingTasks.map(function(t) { return '<option value="' + t.id + '"' + (taskId===t.id?' selected':'') + '>' + t.title + '</option>'; }).join('') +
+          '</select>' +
+        '</div>';
+      }).join('') +
+      '<div style="display:flex;gap:8px;margin-top:10px">' +
+        '<button class="btn btn-primary btn-sm" onclick="saveDailyPlan()">Save Plan</button>' +
         '<button class="btn btn-ghost btn-sm" onclick="nav(\'morning\')">View Morning</button>' +
       '</div>' +
     '</div>' +
 
-    // Weekly Planning Section
     '<div class="card">' +
-      '<div class="card-header">' +
-        '<div class="card-title">📋 Weekly Plan — Week of ' + getWeekStart() + '</div>' +
-        (isSunday || isMonday ? '<span class="tag tag-accent" style="font-size:9px">Time to plan</span>' : '') +
-      '</div>' +
-      '<div class="input-label" style="margin-bottom:8px">Top 3 Priorities This Week</div>' +
-      [0, 1, 2].map(function(i) {
-        return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">' +
-          '<div style="width:20px;height:20px;border-radius:50%;background:var(--gold);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-family:var(--mono);flex-shrink:0">' + (i+1) + '</div>' +
-          '<input class="input" id="wp-p' + i + '" value="' + (weeklyData.priorities && weeklyData.priorities[i] ? weeklyData.priorities[i].replace(/"/g, '&quot;') : '') + '" placeholder="Priority ' + (i+1) + '..."/>' +
-        '</div>';
-      }).join('') +
-      '<div class="field" style="margin-top:10px"><div class="input-label">Last Week Reflection (optional)</div>' +
-        '<textarea class="input" id="wp-reflection" style="min-height:60px" placeholder="What went well and what to improve">' + (weeklyData.reflection || '') + '</textarea>' +
-      '</div>' +
-      '<div class="field"><div class="input-label">Next Week Focus</div>' +
-        '<input class="input" id="wp-nextfocus" value="' + (weeklyData.nextWeekFocus || '').replace(/"/g, '&quot;') + '" placeholder="One focus for next week..."/>' +
-      '</div>' +
-      '<button class="btn btn-primary btn-sm" onclick="saveWeeklyPlan()">Save Weekly Plan</button>' +
-    '</div>' +
-
-    // Upcoming deadlines overview
-    '<div class="card">' +
-      '<div class="card-title" style="margin-bottom:12px">⚠️ Upcoming Deadlines</div>' +
-      (function() {
-        var upcoming = s.tasks.filter(function(t) { return !t.done && t.due; })
-          .sort(function(a, b) { return new Date(a.due) - new Date(b.due); })
-          .slice(0, 10);
-        if (!upcoming.length) return '<div class="empty" style="padding:14px"><div class="empty-text">No upcoming deadlines</div></div>';
-        return upcoming.map(function(t) {
-          var days = daysUntil(t.due);
-          var col = days <= 0 ? 'var(--red)' : days <= 3 ? 'var(--gold)' : 'var(--text3)';
-          var label = days <= 0 ? 'TODAY' : days === 1 ? 'Tomorrow' : 'In ' + days + ' days';
-          return '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">' +
-            '<div style="font-family:var(--mono);font-size:10px;color:' + col + ';font-weight:600;min-width:70px">' + label + '</div>' +
-            '<div style="flex:1;font-size:12px;color:var(--text)">' + t.title + '</div>' +
-            '<div style="font-size:10px;color:var(--text3);font-family:var(--mono)">' + fmtDate(t.due) + '</div>' +
-          '</div>';
-        }).join('');
-      })() +
+      '<div class="card-title" style="margin-bottom:12px">Hour by Hour</div>' +
+      renderDayPlanner(plannerDate) +
     '</div>';
+}
+
+function shiftPlannerDay(delta) {
+  var d = new Date(plannerDate + 'T00:00:00');
+  d.setDate(d.getDate() + delta);
+  plannerDate = d.toISOString().slice(0, 10);
+  renderPlanning();
 }
 
 function getWeekKey() {
@@ -2801,6 +2825,406 @@ function checkDeadlineCountdown() {
     var days = daysUntil(most.due);
     var msg = days <= 0 ? '"' + most.title + '" is due TODAY' : '"' + most.title + '" due tomorrow';
     showToast('⏰ ' + msg, 'error');
+  }
+}
+
+
+// ═══════════════════════════════════════════════
+// RECURRING EVENTS
+// ═══════════════════════════════════════════════
+function isRecurringOnDate(ev, dateStr) {
+  if (!ev.recurring || ev.recurring === 'none' || !ev.date) return false;
+  var origin = new Date(ev.date + 'T00:00:00');
+  var target = new Date(dateStr + 'T00:00:00');
+  if (target < origin) return false;
+  if (ev.recurringEnd && target > new Date(ev.recurringEnd + 'T00:00:00')) return false;
+  var diffDays = Math.round((target - origin) / 86400000);
+  if (ev.recurring === 'daily') return diffDays >= 0;
+  if (ev.recurring === 'weekly') return diffDays % 7 === 0;
+  if (ev.recurring === 'biweekly') return diffDays % 14 === 0;
+  if (ev.recurring === 'monthly') {
+    return target.getDate() === origin.getDate();
+  }
+  return false;
+}
+
+function getEventsForDate(dateStr) {
+  var s = getS();
+  var timetable = s.timetable || [];
+  var regular = s.events || [];
+  var all = [];
+  regular.forEach(function(e) {
+    if (e.date === dateStr || (e.recurring && e.recurring !== 'none' && isRecurringOnDate(e, dateStr))) {
+      all.push(e);
+    }
+  });
+  // Add timetable entries for this day of week
+  var dayOfWeek = new Date(dateStr + 'T00:00:00').getDay();
+  timetable.forEach(function(t) {
+    if (t.days && t.days.includes(dayOfWeek)) {
+      all.push(Object.assign({}, t, {id: t.id, isTimetable: true}));
+    }
+  });
+  all.sort(function(a, b) {
+    return (a.time || '00:00').localeCompare(b.time || '00:00');
+  });
+  return all;
+}
+
+// ═══════════════════════════════════════════════
+// TIMETABLE (Class Schedule)
+// ═══════════════════════════════════════════════
+var timetableView = false;
+
+function renderTimetable() {
+  var s = getS();
+  var timetable = s.timetable || [];
+  var days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+  return '<div class="card">' +
+    '<div class="card-header">' +
+      '<div class="card-title">Class Timetable</div>' +
+      '<button class="btn btn-primary btn-sm" onclick="addTimetableEntry()">+ Add Class</button>' +
+    '</div>' +
+    (timetable.length === 0 ?
+      '<div class="empty" style="padding:16px"><div class="empty-text">No classes added yet.<br/>Add your recurring classes here.</div></div>' :
+      '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px">' +
+        '<thead><tr>' +
+          '<th style="padding:8px;border:1px solid var(--border);background:var(--surface2);text-align:left;font-family:var(--mono);font-size:9px;letter-spacing:0.08em;text-transform:uppercase">Class</th>' +
+          days.map(function(d) {
+            return '<th style="padding:8px;border:1px solid var(--border);background:var(--surface2);text-align:center;font-family:var(--mono);font-size:9px;letter-spacing:0.06em;width:40px">' + d + '</th>';
+          }).join('') +
+          '<th style="padding:8px;border:1px solid var(--border);background:var(--surface2);text-align:left;font-family:var(--mono);font-size:9px">Time</th>' +
+          '<th style="padding:8px;border:1px solid var(--border);background:var(--surface2);text-align:left;font-family:var(--mono);font-size:9px">Room</th>' +
+          '<th style="border:1px solid var(--border);background:var(--surface2);width:30px"></th>' +
+        '</tr></thead>' +
+        '<tbody>' +
+          timetable.map(function(t, i) {
+            var lbl = getLabelById(t.labelId);
+            var col = lbl ? lbl.colour : 'var(--accent)';
+            return '<tr>' +
+              '<td style="padding:8px;border:1px solid var(--border);font-weight:500;color:var(--text)">' +
+                '<div style="display:flex;align-items:center;gap:6px">' +
+                  '<div style="width:8px;height:8px;border-radius:50%;background:' + col + ';flex-shrink:0"></div>' +
+                  t.title +
+                '</div>' +
+              '</td>' +
+              days.map(function(_, di) {
+                var active = t.days && t.days.includes(di);
+                return '<td style="padding:8px;border:1px solid var(--border);text-align:center">' +
+                  (active ? '<div style="width:16px;height:16px;border-radius:50%;background:' + col + ';margin:0 auto"></div>' : '') +
+                '</td>';
+              }).join('') +
+              '<td style="padding:8px;border:1px solid var(--border);color:var(--text3);font-family:var(--mono);font-size:10px">' +
+                (t.time || '') + (t.endtime ? ' – ' + t.endtime : '') +
+              '</td>' +
+              '<td style="padding:8px;border:1px solid var(--border);color:var(--text3);font-size:11px">' + (t.location || '') + '</td>' +
+              '<td style="border:1px solid var(--border);text-align:center">' +
+                '<button onclick="deleteTimetableEntry(' + i + ')" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:11px;padding:4px">✕</button>' +
+              '</td>' +
+            '</tr>';
+          }).join('') +
+        '</tbody>' +
+      '</table></div>'
+    ) +
+  '</div>';
+}
+
+function addTimetableEntry() {
+  var title = prompt('Class name (e.g. Financial Accounting):');
+  if (!title) return;
+  var daysInput = prompt('Which days? Enter numbers separated by commas (0=Sun,1=Mon,2=Tue,3=Wed,4=Thu,5=Fri,6=Sat):\ne.g. "1,3" for Mon and Wed');
+  if (!daysInput) return;
+  var days = daysInput.split(',').map(function(d) { return parseInt(d.trim()); }).filter(function(d) { return !isNaN(d) && d >= 0 && d <= 6; });
+  var time = prompt('Start time (e.g. 09:00):') || '';
+  var endtime = prompt('End time (e.g. 11:00):') || '';
+  var location = prompt('Room / Location (e.g. Block A, Room 302):') || '';
+  var s = getS();
+  var timetable = [...(s.timetable || []), {
+    id: 'tt' + Date.now(),
+    title: title,
+    days: days,
+    time: time,
+    endtime: endtime,
+    location: location,
+    labelId: '',
+    isTimetable: true
+  }];
+  saveS({timetable: timetable});
+  if (currentView === 'calendar') renderCalendar();
+  showToast('Class added to timetable!', 'success');
+}
+
+function deleteTimetableEntry(idx) {
+  var s = getS();
+  var timetable = [...(s.timetable || [])];
+  timetable.splice(idx, 1);
+  saveS({timetable: timetable});
+  if (currentView === 'calendar') renderCalendar();
+  showToast('Class removed', 'info');
+}
+
+// ═══════════════════════════════════════════════
+// DAY PLANNER (Time Slots) — used in Planning page
+// ═══════════════════════════════════════════════
+function renderDayPlanner(dateStr) {
+  var s = getS();
+  dateStr = dateStr || new Date().toISOString().slice(0, 10);
+  var hours = [];
+  for (var h = 6; h <= 23; h++) hours.push(h);
+  var events = getEventsForDate(dateStr);
+  var dayPlan = s.dayTimePlans && s.dayTimePlans[dateStr] ? s.dayTimePlans[dateStr] : {};
+
+  var html = '<div style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:12px;letter-spacing:0.06em;text-transform:uppercase">' +
+    new Date(dateStr + 'T00:00:00').toLocaleDateString('en-MY', {weekday:'long', day:'numeric', month:'long'}) + '</div>';
+
+  html += '<div style="position:relative">';
+  hours.forEach(function(h) {
+    var timeStr = String(h).padStart(2, '0') + ':00';
+    var slotKey = timeStr;
+    var slotContent = dayPlan[slotKey] || '';
+
+    // Find events at this hour
+    var slotEvents = events.filter(function(e) {
+      if (!e.time) return false;
+      var eHour = parseInt(e.time.split(':')[0]);
+      return eHour === h;
+    });
+
+    html += '<div style="display:flex;gap:0;min-height:52px;border-bottom:1px solid var(--border)">' +
+      '<div style="width:52px;flex-shrink:0;padding:8px 8px 0 0;font-family:var(--mono);font-size:10px;color:var(--text3);text-align:right;border-right:2px solid var(--border)">' + timeStr + '</div>' +
+      '<div style="flex:1;padding:4px 8px;position:relative;display:flex;flex-direction:column;gap:3px">' +
+        slotEvents.map(function(e) {
+          var lbl = getLabelById(e.labelId);
+          var col = lbl ? lbl.colour : (e.isTimetable ? 'var(--blue)' : 'var(--accent)');
+          return '<div style="background:' + col + '22;border-left:3px solid ' + col + ';border-radius:0 4px 4px 0;padding:3px 8px;font-size:11px;color:' + col + ';font-weight:500">' +
+            e.title + (e.location ? ' · 📍' + e.location : '') + (e.endtime ? ' – ' + e.endtime : '') +
+          '</div>';
+        }).join('') +
+        '<input value="' + slotContent.replace(/"/g, '&quot;') + '" placeholder="Add plan..." onchange="saveDayTimeSlot(\'' + dateStr + '\',\'' + slotKey + '\',this.value)" style="border:none;background:transparent;font-size:12px;color:var(--text2);outline:none;width:100%;padding:2px 0;font-family:var(--sans)" />' +
+      '</div>' +
+    '</div>';
+  });
+  html += '</div>';
+  return html;
+}
+
+function saveDayTimeSlot(dateStr, timeKey, value) {
+  var s = getS();
+  var dayTimePlans = s.dayTimePlans || {};
+  dayTimePlans[dateStr] = dayTimePlans[dateStr] || {};
+  dayTimePlans[dateStr][timeKey] = value;
+  saveS({dayTimePlans: dayTimePlans});
+}
+
+// ═══════════════════════════════════════════════
+// WEEKLY PLANNER GRID
+// ═══════════════════════════════════════════════
+function renderWeekGrid() {
+  var today = new Date();
+  var startOfWeek = new Date(today);
+  var day = today.getDay();
+  var diff = day === 0 ? -6 : 1 - day;
+  startOfWeek.setDate(today.getDate() + diff);
+
+  var days = [];
+  for (var i = 0; i < 7; i++) {
+    var d = new Date(startOfWeek);
+    d.setDate(startOfWeek.getDate() + i);
+    days.push(d);
+  }
+
+  var s = getS();
+  var dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  var todayStr = today.toISOString().slice(0, 10);
+
+  var html = '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:8px">';
+  days.forEach(function(d, i) {
+    var dateStr = d.toISOString().slice(0, 10);
+    var isToday = dateStr === todayStr;
+    var events = getEventsForDate(dateStr);
+    var tasks = s.tasks.filter(function(t) { return !t.done && t.due === dateStr; });
+
+    html += '<div style="background:var(--surface);border:1px solid ' + (isToday ? 'var(--accent)' : 'var(--border)') + ';border-radius:10px;padding:10px;min-height:120px;cursor:pointer" onclick="switchToDayPlanner(\'' + dateStr + '\')">' +
+      '<div style="font-family:var(--mono);font-size:9px;color:' + (isToday ? 'var(--accent)' : 'var(--text3)') + ';text-transform:uppercase;letter-spacing:0.08em;margin-bottom:2px">' + dayNames[i] + '</div>' +
+      '<div style="font-family:var(--serif);font-size:18px;font-weight:700;color:' + (isToday ? 'var(--accent)' : 'var(--text)') + ';margin-bottom:6px">' + d.getDate() + '</div>' +
+      events.slice(0, 3).map(function(e) {
+        var lbl = getLabelById(e.labelId);
+        var col = lbl ? lbl.colour : (e.isTimetable ? 'var(--blue)' : 'var(--accent)');
+        return '<div style="font-size:9px;padding:2px 5px;border-radius:3px;background:' + col + '20;color:' + col + ';margin-bottom:2px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-weight:500">' + e.title + '</div>';
+      }).join('') +
+      tasks.slice(0, 2).map(function(t) {
+        return '<div style="font-size:9px;padding:2px 5px;border-radius:3px;background:rgba(192,64,64,0.1);color:var(--red);margin-bottom:2px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">📋 ' + t.title + '</div>';
+      }).join('') +
+      ((events.length + tasks.length > 3) ? '<div style="font-size:9px;color:var(--text3);font-family:var(--mono)">+' + (events.length + tasks.length - 3) + ' more</div>' : '') +
+    '</div>';
+  });
+  html += '</div>';
+  return html;
+}
+
+var planningMode = 'daily'; // 'daily' | 'weekly'
+var plannerDate = new Date().toISOString().slice(0, 10);
+
+function switchToDayPlanner(dateStr) {
+  planningMode = 'daily';
+  plannerDate = dateStr;
+  renderPlanning();
+}
+
+// ═══════════════════════════════════════════════
+// GOOGLE CALENDAR INTEGRATION
+// ═══════════════════════════════════════════════
+var GCAL_CLIENT_ID = localStorage.getItem('dd_gcal_client_id') || '';
+var GCAL_TOKEN = localStorage.getItem('dd_gcal_token') || '';
+
+function isGCalConnected() {
+  return !!GCAL_TOKEN;
+}
+
+function connectGoogleCalendar() {
+  var clientId = prompt('Enter your Google OAuth Client ID:\n(See setup instructions in the app)');
+  if (!clientId) return;
+  localStorage.setItem('dd_gcal_client_id', clientId);
+  GCAL_CLIENT_ID = clientId;
+
+  var redirectUri = window.location.origin + window.location.pathname;
+  var scope = 'https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/calendar.events';
+  var authUrl = 'https://accounts.google.com/o/oauth2/v2/auth' +
+    '?client_id=' + encodeURIComponent(clientId) +
+    '&redirect_uri=' + encodeURIComponent(redirectUri) +
+    '&response_type=token' +
+    '&scope=' + encodeURIComponent(scope) +
+    '&prompt=consent';
+  window.location.href = authUrl;
+}
+
+function disconnectGCal() {
+  localStorage.removeItem('dd_gcal_token');
+  localStorage.removeItem('dd_gcal_client_id');
+  GCAL_TOKEN = '';
+  GCAL_CLIENT_ID = '';
+  showToast('Google Calendar disconnected', 'info');
+  if (currentView === 'calendar') renderCalendar();
+}
+
+// Handle OAuth redirect token
+function handleGCalRedirect() {
+  var hash = window.location.hash;
+  if (hash && hash.includes('access_token')) {
+    var params = new URLSearchParams(hash.slice(1));
+    var token = params.get('access_token');
+    if (token) {
+      localStorage.setItem('dd_gcal_token', token);
+      GCAL_TOKEN = token;
+      window.location.hash = '';
+      showToast('Google Calendar connected!', 'success');
+      fetchGCalEvents();
+    }
+  }
+}
+
+async function fetchGCalEvents() {
+  if (!GCAL_TOKEN) return;
+  try {
+    var now = new Date().toISOString();
+    var end = new Date(Date.now() + 30 * 86400000).toISOString();
+    var res = await fetch(
+      'https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=' + encodeURIComponent(now) +
+      '&timeMax=' + encodeURIComponent(end) + '&singleEvents=true&orderBy=startTime&maxResults=50',
+      {headers: {Authorization: 'Bearer ' + GCAL_TOKEN}}
+    );
+    if (res.status === 401) {
+      localStorage.removeItem('dd_gcal_token');
+      GCAL_TOKEN = '';
+      showToast('Google Calendar session expired. Please reconnect.', 'error');
+      return;
+    }
+    var data = await res.json();
+    var gcalEvents = (data.items || []).map(function(item) {
+      var start = item.start.dateTime || item.start.date;
+      var end = item.end && (item.end.dateTime || item.end.date);
+      var startDate = start ? start.slice(0, 10) : '';
+      var startTime = item.start.dateTime ? item.start.dateTime.slice(11, 16) : '';
+      var endTime = item.end && item.end.dateTime ? item.end.dateTime.slice(11, 16) : '';
+      return {
+        id: 'gcal_' + item.id,
+        title: item.summary || '(No title)',
+        date: startDate,
+        time: startTime,
+        endtime: endTime,
+        location: item.location || '',
+        notes: item.description || '',
+        labelId: '',
+        fromGCal: true
+      };
+    });
+    var s = getS();
+    var existing = (s.events || []).filter(function(e) { return !e.fromGCal; });
+    saveS({events: [...existing, ...gcalEvents]});
+    showToast('Synced ' + gcalEvents.length + ' events from Google Calendar', 'success');
+    if (currentView === 'calendar') renderCalendar();
+  } catch(e) {
+    showToast('Could not fetch Google Calendar events', 'error');
+  }
+}
+
+async function addEventToGCal(ev) {
+  if (!GCAL_TOKEN) return;
+  try {
+    var startDateTime = ev.date + (ev.time ? 'T' + ev.time + ':00' : '');
+    var endDateTime = ev.date + (ev.endtime ? 'T' + ev.endtime + ':00' : ev.time ? 'T' + ev.time + ':00' : '');
+    var body = {
+      summary: ev.title,
+      location: ev.location || '',
+      description: ev.notes || '',
+      start: ev.time ? {dateTime: startDateTime, timeZone: 'Asia/Kuala_Lumpur'} : {date: ev.date},
+      end: ev.time ? {dateTime: endDateTime, timeZone: 'Asia/Kuala_Lumpur'} : {date: ev.date}
+    };
+    await fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events', {
+      method: 'POST',
+      headers: {'Authorization': 'Bearer ' + GCAL_TOKEN, 'Content-Type': 'application/json'},
+      body: JSON.stringify(body)
+    });
+    showToast('Added to Google Calendar!', 'success');
+  } catch(e) {
+    showToast('Could not add to Google Calendar', 'error');
+  }
+}
+
+
+function handleGCalBtn() {
+  if (isGCalConnected()) {
+    if (confirm('Google Calendar is connected. Disconnect?')) disconnectGCal();
+  } else {
+    connectGoogleCalendar();
+  }
+}
+
+function updateGCalUI() {
+  var btn = document.getElementById('gcalBtn');
+  var sync = document.getElementById('gcalSync');
+  if (!btn) return;
+  if (isGCalConnected()) {
+    btn.textContent = '☁️ Connected';
+    btn.style.color = 'var(--green)';
+    btn.style.borderColor = 'var(--green)';
+    if (sync) sync.style.display = 'inline-flex';
+  } else {
+    btn.textContent = '☁️ Google Cal';
+    btn.style.color = '';
+    btn.style.borderColor = '';
+    if (sync) sync.style.display = 'none';
+  }
+}
+
+
+function openPdfByIndex(subjectId, idx) {
+  var s = getS();
+  var pdfs = s.pdfFiles && s.pdfFiles[subjectId] ? s.pdfFiles[subjectId] : [];
+  if (pdfs[idx]) {
+    loadPdfAnnotations();
+    openPdfViewer(pdfs[idx].data, pdfs[idx].name);
   }
 }
 
