@@ -350,11 +350,7 @@ select.input{cursor:pointer;appearance:none;}
 .pdf-tool-btn:hover{border-color:var(--accent);color:var(--accent);}
 .pdf-tool-btn.active{background:var(--accent);color:#fff;border-color:var(--accent);}
 .pdf-body{flex:1;overflow:hidden;display:flex;gap:0;min-height:0;}
-.pdf-canvas-wrap{flex:1;overflow:auto;display:flex;flex-direction:column;align-items:center;padding:24px;gap:0;position:relative;background:#525659;}
-.pdf-canvas-wrap canvas{box-shadow:0 4px 20px rgba(0,0,0,0.3);display:block;}
-.pdf-page-wrap{position:relative;display:inline-block;margin-bottom:16px;}
-.pdf-highlight-canvas{position:absolute;top:0;left:0;pointer-events:none;z-index:2;}
-.pdf-draw-canvas{position:absolute;top:0;left:0;z-index:3;}
+.pdf-canvas-wrap{flex:1;overflow:auto;display:flex;flex-direction:column;align-items:center;padding:24px;background:#525659;}
 .pdf-annot-panel{width:260px;border-left:1px solid var(--border);background:var(--surface);overflow-y:auto;padding:14px;flex-shrink:0;}
 .pdf-annot-title{font-family:var(--mono);font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:10px;}
 .pdf-annot-item{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:8px;font-size:12px;color:var(--text2);line-height:1.5;cursor:pointer;transition:border-color 0.15s;}
@@ -1063,31 +1059,13 @@ select.input{cursor:pointer;appearance:none;}
   <div class="pdf-topbar">
     <button class="btn btn-ghost btn-sm" onclick="closePdfViewer()">← Back</button>
     <div class="pdf-title" id="pdfTitle">Document</div>
-    <div style="display:flex;gap:4px;align-items:center;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:3px 6px">
-      <button class="pdf-tool-btn" id="pdfSelectBtn" onclick="setPdfTool(null)" title="Select / scroll">✋</button>
-      <button class="pdf-tool-btn" id="pdfHighlightBtn" onclick="setPdfTool('highlight')" title="Highlight — drag over text">🟡 Highlight</button>
-      <button class="pdf-tool-btn" id="pdfPenBtn" onclick="setPdfTool('pen')" title="Freehand pen draw">🖊 Draw</button>
-      <button class="pdf-tool-btn" id="pdfEraseBtn" onclick="setPdfTool('erase')" title="Erase drawings">◻ Erase</button>
-    </div>
-    <div style="display:flex;gap:6px;align-items:center">
-      <label style="font-size:10px;color:var(--text3);font-family:var(--mono)">Colour:</label>
-      <input type="color" id="pdfColourPick" value="#ffeb3b" style="width:28px;height:24px;border-radius:4px;border:1px solid var(--border);cursor:pointer;padding:1px"/>
-    </div>
-    <div style="width:1px;height:20px;background:var(--border);margin:0 4px"></div>
     <button class="pdf-tool-btn" onclick="pdfPrevPage()">← Prev</button>
     <div class="pdf-page-info" id="pdfPageInfo">1 / 1</div>
     <button class="pdf-tool-btn" onclick="pdfNextPage()">Next →</button>
-    <button class="pdf-tool-btn" onclick="exportPdfAnnotsAsNote()">📤 To Note</button>
+    <button class="pdf-tool-btn" onclick="pdfZoom(0.2)">＋</button>
+    <button class="pdf-tool-btn" onclick="pdfZoom(-0.2)">－</button>
   </div>
-  <div class="pdf-body">
-    <div class="pdf-canvas-wrap" id="pdfCanvasWrap" style="position:relative"></div>
-    <div class="pdf-annot-panel">
-      <div class="pdf-annot-title">Page Notes</div>
-      <textarea id="pdfPageNotes" placeholder="Type your notes for this page here..." style="width:100%;min-height:160px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px;font-size:12px;color:var(--text);font-family:var(--sans);resize:vertical;outline:none;line-height:1.6" onblur="savePdfPageNote()"></textarea>
-      <div class="pdf-annot-title" style="margin-top:14px">Highlights</div>
-      <div id="pdfAnnotList"><div style="font-size:12px;color:var(--text3);text-align:center;padding:12px">No highlights yet.<br/>Select Highlight tool and drag over text.</div></div>
-    </div>
-  </div>
+  <div class="pdf-canvas-wrap" id="pdfCanvasWrap"></div>
 </div>
 
 <!-- FLASHCARD OVERLAY -->
@@ -3612,14 +3590,13 @@ function openPdfByIndex(subjectId, idx) {
 var pdfCurrentDoc = null;
 var pdfCurrentPage = 1;
 var pdfTotalPages = 0;
-var pdfActiveTool = null;
 var pdfCurrentId = null;
 var pdfScale = 1.4;
 
 function uploadPdfForSubject(subjectId, input) {
   var file = input.files[0];
   if (!file) return;
-  if (file.size > 10 * 1024 * 1024) { showToast('PDF too large (max 10MB)', 'error'); return; }
+  if (file.size > 15 * 1024 * 1024) { showToast('PDF too large (max 15MB)', 'error'); return; }
   var reader = new FileReader();
   reader.onload = function(e) {
     var s = getS();
@@ -3641,21 +3618,23 @@ function renderPdfList(subjectId) {
   var s = getS();
   var pdfs = (s.pdfFiles && s.pdfFiles[subjectId]) || [];
   if (pdfs.length === 0) {
-    el.innerHTML = '<div style="font-size:11px;color:var(--text3);margin-bottom:12px;padding:8px 0">No PDFs attached yet. Click "Attach PDF" to upload.</div>';
+    el.innerHTML = '<div style="font-size:11px;color:var(--text3);padding:8px 0">No PDFs attached yet.</div>';
     return;
   }
-  el.innerHTML = pdfs.map(function(pdf, i) {
-    var annots = ((s.pdfAnnotations || {})[pdf.id] || []);
-    return '<div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--surface);border:1px solid var(--border);border-radius:8px;margin-bottom:6px;transition:all 0.15s" onmouseover="this.style.borderColor=\'var(--border2)\'" onmouseout="this.style.borderColor=\'var(--border)\'">' +
+  var html = '';
+  for (var i = 0; i < pdfs.length; i++) {
+    var pdf = pdfs[i];
+    html += '<div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--surface);border:1px solid var(--border);border-radius:8px;margin-bottom:6px">' +
       '<span style="font-size:18px">📄</span>' +
       '<div style="flex:1;min-width:0">' +
         '<div style="font-size:12px;font-weight:500;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + pdf.name + '</div>' +
-        '<div style="font-size:9px;color:var(--text3);font-family:var(--mono)">' + annots.length + ' annotation' + (annots.length !== 1 ? 's' : '') + ' · ' + new Date(pdf.uploaded).toLocaleDateString() + '</div>' +
+        '<div style="font-size:9px;color:var(--text3);font-family:var(--mono)">' + new Date(pdf.uploaded).toLocaleDateString() + '</div>' +
       '</div>' +
-      '<button class="btn btn-primary btn-xs" onclick="openPdfByIndex(\'' + subjectId + '\',' + i + ')">Open</button>' +
-      '<button onclick="deletePdf(\'' + subjectId + '\',' + i + ')" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:12px;padding:4px">✕</button>' +
+      '<button class="btn btn-primary btn-xs" onclick="openPdfByIndex(' + JSON.stringify(subjectId) + ',' + i + ')">Open</button>' +
+      '<button onclick="deletePdf(' + JSON.stringify(subjectId) + ',' + i + ')" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:12px;padding:4px">✕</button>' +
     '</div>';
-  }).join('');
+  }
+  el.innerHTML = html;
 }
 
 function deletePdf(subjectId, idx) {
@@ -3668,320 +3647,74 @@ function deletePdf(subjectId, idx) {
   showToast('PDF removed', 'info');
 }
 
+function openPdfByIndex(subjectId, idx) {
+  var s = getS();
+  var pdfs = (s.pdfFiles && s.pdfFiles[subjectId]) || [];
+  if (pdfs[idx]) openPdfViewer(pdfs[idx].data, pdfs[idx].name, pdfs[idx].id);
+}
+
 function openPdfViewer(dataUrl, name, pdfId) {
   pdfCurrentId = pdfId;
   document.getElementById('pdfTitle').textContent = name;
   document.getElementById('pdfOverlay').classList.add('show');
-  document.getElementById('pdfCanvasWrap').innerHTML = '<div style="padding:40px;text-align:center;color:var(--text3)"><div style="font-size:24px;margin-bottom:8px">⏳</div>Loading PDF...</div>';
+  document.getElementById('pdfCanvasWrap').innerHTML = '<div style="padding:60px;text-align:center;color:#aaa;font-size:14px">Loading PDF...</div>';
   pdfCurrentPage = 1;
-  setPdfTool(null);
 
   if (typeof pdfjsLib === 'undefined') {
-    document.getElementById('pdfCanvasWrap').innerHTML = '<div style="padding:40px;color:var(--red);text-align:center">PDF.js failed to load. Check your internet connection.</div>';
+    document.getElementById('pdfCanvasWrap').innerHTML = '<div style="padding:40px;color:red;text-align:center">PDF.js failed to load. Check your internet connection.</div>';
     return;
   }
 
   pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-  // Convert base64 data URL to Uint8Array — PDF.js requires raw bytes
   try {
     var base64 = dataUrl.split(',')[1];
     var binary = atob(base64);
     var bytes = new Uint8Array(binary.length);
-    for (var i = 0; i < binary.length; i++) {
-      bytes[i] = binary.charCodeAt(i);
-    }
+    for (var i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
 
     pdfjsLib.getDocument({ data: bytes }).promise.then(function(doc) {
       pdfCurrentDoc = doc;
       pdfTotalPages = doc.numPages;
       renderPdfPage(1);
-      renderAnnotPanel();
     }).catch(function(err) {
-      document.getElementById('pdfCanvasWrap').innerHTML = '<div style="padding:40px;color:var(--red);text-align:center">Could not render PDF: ' + err.message + '</div>';
+      document.getElementById('pdfCanvasWrap').innerHTML = '<div style="padding:40px;color:red;text-align:center">Could not render PDF: ' + err.message + '</div>';
     });
   } catch(err) {
-    document.getElementById('pdfCanvasWrap').innerHTML = '<div style="padding:40px;color:var(--red);text-align:center">Could not read PDF data: ' + err.message + '</div>';
+    document.getElementById('pdfCanvasWrap').innerHTML = '<div style="padding:40px;color:red;text-align:center">Error reading PDF: ' + err.message + '</div>';
   }
 }
 
 function renderPdfPage(pageNum) {
   if (!pdfCurrentDoc) return;
   pdfCurrentDoc.getPage(pageNum).then(function(page) {
-    var scale = pdfScale || 1.5;
-    var viewport = page.getViewport({ scale: scale });
-
-    // Main PDF canvas
+    var viewport = page.getViewport({ scale: pdfScale });
     var canvas = document.createElement('canvas');
-    canvas.id = 'pdfMainCanvas';
     canvas.width = viewport.width;
     canvas.height = viewport.height;
-    canvas.style.position = 'relative';
-    canvas.style.zIndex = '1';
-
-    // Highlight overlay canvas (transparent, over PDF)
-    var hlCanvas = document.createElement('canvas');
-    hlCanvas.id = 'pdfHlCanvas';
-    hlCanvas.className = 'pdf-highlight-canvas';
-    hlCanvas.width = viewport.width;
-    hlCanvas.height = viewport.height;
-    // Overlay canvases must exactly match PDF canvas size
-    var w = viewport.width, h = viewport.height;
-    hlCanvas.style.width = w + 'px';
-    hlCanvas.style.height = h + 'px';
-
-    var drawCanvas = document.createElement('canvas');
-    drawCanvas.id = 'pdfDrawCanvas';
-    drawCanvas.className = 'pdf-draw-canvas';
-    drawCanvas.width = w;
-    drawCanvas.height = h;
-    drawCanvas.style.width = w + 'px';
-    drawCanvas.style.height = h + 'px';
-
-    var wrap = document.getElementById('pdfCanvasWrap');
-
-    var pageWrap = document.createElement('div');
-    pageWrap.className = 'pdf-page-wrap';
-    pageWrap.appendChild(canvas);
-    pageWrap.appendChild(hlCanvas);
-    pageWrap.appendChild(drawCanvas);
-    wrap.innerHTML = '';
-    wrap.appendChild(pageWrap);
-
+    canvas.style.display = 'block';
+    canvas.style.boxShadow = '0 4px 24px rgba(0,0,0,0.4)';
     var ctx = canvas.getContext('2d');
     page.render({ canvasContext: ctx, viewport: viewport }).promise.then(function() {
-      drawAllAnnotations(hlCanvas, drawCanvas, pageNum);
+      var wrap = document.getElementById('pdfCanvasWrap');
+      wrap.innerHTML = '';
+      wrap.appendChild(canvas);
     });
-
     document.getElementById('pdfPageInfo').textContent = pageNum + ' / ' + pdfTotalPages;
     pdfCurrentPage = pageNum;
-
-    // Load page notes
-    var s = getS();
-    var notes = (s.pdfPageNotes || {})[pdfCurrentId + '_' + pageNum] || '';
-    document.getElementById('pdfPageNotes').value = notes;
-
-    setupDrawCanvas(drawCanvas, hlCanvas, pageNum, viewport);
-    renderAnnotPanel();
   });
 }
 
-function drawAllAnnotations(hlCanvas, drawCanvas, pageNum) {
-  if (!pdfCurrentId) return;
-  var s = getS();
-  var allAnnots = (s.pdfAnnotations || {})[pdfCurrentId] || [];
-  var pageAnnots = allAnnots.filter(function(a) { return a.page === pageNum; });
-
-  var hlCtx = hlCanvas.getContext('2d');
-  hlCtx.clearRect(0, 0, hlCanvas.width, hlCanvas.height);
-  var drCtx = drawCanvas.getContext('2d');
-  drCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
-
-  pageAnnots.forEach(function(a) {
-    if (a.type === 'highlight' && a.rect) {
-      hlCtx.save();
-      hlCtx.globalAlpha = 0.38;
-      hlCtx.fillStyle = a.colour || '#ffeb3b';
-      hlCtx.fillRect(a.rect.x, a.rect.y, a.rect.w, a.rect.h);
-      hlCtx.globalAlpha = 1;
-      hlCtx.restore();
-    } else if (a.type === 'draw' && a.path) {
-      drCtx.save();
-      drCtx.strokeStyle = a.colour || '#ff4444';
-      drCtx.lineWidth = a.lineWidth || 2;
-      drCtx.lineCap = 'round';
-      drCtx.lineJoin = 'round';
-      drCtx.globalAlpha = 0.85;
-      drCtx.beginPath();
-      a.path.forEach(function(pt, i) {
-        if (i === 0) drCtx.moveTo(pt.x, pt.y);
-        else drCtx.lineTo(pt.x, pt.y);
-      });
-      drCtx.stroke();
-      drCtx.restore();
-    }
-  });
-}
-
-function setupDrawCanvas(drawCanvas, hlCanvas, pageNum, viewport) {
-  var isDrawing = false;
-  var isDragging = false;
-  var startX, startY;
-  var currentPath = [];
-
-  // Selection for highlight — track drag rectangle
-  var hlStartX, hlStartY;
-
-  drawCanvas.onmousedown = function(e) {
-    if (!pdfActiveTool) return;
-    e.preventDefault();
-    var rect = drawCanvas.getBoundingClientRect();
-    var scaleX = drawCanvas.width / rect.width;
-    var scaleY = drawCanvas.height / rect.height;
-    var x = (e.clientX - rect.left) * scaleX;
-    var y = (e.clientY - rect.top) * scaleY;
-
-    if (pdfActiveTool === 'highlight') {
-      isDragging = true;
-      hlStartX = x; hlStartY = y;
-    } else if (pdfActiveTool === 'pen') {
-      isDrawing = true;
-      currentPath = [{x: x, y: y}];
-    } else if (pdfActiveTool === 'erase') {
-      erasePdfAt(x, y, pageNum, hlCanvas, drawCanvas);
-    }
-  };
-
-  drawCanvas.onmousemove = function(e) {
-    if (!pdfActiveTool) return;
-    var rect = drawCanvas.getBoundingClientRect();
-    var scaleX = drawCanvas.width / rect.width;
-    var scaleY = drawCanvas.height / rect.height;
-    var x = (e.clientX - rect.left) * scaleX;
-    var y = (e.clientY - rect.top) * scaleY;
-
-    if (pdfActiveTool === 'highlight' && isDragging) {
-      // Live preview highlight rect
-      var hlCtx = hlCanvas.getContext('2d');
-      var s = getS();
-      var allAnnots = (s.pdfAnnotations || {})[pdfCurrentId] || [];
-      var pageAnnots = allAnnots.filter(function(a) { return a.page === pageNum; });
-      hlCtx.clearRect(0, 0, hlCanvas.width, hlCanvas.height);
-      // Redraw saved highlights
-      pageAnnots.forEach(function(a) {
-        if (a.type === 'highlight' && a.rect) {
-          hlCtx.save();
-          hlCtx.globalAlpha = 0.38;
-          hlCtx.fillStyle = a.colour || '#ffeb3b';
-          hlCtx.fillRect(a.rect.x, a.rect.y, a.rect.w, a.rect.h);
-          hlCtx.globalAlpha = 1;
-          hlCtx.restore();
-        }
-      });
-      // Draw live preview
-      hlCtx.save();
-      hlCtx.globalAlpha = 0.3;
-      hlCtx.fillStyle = document.getElementById('pdfColourPick').value || '#ffeb3b';
-      var rx = Math.min(hlStartX, x);
-      var ry = Math.min(hlStartY, y);
-      var rw = Math.abs(x - hlStartX);
-      var rh = Math.max(Math.abs(y - hlStartY), 18);
-      hlCtx.fillRect(rx, ry, rw, rh);
-      hlCtx.globalAlpha = 1;
-      hlCtx.restore();
-    } else if (pdfActiveTool === 'pen' && isDrawing) {
-      currentPath.push({x: x, y: y});
-      // Live draw preview
-      var drCtx = drawCanvas.getContext('2d');
-      drCtx.strokeStyle = document.getElementById('pdfColourPick').value || '#ff4444';
-      drCtx.lineWidth = 2.5;
-      drCtx.lineCap = 'round';
-      drCtx.lineJoin = 'round';
-      drCtx.globalAlpha = 0.85;
-      if (currentPath.length > 1) {
-        var prev = currentPath[currentPath.length - 2];
-        drCtx.beginPath();
-        drCtx.moveTo(prev.x, prev.y);
-        drCtx.lineTo(x, y);
-        drCtx.stroke();
-      }
-    }
-  };
-
-  drawCanvas.onmouseup = function(e) {
-    if (!pdfActiveTool) return;
-    var rect = drawCanvas.getBoundingClientRect();
-    var scaleX = drawCanvas.width / rect.width;
-    var scaleY = drawCanvas.height / rect.height;
-    var x = (e.clientX - rect.left) * scaleX;
-    var y = (e.clientY - rect.top) * scaleY;
-
-    if (pdfActiveTool === 'highlight' && isDragging) {
-      isDragging = false;
-      var rw = Math.abs(x - hlStartX);
-      var rh = Math.max(Math.abs(y - hlStartY), 18);
-      if (rw > 5) {
-        addPdfAnnotation({
-          type: 'highlight',
-          page: pageNum,
-          colour: document.getElementById('pdfColourPick').value || '#ffeb3b',
-          rect: { x: Math.min(hlStartX, x), y: Math.min(hlStartY, y), w: rw, h: rh }
-        });
-      }
-    } else if (pdfActiveTool === 'pen' && isDrawing) {
-      isDrawing = false;
-      if (currentPath.length > 2) {
-        addPdfAnnotation({
-          type: 'draw',
-          page: pageNum,
-          colour: document.getElementById('pdfColourPick').value || '#ff4444',
-          lineWidth: 2.5,
-          path: currentPath
-        });
-      }
-      currentPath = [];
-    }
-  };
-
-  drawCanvas.onmouseleave = function() { isDrawing = false; isDragging = false; };
-
-  // Cursor management
-  drawCanvas.style.cursor = pdfActiveTool ? (pdfActiveTool === 'erase' ? 'cell' : 'crosshair') : 'default';
-}
-
-function erasePdfAt(x, y, pageNum, hlCanvas, drawCanvas) {
-  var s = getS();
-  var allAnnots = s.pdfAnnotations || {};
-  var annots = (allAnnots[pdfCurrentId] || []).filter(function(a) {
-    if (a.page !== pageNum) return true;
-    if (a.type === 'highlight' && a.rect) {
-      return !(x >= a.rect.x && x <= a.rect.x + a.rect.w && y >= a.rect.y && y <= a.rect.y + a.rect.h);
-    }
-    if (a.type === 'draw' && a.path) {
-      return !a.path.some(function(pt) { return Math.abs(pt.x - x) < 20 && Math.abs(pt.y - y) < 20; });
-    }
-    return true;
-  });
-  allAnnots[pdfCurrentId] = annots;
-  saveS({ pdfAnnotations: allAnnots });
-  drawAllAnnotations(hlCanvas, drawCanvas, pageNum);
-  renderAnnotPanel();
-}
-
-function savePdfPageNote() {
-  if (!pdfCurrentId) return;
-  var val = document.getElementById('pdfPageNotes').value;
-  var s = getS();
-  var notes = s.pdfPageNotes || {};
-  notes[pdfCurrentId + '_' + pdfCurrentPage] = val;
-  saveS({ pdfPageNotes: notes });
-}
+function pdfPrevPage() { if (pdfCurrentPage > 1) renderPdfPage(pdfCurrentPage - 1); }
+function pdfNextPage() { if (pdfCurrentPage < pdfTotalPages) renderPdfPage(pdfCurrentPage + 1); }
+function pdfZoom(delta) { pdfScale = Math.max(0.5, Math.min(3, pdfScale + delta)); renderPdfPage(pdfCurrentPage); }
 
 function closePdfViewer() {
-  savePdfPageNote();
   document.getElementById('pdfOverlay').classList.remove('show');
-  pdfCurrentDoc = null; pdfCurrentId = null; pdfActiveTool = null;
+  pdfCurrentDoc = null; pdfCurrentId = null;
   document.getElementById('pdfCanvasWrap').innerHTML = '';
 }
 
-function exportPdfAnnotsAsNote() {
-  if (!pdfCurrentId) return;
-  var s = getS();
-  var annots = (s.pdfAnnotations || {})[pdfCurrentId] || [];
-  if (annots.length === 0) { showToast('No annotations to export', 'error'); return; }
-  var title = document.getElementById('pdfTitle').textContent;
-  var content = '<h2>📄 Annotations: ' + title + '</h2>' +
-    annots.map(function(a) {
-      return '<div style="margin-bottom:10px;padding:10px;background:' + (a.type === 'highlight' ? '#ffeb3b22' : '#3a7d5a11') + ';border-radius:6px;border-left:3px solid ' + (a.type === 'highlight' ? '#c4a000' : 'var(--green)') + '">' +
-        '<p><strong>' + (a.type === 'highlight' ? '🖊 Highlight' : '📝 Note') + ' (p.' + a.page + '):</strong> ' + a.text + '</p>' +
-      '</div>';
-    }).join('');
-  var note = { id: 'n' + Date.now(), title: 'Annotations: ' + title, subject: 'general', content: content, created: new Date().toISOString(), updated: new Date().toISOString() };
-  saveS({ notes: [note, ...s.notes] });
-  showToast('Annotations saved as note!', 'success');
-  closePdfViewer();
-  openNoteDetail(note.id);
-}
 
 // ═══════════════════════════════════════════════
 // GLOBAL SEARCH (Ctrl/Cmd+K)
