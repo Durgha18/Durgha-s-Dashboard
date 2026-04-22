@@ -515,6 +515,7 @@ select.input{cursor:pointer;appearance:none;}
         </select>
       </div>
     </div>
+    <div class="field"><div class="input-label">Subject / Category (optional)</div><input class="input" id="t-subject" placeholder="e.g. Financial Accounting, Internship App, Personal Finance..."/></div>
     <div class="field"><div class="input-label">Notes (optional)</div><textarea class="input" id="t-notes" style="min-height:60px" placeholder="Add context..."></textarea></div>
     <div class="modal-footer">
       <button class="btn btn-ghost btn-sm" onclick="closeModal('taskModal')">Cancel</button>
@@ -835,6 +836,19 @@ select.input{cursor:pointer;appearance:none;}
           <div class="topbar-sub">All spaces · click any task for details</div>
         </div>
         <div class="topbar-actions">
+          <select class="input" id="taskSortSelect" onchange="renderTasks()" style="max-width:140px;font-size:11px;padding:6px 10px">
+            <option value="created">Sort: Newest</option>
+            <option value="due">Sort: Due Date</option>
+            <option value="priority">Sort: Priority</option>
+            <option value="subject">Sort: Subject</option>
+            <option value="alpha">Sort: A–Z</option>
+          </select>
+          <select class="input" id="taskFilterPriority" onchange="renderTasks()" style="max-width:120px;font-size:11px;padding:6px 10px">
+            <option value="all">All priorities</option>
+            <option value="high">🔴 High</option>
+            <option value="medium">🟡 Medium</option>
+            <option value="low">🟢 Low</option>
+          </select>
           <button class="btn btn-primary btn-sm" onclick="openModal('taskModal')">+ Task</button>
           <button class="btn btn-ghost btn-sm" onclick="openModal('spaceModal')">+ Space</button>
         </div>
@@ -1495,6 +1509,7 @@ function renderTaskItem(t,compact){
         (lbl?'<span class="label-dot" style="'+dotStyle+'"></span>':'  ')+
         (lbl?renderLabelPill(t.labelId,true):'')+
         (t.due?'<span class="task-due '+dueClass+'">📅 '+fmtDate(t.due)+(days===0?' · TODAY':days===1?' · tomorrow':'')+'</span>':'')+
+        (t.subject?'<span style="font-size:9px;color:var(--text3);font-family:var(--mono);background:var(--surface2);padding:1px 5px;border-radius:3px">'+t.subject+'</span>':'')+
         (t.notes&&!compact?'<span style="font-size:9px;color:var(--text3);font-family:var(--mono)">📝 has notes</span>':'')+
       '</div>'+
     '</div>'+
@@ -1509,18 +1524,53 @@ function _renderTasksBase(){
     }).join('')+
     '<button class="space-tab" onclick="openModal(\'spaceModal\')" style="border-style:dashed;opacity:0.6">+ Space</button>';
 
-  let tasks=s.tasks.filter(function(t){return !t.done;});
+  var tasks=s.tasks.filter(function(t){return !t.done;});
   if(currentSpace!=='all')tasks=tasks.filter(function(t){return t.space===currentSpace;});
 
-  const listEl=document.getElementById('taskList');
-  listEl.innerHTML=tasks.length>0
-    ?tasks.map(function(t){return renderTaskItem(t,false);}).join('')
-    :'<div class="empty"><div class="empty-icon">✅</div><div class="empty-text">No tasks here.<br/>Add one to get started.</div></div>';
+  var prioFilter=document.getElementById('taskFilterPriority');
+  if(prioFilter&&prioFilter.value!=='all'){
+    tasks=tasks.filter(function(t){return t.priority===prioFilter.value;});
+  }
 
-  // Completed section
-  const compEl=document.getElementById('completedSection');
-  const completed=s.completedTasks||[];
-  const showBtn='<button class="btn btn-ghost btn-sm" onclick="toggleCompleted()">'+(showCompleted?'Hide':'Show')+' completed ('+completed.length+')</button>';
+  var sortSel=document.getElementById('taskSortSelect');
+  var sortBy=sortSel?sortSel.value:'created';
+  var PRIO_ORDER={high:0,medium:1,low:2};
+  tasks.sort(function(a,b){
+    if(sortBy==='due'){
+      if(!a.due&&!b.due)return 0;
+      if(!a.due)return 1;
+      if(!b.due)return -1;
+      return new Date(a.due)-new Date(b.due);
+    }
+    if(sortBy==='priority')return (PRIO_ORDER[a.priority]||1)-(PRIO_ORDER[b.priority]||1);
+    if(sortBy==='subject')return (a.subject||'').localeCompare(b.subject||'');
+    if(sortBy==='alpha')return a.title.localeCompare(b.title);
+    return new Date(b.created)-new Date(a.created);
+  });
+
+  var listEl=document.getElementById('taskList');
+  if(sortBy==='subject'&&tasks.length>0){
+    var groups={};
+    tasks.forEach(function(t){
+      var key=t.subject||'Uncategorised';
+      if(!groups[key])groups[key]=[];
+      groups[key].push(t);
+    });
+    listEl.innerHTML=Object.entries(groups).map(function(e){
+      return '<div style="margin-bottom:16px">'+
+        '<div style="font-family:var(--mono);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.1em;padding:4px 0;border-bottom:1px solid var(--border);margin-bottom:8px">'+e[0]+'</div>'+
+        e[1].map(function(t){return renderTaskItem(t,false);}).join('')+
+      '</div>';
+    }).join('');
+  } else {
+    listEl.innerHTML=tasks.length>0
+      ?tasks.map(function(t){return renderTaskItem(t,false);}).join('')
+      :'<div class="empty"><div class="empty-icon">✅</div><div class="empty-text">No tasks here.<br/>Add one to get started.</div></div>';
+  }
+
+  var compEl=document.getElementById('completedSection');
+  var completed=s.completedTasks||[];
+  var showBtn='<button class="btn btn-ghost btn-sm" onclick="toggleCompleted()">'+(showCompleted?'Hide':'Show')+' completed ('+completed.length+')</button>';
   compEl.innerHTML=showBtn+(showCompleted&&completed.length>0
     ?'<div style="margin-top:10px">'+completed.slice(0,20).map(function(t){return renderTaskItem(t,false);}).join('')+'</div>'
     :'');
@@ -1564,6 +1614,7 @@ function toggleTask(id){
 function saveTask(){
   const title=document.getElementById('t-title').value.trim();
   if(!title){showToast('Enter a title','error');return;}
+  const subjectEl=document.getElementById('t-subject');
   const task={
     id:'t'+Date.now(),
     title:title,
@@ -1571,6 +1622,7 @@ function saveTask(){
     labelId:document.getElementById('t-label').value,
     due:document.getElementById('t-due').value,
     priority:document.getElementById('t-priority').value,
+    subject:subjectEl?subjectEl.value:'',
     notes:document.getElementById('t-notes').value,
     content:'',
     links:[],
@@ -1580,8 +1632,9 @@ function saveTask(){
   const s=getS();
   saveS({tasks:[task,...s.tasks]});
   closeModal('taskModal');
-  ['t-title','t-notes'].forEach(function(id){document.getElementById(id).value='';});
+  ['t-title','t-notes'].forEach(function(id){document.getElementById(id).value=''});
   document.getElementById('t-due').value='';
+  if(document.getElementById('t-subject'))document.getElementById('t-subject').value='';
   showToast('Task added!','success');
   if(currentView==='tasks')renderTasks();
   if(currentView==='morning')renderMorning();
@@ -2452,10 +2505,10 @@ var briefTabData={};
 var currentBriefTab='world';
 
 var BRIEF_CFG={
-  world:{label:'World News',q:'world news',sys:'You are a sharp analyst writing for a smart Malaysian student. Give deep context, not just headlines. Explain WHY things matter and the underlying forces at play.'},
-  finance:{label:'Finance',q:'financial markets economy stocks',sys:'You are a finance educator writing for a Year 2 Accounting & Finance student at Sunway University Malaysia. Connect market events to concepts they study. Make it relevant to their degree.'},
-  geo:{label:'Geopolitics',q:'geopolitics diplomacy international relations',sys:'You are a geopolitics analyst. Go beyond what happened — explain the power dynamics, historical context, and what it means for the region. Be analytical, not just descriptive.'},
-  learn:{label:'Learn',q:'economics business technology innovation',sys:'You are a world-class educator. Pick one genuinely fascinating concept relevant to A&F students. Teach it thoroughly with real examples. Make it memorable.'}
+  world:{label:'World News',q:'world news breaking',sys:'You are a sharp news analyst. Give deep context, not headlines. Explain WHY events matter and the forces at play. Be specific about dates and when things happened.'},
+  finance:{label:'Finance & Markets',q:'Goldman Sachs investment banking markets hedge fund private equity trading',sys:'You are a sharp finance professional writing for an ambitious student who wants to work at Goldman Sachs, McKinsey, BCG or the Big 4. Cover real market moves, deals, and industry news. Explain concepts used by practitioners, not academics. Be specific — name firms, numbers, deals.'},
+  geo:{label:'Geopolitics',q:'geopolitics diplomacy trade wars international relations',sys:'You are a geopolitics analyst writing for a future finance or consulting professional. Explain how geopolitical events move markets, create deal flow, and affect business strategy. Be analytical and precise.'},
+  learn:{label:'Finance & Consulting',q:'investment banking consulting strategy McKinsey BCG Goldman finance careers',sys:'You are a former Goldman Sachs analyst and McKinsey consultant. Teach concepts that actually matter in high finance and consulting — valuation, deal structures, strategy frameworks, how top firms think. Be direct, specific, and practitioner-focused. No academic fluff.'}
 };
 
 async function renderBrief(){
@@ -2472,10 +2525,10 @@ async function loadBriefTab(tab,el){
     const news=await fetchNews(BRIEF_CFG[tab].q,6);
     const today=new Date().toLocaleDateString('en-MY',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
     const prompt='Today is '+today+'.\n\nHere are today\'s headlines:\n'+news+'\n\n'+
-      (tab==='world'?'Write a deep analysis of the 3 most important world stories. For each: background context (2-3 sentences), what just happened, why it matters beyond the headline, what to watch next. Use <h3> for story titles. Do NOT just summarise headlines — give me the analysis I cannot get from a Google search.':'')+
-      (tab==='finance'?'Write a finance briefing for a Year 2 A&F student. Cover: (1) what moved in markets today and the real reason why, (2) one macroeconomic concept illustrated by today\'s news, (3) what this means for Malaysia and the ringgit. Go deep. Use <h3> for sections.':'')+
+      (tab==='world'?'Write a deep analysis of the 3 most important world stories from this week (today is '+today+'). For each: when exactly this happened (be specific about dates), background context, what just happened, why it matters beyond the headline, what to watch next. Use <h3> for story titles with the date included e.g. <h3>Story Title · 22 April 2025</h3>. Do NOT just summarise headlines — give analysis that goes beyond a Google search.':'')+
+      (tab==='finance'?'Write a finance and markets briefing dated '+today+'. Cover: (1) what moved in major markets THIS WEEK and the real institutional reasons why (be specific about index levels, moves, catalysts), (2) one significant deal, IPO, or M&A transaction in the news, (3) what top investment banks or hedge funds are positioning for right now, (4) one concept practitioners at Goldman, JPMorgan or similar use. Always specify dates. Never be vague. Use <h3> for sections.':'')+
       (tab==='geo'?'Write a geopolitics briefing. Cover 2-3 major developments. For each: the situation, historical context, the competing interests at play, what each side wants and why, what it means for Southeast Asia. Use <h3> for each topic.':'')+
-      (tab==='learn'?'Choose the most interesting concept from today\'s news or from A&F studies. Teach it properly: what it is (simple analogy first), how it actually works (mechanics), why it matters for a student in Malaysia, a real-world example, and one counterintuitive insight. Use <h3> for sections. Make it genuinely educational — the kind of thing someone would tell a friend about.':'');
+      (tab==='learn'?'Teach one concept that a first-year analyst at Goldman Sachs, McKinsey, BCG, or the Big 4 would be expected to know. Pick from: valuation methods (DCF, comps, precedent transactions), consulting frameworks (MECE, issue trees, Porter 5 forces), deal structures (LBOs, M&A, IPOs), or market concepts (basis, carry, convexity). Teach it as a practitioner would explain it to a junior: what it is (one vivid analogy), how it actually works in a real deal or engagement, the numbers (a worked example), what experienced practitioners know that textbooks miss. Use <h3> for sections. Be specific and practitioner-level.':'');
     const content=await askGroq(prompt,BRIEF_CFG[tab].sys);
     const html='<div class="card">'+
       '<div class="card-label" style="margin-bottom:4px">'+BRIEF_CFG[tab].label+' · '+today+'</div>'+
@@ -2507,7 +2560,33 @@ function saveArticleAsNote(tab){
 // ═══════════════════════════════════════════════
 // CONCEPT
 // ═══════════════════════════════════════════════
-var CONCEPTS=['What is DCF (Discounted Cash Flow) analysis?','What is double-entry bookkeeping?','What is WACC and how is it calculated?','How do financial statements connect to each other?','What is marginal costing vs absorption costing?','What is the time value of money?','What is capital budgeting?','What is working capital management?','What is a budget variance and how do you analyse it?','What is investment banking and what do they actually do?','How do interest rates affect business decisions?','What is the efficient market hypothesis?','What is financial leverage and its risks?','What is activity-based costing?','What is monetary policy and how does it work?','What are derivatives and why do they exist?','What is transfer pricing?','How does ratio analysis work?','What is the Black-Scholes model?','What is Basel III and why does it matter?'];
+var CONCEPTS=[
+  'What is DCF valuation and how do bankers actually use it?',
+  'How does a Leveraged Buyout (LBO) work?',
+  'What are comparable company analysis (comps) and how do you run them?',
+  'How does McKinsey structure problem solving? The MECE framework explained.',
+  'What is the difference between equity and enterprise value?',
+  'How does an IPO actually work from start to finish?',
+  'What is a hedge fund and how do they make money?',
+  'How does M&A due diligence work at a top investment bank?',
+  'What is private equity and how does a PE firm create returns?',
+  'What is the carry trade and why does it matter in FX markets?',
+  'How do Goldman Sachs and JPMorgan make money? Revenue breakdown.',
+  'What is the BCG Growth-Share Matrix and when do consultants use it?',
+  'What is an issue tree and how do top consultants use them?',
+  'How does bond pricing and duration work in practice?',
+  'What is the VIX and why do traders watch it?',
+  'How does short selling actually work?',
+  'What is venture capital and how is it different from private equity?',
+  'What is a credit default swap (CDS) and why did it matter in 2008?',
+  'What does a Goldman Sachs first-year analyst actually do?',
+  'What is EBITDA and why do deal professionals use it instead of net profit?',
+  'How does options pricing work? Delta, gamma, vega explained simply.',
+  'What is a pitch book and how do bankers structure one?',
+  'How does the Big 4 advisory differ from investment banking?',
+  'What is Porter Five Forces and how do consultants actually apply it?',
+  'What is quantitative easing and how does it affect asset prices?'
+];
 
 async function renderConcept(){
   const s=getS();
@@ -2522,7 +2601,7 @@ async function renderConcept(){
     const pool=CONCEPTS.filter(function(c){return !learned.includes(c);});
     const topic=(pool.length>0?pool:CONCEPTS)[Math.floor(Math.random()*(pool.length>0?pool.length:CONCEPTS.length))];
     const content=await askGroq(
-      'Teach me: "'+topic+'"\n\nI am a Year 2 Accounting & Finance student at Sunway University Malaysia.\n\nStructure in HTML:\n<h3>The simple version</h3><p>One paragraph. No jargon. Vivid real-world analogy that actually makes sense.</p>\n<h3>How it works in practice</h3><p>The real mechanics. 2-3 paragraphs. Use a specific Malaysian or ASEAN company example where possible.</p>\n<h3>Why this matters for your degree</h3><p>Specific modules where this appears. How it connects to things you already know.</p>\n<h3>The numbers</h3><p>A worked example with actual numbers. Show the calculation or process step by step.</p>\n<h3>What most people misunderstand</h3><p>One common misconception or non-obvious insight.</p>\n\nDo NOT include a section called "why you need to know this" or "exam tips". Just teach the concept deeply and let the value speak for itself.',
+      'Teach me: "'+topic+'"\n\nI am an ambitious finance student who wants to work at Goldman Sachs, McKinsey, BCG, or a top firm.\n\nStructure in HTML:\n<h3>The simple version</h3><p>One paragraph. No jargon. One vivid analogy that sticks.</p>\n<h3>How practitioners actually use it</h3><p>How this is used in real deals, real markets, or real consulting engagements. Name specific firms or situations. 2-3 paragraphs.</p>\n<h3>The numbers</h3><p>A worked example with real numbers. Walk through it step by step as a junior analyst would present it.</p>\n<h3>What separates beginners from experts</h3><p>The nuances, edge cases, and non-obvious insights that experienced professionals know but textbooks miss.</p>\n\nDo NOT include sections about exam tips, degree relevance, or why you need to know this. Just teach it at a practitioner level.',
       'You are the world\'s best Accounting & Finance tutor. You explain things with crystal clarity, vivid examples, and genuine insight. You never pad content or state the obvious. Every sentence teaches something.'
     );
     const todayStr=new Date().toLocaleDateString('en-MY',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
@@ -2668,7 +2747,7 @@ async function quickResearch(q){
     const s=getS();
     const context=s.learnedTopics&&s.learnedTopics.length?'The student has studied: '+s.learnedTopics.slice(-5).join(', ')+'. Build on that where relevant.':'';
     const content=await askGroq(
-      context+'\n\nGive a comprehensive deep-dive on: "'+q+'" for a Year 2 Accounting & Finance student at Sunway University Malaysia.\n\nHTML structure:\n<h3>What it is</h3><p>Clear definition. Simple analogy first.</p>\n<h3>The full picture</h3><p>Complete explanation — history, mechanics, key players. Go deep. This should be better than anything they would find on Google.</p>\n<h3>Malaysian and ASEAN context</h3><p>How this applies locally. Specific examples.</p>\n<h3>Degree relevance</h3><p>Which modules, how it appears in exams, how it connects to other concepts.</p>\n<h3>What experts actually debate</h3><p>The non-obvious disagreements or nuances that show real understanding.</p>\n<h3>Key terms to know</h3><p>5-7 essential terms defined precisely.</p>',
+      context+'\n\nGive a comprehensive deep-dive on: "'+q+'" for an ambitious student who wants to work in high finance or consulting.\n\nHTML structure:\n<h3>What it is</h3><p>Clear definition. One vivid analogy that makes it immediately understandable.</p>\n<h3>The full picture</h3><p>Complete explanation — history, how it works, who the key players are. Go deep. Better than anything on Google.</p>\n<h3>How it works in practice</h3><p>Real-world application. Specific firms, deals, or situations. Name names and numbers where possible.</p>\n<h3>What experts debate</h3><p>Non-obvious nuances and disagreements that separate surface-level knowledge from real understanding.</p>\n<h3>Key terms</h3><p>5-7 essential terms defined precisely as practitioners use them.</p>',
       'You are a world-class A&F educator. Be genuinely comprehensive. Never be superficial. Use Malaysian examples. Make this the best explanation available anywhere.'
     );
     res.innerHTML='<div class="card">'+
