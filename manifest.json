@@ -1,0 +1,18 @@
+{
+  "name": "Durgha's Dashboard",
+  "short_name": "Dashboard",
+  "description": "Personal OS for Durgha — Study, Learn, Track, Grow",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f7f3ee",
+  "theme_color": "#b85c38",
+  "orientation": "landscape",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

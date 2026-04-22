@@ -1,0 +1,2511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-title" content="Durgha's Dashboard"/>
+<title>Durgha's Dashboard</title>
+<link rel="manifest" href="manifest.json"/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;900&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg: #f7f3ee;
+  --surface: #fdfaf6;
+  --surface2: #f0ead f;
+  --surface2: #f0eadf;
+  --border: #e4d9cc;
+  --border2: #d4c4b0;
+  --accent: #b85c38;
+  --accent2: #c97a55;
+  --accent-soft: rgba(184,92,56,0.1);
+  --gold: #c4922a;
+  --gold-soft: rgba(196,146,42,0.12);
+  --green: #3a7d5a;
+  --green-soft: rgba(58,125,90,0.1);
+  --blue: #3a6b8a;
+  --blue-soft: rgba(58,107,138,0.1);
+  --purple: #7a5fa0;
+  --red: #c04040;
+  --text: #2a1f14;
+  --text2: #6b5040;
+  --text3: #a08878;
+  --serif: 'Playfair Display', Georgia, serif;
+  --sans: 'DM Sans', sans-serif;
+  --mono: 'DM Mono', monospace;
+  --radius: 14px;
+  --shadow: 0 2px 12px rgba(90,50,20,0.08);
+  --shadow-lg: 0 8px 32px rgba(90,50,20,0.12);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+html, body { height:100%; background:var(--bg); color:var(--text); font-family:var(--sans); overflow:hidden; font-size:14px; }
+
+/* ── LAYOUT ── */
+.app { display:grid; grid-template-columns:240px 1fr; height:100vh; overflow:hidden; }
+
+/* ── SIDEBAR ── */
+.sidebar {
+  background:var(--surface);
+  border-right:1px solid var(--border);
+  display:flex; flex-direction:column;
+  overflow:hidden;
+  position:relative;
+}
+
+.sidebar::before {
+  content:'';
+  position:absolute;
+  top:0; left:0; right:0;
+  height:120px;
+  background:linear-gradient(180deg, rgba(184,92,56,0.06) 0%, transparent 100%);
+  pointer-events:none;
+}
+
+.brand {
+  padding:22px 20px 16px;
+  border-bottom:1px solid var(--border);
+}
+
+.brand-name {
+  font-family:var(--serif);
+  font-size:16px;
+  font-weight:700;
+  color:var(--accent);
+  letter-spacing:-0.01em;
+  line-height:1.2;
+}
+
+.brand-sub {
+  font-size:10px;
+  color:var(--text3);
+  font-family:var(--mono);
+  letter-spacing:0.08em;
+  text-transform:uppercase;
+  margin-top:2px;
+}
+
+/* Streak + XP */
+.sidebar-stats {
+  padding:14px 20px;
+  border-bottom:1px solid var(--border);
+  display:flex;
+  gap:12px;
+}
+
+.stat-pill {
+  flex:1;
+  background:var(--bg);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:8px 10px;
+  text-align:center;
+}
+
+.stat-pill-val {
+  font-family:var(--serif);
+  font-size:20px;
+  font-weight:700;
+  line-height:1;
+  margin-bottom:2px;
+}
+
+.stat-pill-val.gold { color:var(--gold); }
+.stat-pill-val.accent { color:var(--accent); }
+.stat-pill-val.green { color:var(--green); }
+
+.stat-pill-label {
+  font-size:9px;
+  color:var(--text3);
+  font-family:var(--mono);
+  letter-spacing:0.06em;
+  text-transform:uppercase;
+}
+
+/* XP bar */
+.xp-bar-wrap { padding:0 20px 12px; }
+.xp-label { display:flex; justify-content:space-between; margin-bottom:5px; }
+.xp-level { font-size:10px; font-weight:600; color:var(--accent); font-family:var(--mono); letter-spacing:0.05em; }
+.xp-pts { font-size:10px; color:var(--text3); font-family:var(--mono); }
+.xp-track { height:4px; background:var(--border); border-radius:2px; overflow:hidden; }
+.xp-fill { height:100%; background:linear-gradient(90deg,var(--accent),var(--gold)); border-radius:2px; transition:width 0.6s ease; }
+
+/* Nav */
+.nav { flex:1; padding:10px 12px; overflow-y:auto; scrollbar-width:none; }
+.nav::-webkit-scrollbar { display:none; }
+
+.nav-section {
+  font-family:var(--mono);
+  font-size:9px;
+  letter-spacing:0.14em;
+  text-transform:uppercase;
+  color:var(--text3);
+  padding:12px 8px 5px;
+}
+
+.nav-item {
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:9px 10px;
+  border-radius:10px;
+  cursor:pointer;
+  font-size:13px;
+  font-weight:500;
+  color:var(--text2);
+  transition:all 0.15s;
+  position:relative;
+  margin-bottom:1px;
+  user-select:none;
+}
+
+.nav-item:hover { background:var(--bg); color:var(--text); }
+
+.nav-item.active {
+  background:var(--accent-soft);
+  color:var(--accent);
+  font-weight:600;
+}
+
+.nav-item.active::before {
+  content:'';
+  position:absolute;
+  left:0; top:20%; height:60%; width:2px;
+  background:var(--accent);
+  border-radius:0 2px 2px 0;
+}
+
+.nav-icon { font-size:15px; width:20px; text-align:center; flex-shrink:0; }
+
+.nav-badge {
+  margin-left:auto;
+  font-size:9px;
+  font-weight:700;
+  padding:2px 7px;
+  border-radius:10px;
+  font-family:var(--mono);
+  background:var(--accent);
+  color:#fff;
+}
+
+.nav-badge.gold { background:var(--gold); }
+.nav-badge.green { background:var(--green); }
+
+.sidebar-footer {
+  padding:14px 20px;
+  border-top:1px solid var(--border);
+  display:flex;
+  gap:8px;
+}
+
+.footer-btn {
+  flex:1;
+  padding:7px;
+  border-radius:8px;
+  border:1px solid var(--border);
+  background:none;
+  font-size:11px;
+  color:var(--text3);
+  cursor:pointer;
+  font-family:var(--sans);
+  transition:all 0.15s;
+  text-align:center;
+}
+
+.footer-btn:hover { border-color:var(--accent); color:var(--accent); background:var(--accent-soft); }
+
+/* ── MAIN ── */
+.main { overflow-y:auto; overflow-x:hidden; scrollbar-width:thin; scrollbar-color:var(--border2) transparent; background:var(--bg); }
+.main::-webkit-scrollbar { width:4px; }
+.main::-webkit-scrollbar-thumb { background:var(--border2); border-radius:2px; }
+
+.view { display:none; min-height:100%; animation:fadeIn 0.25s ease both; }
+.view.active { display:block; }
+
+/* ── TOPBAR ── */
+.topbar {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:18px 28px;
+  border-bottom:1px solid var(--border);
+  position:sticky;
+  top:0;
+  background:rgba(247,243,238,0.92);
+  backdrop-filter:blur(12px);
+  z-index:10;
+}
+
+.topbar-left { display:flex; flex-direction:column; }
+.topbar-title { font-family:var(--serif); font-size:20px; font-weight:700; letter-spacing:-0.02em; color:var(--text); }
+.topbar-sub { font-size:11px; color:var(--text3); font-family:var(--mono); margin-top:1px; }
+
+.topbar-actions { display:flex; gap:8px; align-items:center; }
+
+/* ── CONTENT ── */
+.content { padding:24px 28px; max-width:1000px; }
+
+/* ── CARDS ── */
+.card {
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:22px;
+  margin-bottom:18px;
+  box-shadow:var(--shadow);
+  transition:border-color 0.2s, box-shadow 0.2s;
+}
+
+.card:hover { border-color:var(--border2); box-shadow:var(--shadow-lg); }
+
+.card-header {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:16px;
+}
+
+.card-title {
+  font-family:var(--serif);
+  font-size:17px;
+  font-weight:700;
+  color:var(--text);
+  letter-spacing:-0.02em;
+}
+
+.card-label {
+  font-family:var(--mono);
+  font-size:9px;
+  letter-spacing:0.14em;
+  text-transform:uppercase;
+  color:var(--text3);
+  margin-bottom:10px;
+}
+
+/* ── BUTTONS ── */
+.btn {
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  padding:9px 18px;
+  border-radius:9px;
+  font-size:13px;
+  font-weight:600;
+  cursor:pointer;
+  border:none;
+  font-family:var(--sans);
+  transition:all 0.15s;
+}
+
+.btn-primary { background:var(--accent); color:#fff; box-shadow:0 2px 8px rgba(184,92,56,0.25); }
+.btn-primary:hover { background:var(--accent2); transform:translateY(-1px); }
+.btn-secondary { background:var(--surface2); color:var(--text2); border:1px solid var(--border2); }
+.btn-secondary:hover { border-color:var(--accent); color:var(--accent); }
+.btn-ghost { background:none; color:var(--text3); border:1px solid var(--border); }
+.btn-ghost:hover { border-color:var(--accent); color:var(--accent); }
+.btn-green { background:var(--green); color:#fff; }
+.btn-sm { padding:6px 13px; font-size:12px; }
+.btn-xs { padding:4px 10px; font-size:11px; border-radius:7px; }
+.btn-group { display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; }
+.btn-icon { width:32px; height:32px; padding:0; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:15px; }
+
+/* ── INPUTS ── */
+.input {
+  width:100%;
+  background:var(--bg);
+  border:1px solid var(--border2);
+  border-radius:9px;
+  padding:11px 14px;
+  font-size:13px;
+  color:var(--text);
+  font-family:var(--sans);
+  outline:none;
+  transition:border-color 0.2s;
+}
+
+.input:focus { border-color:var(--accent); }
+.input::placeholder { color:var(--text3); }
+
+textarea.input { resize:vertical; min-height:80px; line-height:1.6; }
+
+.input-row { display:flex; gap:10px; margin-bottom:14px; }
+.input-label { font-size:11px; font-weight:600; color:var(--text2); margin-bottom:5px; font-family:var(--mono); letter-spacing:0.05em; text-transform:uppercase; }
+
+select.input { appearance:none; cursor:pointer; }
+
+/* ── GRID LAYOUTS ── */
+.grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+.grid-3 { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+
+/* ── TAGS ── */
+.tag {
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+  padding:3px 10px;
+  border-radius:20px;
+  font-size:11px;
+  font-family:var(--mono);
+  font-weight:500;
+}
+
+.tag-accent { background:var(--accent-soft); color:var(--accent); border:1px solid rgba(184,92,56,0.2); }
+.tag-gold { background:var(--gold-soft); color:var(--gold); border:1px solid rgba(196,146,42,0.2); }
+.tag-green { background:var(--green-soft); color:var(--green); border:1px solid rgba(58,125,90,0.2); }
+.tag-blue { background:var(--blue-soft); color:var(--blue); border:1px solid rgba(58,107,138,0.2); }
+.tag-muted { background:var(--bg); color:var(--text3); border:1px solid var(--border); }
+
+/* ── LOADING ── */
+.loading { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; padding:60px; color:var(--text3); }
+.spinner { width:28px; height:28px; border:2px solid var(--border); border-top-color:var(--accent); border-radius:50%; animation:spin 0.8s linear infinite; }
+.loading-text { font-family:var(--mono); font-size:11px; letter-spacing:0.06em; animation:pulse 1.5s ease infinite; }
+
+/* ── EMPTY STATE ── */
+.empty { text-align:center; padding:50px 20px; color:var(--text3); }
+.empty-icon { font-size:36px; margin-bottom:10px; }
+.empty-text { font-size:13px; line-height:1.6; }
+
+/* ── TOAST ── */
+.toast {
+  position:fixed; bottom:20px; right:20px;
+  background:var(--surface);
+  border:1px solid var(--border2);
+  border-radius:12px;
+  padding:12px 18px;
+  font-size:13px;
+  color:var(--text);
+  z-index:9999;
+  transform:translateY(80px);
+  opacity:0;
+  transition:all 0.3s ease;
+  max-width:280px;
+  box-shadow:var(--shadow-lg);
+}
+
+.toast.show { transform:translateY(0); opacity:1; }
+.toast.success { border-left:3px solid var(--green); }
+.toast.xp { border-left:3px solid var(--gold); }
+.toast.info { border-left:3px solid var(--blue); }
+.toast.error { border-left:3px solid var(--red); }
+
+/* ── MODAL ── */
+.modal-overlay {
+  position:fixed; inset:0;
+  background:rgba(42,31,20,0.4);
+  backdrop-filter:blur(4px);
+  z-index:1000;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+}
+
+.modal-overlay.show { display:flex; }
+
+.modal {
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:18px;
+  padding:28px;
+  max-width:520px;
+  width:100%;
+  max-height:80vh;
+  overflow-y:auto;
+  box-shadow:var(--shadow-lg);
+  animation:fadeIn 0.2s ease;
+}
+
+.modal-title { font-family:var(--serif); font-size:20px; font-weight:700; margin-bottom:20px; color:var(--text); }
+.modal-footer { display:flex; gap:10px; justify-content:flex-end; margin-top:20px; padding-top:16px; border-top:1px solid var(--border); }
+
+/* ── ANIMATIONS ── */
+@keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+@keyframes spin { to{transform:rotate(360deg)} }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+@keyframes slideIn { from{transform:translateX(-10px);opacity:0} to{transform:translateX(0);opacity:1} }
+
+/* ══════════════════════════════════════
+   MORNING PAGE
+══════════════════════════════════════ */
+.morning-hero {
+  background:linear-gradient(135deg, #fdecd8 0%, #f5e0c8 50%, #eedcca 100%);
+  border:1px solid #e4cdb0;
+  border-radius:18px;
+  padding:28px;
+  margin-bottom:20px;
+  position:relative;
+  overflow:hidden;
+}
+
+.morning-hero::after {
+  content:'☀️';
+  position:absolute;
+  right:24px; top:20px;
+  font-size:40px;
+  opacity:0.3;
+}
+
+.morning-greeting { font-family:var(--mono); font-size:10px; color:var(--accent); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:6px; }
+.morning-title { font-family:var(--serif); font-size:26px; font-weight:700; color:var(--text); letter-spacing:-0.02em; margin-bottom:6px; }
+.morning-date { font-size:13px; color:var(--text2); margin-bottom:20px; }
+
+.morning-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-bottom:20px; }
+
+.morning-stat {
+  background:rgba(255,255,255,0.6);
+  border:1px solid rgba(255,255,255,0.8);
+  border-radius:12px;
+  padding:14px;
+  text-align:center;
+}
+
+.morning-stat-val { font-family:var(--serif); font-size:24px; font-weight:700; color:var(--text); }
+.morning-stat-val.accent { color:var(--accent); }
+.morning-stat-val.gold { color:var(--gold); }
+.morning-stat-val.green { color:var(--green); }
+.morning-stat-label { font-size:10px; color:var(--text2); font-family:var(--mono); margin-top:2px; letter-spacing:0.06em; }
+
+.intention-input {
+  background:rgba(255,255,255,0.7);
+  border:1px solid rgba(255,255,255,0.9);
+  border-radius:10px;
+  padding:10px 14px;
+  font-size:13px;
+  font-family:var(--sans);
+  color:var(--text);
+  width:100%;
+  outline:none;
+}
+
+.intention-input::placeholder { color:var(--text3); }
+
+/* Today's agenda */
+.agenda-item {
+  display:flex;
+  align-items:flex-start;
+  gap:12px;
+  padding:10px 0;
+  border-bottom:1px solid var(--border);
+}
+
+.agenda-item:last-child { border-bottom:none; }
+
+.agenda-time {
+  font-family:var(--mono);
+  font-size:11px;
+  color:var(--text3);
+  min-width:48px;
+  padding-top:1px;
+}
+
+.agenda-dot {
+  width:8px; height:8px;
+  border-radius:50%;
+  margin-top:4px;
+  flex-shrink:0;
+}
+
+.agenda-content { flex:1; }
+.agenda-title { font-size:13px; font-weight:500; color:var(--text); margin-bottom:2px; }
+.agenda-meta { font-size:11px; color:var(--text3); }
+
+/* Habit check */
+.habit-row {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:10px 14px;
+  background:var(--bg);
+  border:1px solid var(--border);
+  border-radius:10px;
+  margin-bottom:8px;
+  cursor:pointer;
+  transition:all 0.15s;
+}
+
+.habit-row:hover { border-color:var(--border2); }
+.habit-row.done { background:var(--green-soft); border-color:rgba(58,125,90,0.3); }
+
+.habit-check {
+  width:22px; height:22px;
+  border-radius:50%;
+  border:2px solid var(--border2);
+  display:flex; align-items:center; justify-content:center;
+  font-size:11px;
+  flex-shrink:0;
+  transition:all 0.2s;
+}
+
+.habit-check.done { background:var(--green); border-color:var(--green); color:#fff; }
+
+.habit-name { font-size:13px; font-weight:500; color:var(--text); }
+.habit-streak { font-size:11px; color:var(--gold); font-family:var(--mono); font-weight:600; }
+
+/* ══════════════════════════════════════
+   TASK SPACES
+══════════════════════════════════════ */
+.space-tabs {
+  display:flex;
+  gap:6px;
+  margin-bottom:20px;
+  flex-wrap:wrap;
+}
+
+.space-tab {
+  padding:7px 16px;
+  border-radius:20px;
+  font-size:12px;
+  font-weight:600;
+  cursor:pointer;
+  border:1px solid var(--border2);
+  background:var(--surface);
+  color:var(--text2);
+  transition:all 0.15s;
+  font-family:var(--sans);
+}
+
+.space-tab.active { background:var(--accent); color:#fff; border-color:var(--accent); }
+.space-tab:hover:not(.active) { border-color:var(--accent); color:var(--accent); }
+
+.task-card {
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:16px 18px;
+  margin-bottom:10px;
+  cursor:pointer;
+  transition:all 0.15s;
+  animation:slideIn 0.2s ease;
+}
+
+.task-card:hover { border-color:var(--border2); box-shadow:var(--shadow); }
+.task-card.done { opacity:0.55; }
+.task-card.done .task-title { text-decoration:line-through; }
+
+.task-header { display:flex; align-items:flex-start; gap:12px; }
+
+.task-check {
+  width:20px; height:20px;
+  border-radius:6px;
+  border:2px solid var(--border2);
+  flex-shrink:0;
+  margin-top:1px;
+  cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  font-size:11px;
+  transition:all 0.15s;
+}
+
+.task-check.done { background:var(--green); border-color:var(--green); color:#fff; }
+
+.task-body { flex:1; }
+.task-title { font-size:14px; font-weight:600; color:var(--text); margin-bottom:4px; }
+.task-meta { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+.task-due { font-family:var(--mono); font-size:10px; color:var(--text3); }
+.task-due.urgent { color:var(--red); font-weight:600; }
+.task-links-count { font-size:10px; color:var(--blue); font-family:var(--mono); }
+
+.task-expand {
+  background:var(--bg);
+  border-top:1px solid var(--border);
+  margin:-16px -18px;
+  margin-top:12px;
+  padding:16px 18px;
+  border-radius:0 0 12px 12px;
+  display:none;
+}
+
+.task-expand.show { display:block; }
+
+.task-links { margin-top:10px; }
+.task-link-item {
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:7px 10px;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:8px;
+  margin-bottom:6px;
+  text-decoration:none;
+  color:var(--text);
+  font-size:12px;
+  transition:all 0.15s;
+}
+
+.task-link-item:hover { border-color:var(--accent); color:var(--accent); }
+.task-link-icon { font-size:14px; }
+.task-link-title { flex:1; font-weight:500; }
+.task-link-url { font-size:10px; color:var(--text3); font-family:var(--mono); }
+
+/* ══════════════════════════════════════
+   STUDY VAULT
+══════════════════════════════════════ */
+.subject-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:20px; }
+
+.subject-card {
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:18px;
+  cursor:pointer;
+  transition:all 0.2s;
+  position:relative;
+  overflow:hidden;
+}
+
+.subject-card::before {
+  content:'';
+  position:absolute;
+  top:0; left:0; right:0;
+  height:3px;
+}
+
+.subject-card.acc::before { background:var(--accent); }
+.subject-card.fin::before { background:var(--gold); }
+.subject-card.eco::before { background:var(--green); }
+.subject-card.law::before { background:var(--blue); }
+.subject-card.sta::before { background:var(--purple); }
+.subject-card.mgmt::before { background:#e07050; }
+
+.subject-card:hover { border-color:var(--border2); box-shadow:var(--shadow-lg); transform:translateY(-2px); }
+
+.subject-icon { font-size:24px; margin-bottom:10px; }
+.subject-name { font-family:var(--serif); font-size:15px; font-weight:700; color:var(--text); margin-bottom:4px; }
+.subject-stats { font-size:11px; color:var(--text3); font-family:var(--mono); }
+
+/* Flashcard */
+.flashcard {
+  perspective:1000px;
+  height:200px;
+  cursor:pointer;
+  margin-bottom:16px;
+}
+
+.flashcard-inner {
+  position:relative;
+  width:100%;
+  height:100%;
+  transform-style:preserve-3d;
+  transition:transform 0.5s ease;
+}
+
+.flashcard.flipped .flashcard-inner { transform:rotateY(180deg); }
+
+.flashcard-front, .flashcard-back {
+  position:absolute;
+  inset:0;
+  backface-visibility:hidden;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  padding:24px;
+  text-align:center;
+}
+
+.flashcard-back { transform:rotateY(180deg); background:var(--accent-soft); border-color:rgba(184,92,56,0.3); }
+.flashcard-label { font-family:var(--mono); font-size:9px; letter-spacing:0.12em; text-transform:uppercase; color:var(--text3); margin-bottom:12px; }
+.flashcard-text { font-family:var(--serif); font-size:18px; font-weight:600; color:var(--text); line-height:1.4; }
+.flashcard-back .flashcard-text { color:var(--accent); }
+
+/* AI Study Panel */
+.ai-panel {
+  background:linear-gradient(135deg, #fef3e8 0%, #fdeadb 100%);
+  border:1px solid #e8cdb0;
+  border-radius:var(--radius);
+  padding:20px;
+  margin-bottom:18px;
+}
+
+.ai-panel-title { font-family:var(--serif); font-size:16px; font-weight:700; color:var(--text); margin-bottom:4px; }
+.ai-panel-sub { font-size:12px; color:var(--text2); margin-bottom:14px; }
+
+.ai-controls { display:flex; gap:10px; margin-bottom:14px; flex-wrap:wrap; }
+
+.ai-slider-wrap { flex:1; min-width:140px; }
+.ai-slider-label { font-size:10px; color:var(--text3); font-family:var(--mono); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:4px; display:flex; justify-content:space-between; }
+.ai-slider { width:100%; appearance:none; height:4px; border-radius:2px; background:var(--border2); outline:none; cursor:pointer; }
+.ai-slider::-webkit-slider-thumb { appearance:none; width:14px; height:14px; border-radius:50%; background:var(--accent); cursor:pointer; }
+
+.ai-output {
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:16px;
+  font-size:13px;
+  line-height:1.8;
+  color:var(--text2);
+  display:none;
+  max-height:300px;
+  overflow-y:auto;
+}
+
+.ai-output.show { display:block; }
+.ai-output h3 { color:var(--text); font-size:14px; font-weight:600; margin:12px 0 6px; }
+.ai-output p { margin-bottom:10px; }
+.ai-output ul { padding-left:18px; margin-bottom:10px; }
+.ai-output li { margin-bottom:4px; }
+.ai-output strong { color:var(--text); }
+
+.ai-feedback { display:flex; gap:6px; margin-top:10px; }
+.feedback-btn {
+  flex:1;
+  padding:6px;
+  border-radius:8px;
+  border:1px solid var(--border);
+  background:none;
+  font-size:11px;
+  cursor:pointer;
+  font-family:var(--sans);
+  color:var(--text3);
+  transition:all 0.15s;
+  text-align:center;
+}
+
+.feedback-btn:hover { border-color:var(--accent); color:var(--accent); }
+.feedback-btn.active { background:var(--accent-soft); border-color:var(--accent); color:var(--accent); }
+
+/* ══════════════════════════════════════
+   FOCUS MODE
+══════════════════════════════════════ */
+.focus-overlay {
+  position:fixed; inset:0;
+  background:#fdf8f2;
+  z-index:500;
+  display:none;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+}
+
+.focus-overlay.active { display:flex; }
+
+.focus-task { font-family:var(--serif); font-size:22px; font-weight:700; color:var(--text); margin-bottom:8px; max-width:500px; }
+.focus-sub { font-size:13px; color:var(--text3); margin-bottom:48px; }
+
+.focus-timer {
+  font-family:var(--serif);
+  font-size:80px;
+  font-weight:900;
+  color:var(--accent);
+  letter-spacing:-0.04em;
+  line-height:1;
+  margin-bottom:12px;
+}
+
+.focus-phase { font-family:var(--mono); font-size:11px; letter-spacing:0.14em; text-transform:uppercase; color:var(--text3); margin-bottom:40px; }
+
+.focus-ring {
+  position:relative;
+  width:200px; height:200px;
+  margin-bottom:32px;
+}
+
+.focus-ring svg { transform:rotate(-90deg); }
+.focus-ring-bg { fill:none; stroke:var(--border); stroke-width:8; }
+.focus-ring-fill { fill:none; stroke:var(--accent); stroke-width:8; stroke-linecap:round; transition:stroke-dashoffset 1s linear; }
+
+.focus-controls { display:flex; gap:12px; }
+.focus-btn {
+  padding:12px 28px;
+  border-radius:12px;
+  border:none;
+  font-size:14px;
+  font-weight:600;
+  cursor:pointer;
+  font-family:var(--sans);
+  transition:all 0.15s;
+}
+
+.focus-btn.primary { background:var(--accent); color:#fff; }
+.focus-btn.secondary { background:var(--surface); border:1px solid var(--border2); color:var(--text2); }
+
+/* ══════════════════════════════════════
+   HABITS
+══════════════════════════════════════ */
+.habit-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; margin-bottom:16px; }
+.habit-day-label { font-family:var(--mono); font-size:9px; color:var(--text3); text-align:center; margin-bottom:4px; letter-spacing:0.06em; }
+.habit-dot { width:100%; aspect-ratio:1; border-radius:4px; background:var(--border); transition:background 0.2s; }
+.habit-dot.done { background:var(--green); }
+.habit-dot.today { outline:2px solid var(--accent); outline-offset:2px; }
+
+/* ══════════════════════════════════════
+   STOCKS
+══════════════════════════════════════ */
+.stock-item {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:12px 16px;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:10px;
+  margin-bottom:8px;
+}
+
+.stock-name { font-weight:600; font-size:14px; color:var(--text); }
+.stock-ticker { font-family:var(--mono); font-size:10px; color:var(--text3); margin-top:2px; }
+.stock-price { font-family:var(--mono); font-size:16px; font-weight:600; color:var(--text); }
+.stock-change { font-family:var(--mono); font-size:12px; font-weight:600; }
+.stock-change.up { color:var(--green); }
+.stock-change.down { color:var(--red); }
+
+/* ══════════════════════════════════════
+   EXPENSES
+══════════════════════════════════════ */
+.expense-item {
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:10px 0;
+  border-bottom:1px solid var(--border);
+}
+
+.expense-icon { font-size:20px; width:36px; text-align:center; }
+.expense-name { flex:1; font-size:13px; font-weight:500; color:var(--text); }
+.expense-cat { font-size:10px; color:var(--text3); font-family:var(--mono); }
+.expense-amount { font-family:var(--mono); font-size:14px; font-weight:600; }
+.expense-amount.income { color:var(--green); }
+.expense-amount.expense { color:var(--red); }
+
+/* ══════════════════════════════════════
+   QUICK CAPTURE
+══════════════════════════════════════ */
+.quick-capture-btn {
+  position:fixed;
+  bottom:24px; right:24px;
+  width:52px; height:52px;
+  border-radius:50%;
+  background:var(--accent);
+  color:#fff;
+  border:none;
+  font-size:22px;
+  cursor:pointer;
+  box-shadow:0 4px 16px rgba(184,92,56,0.4);
+  z-index:100;
+  transition:all 0.2s;
+  display:flex; align-items:center; justify-content:center;
+}
+
+.quick-capture-btn:hover { transform:scale(1.1); box-shadow:0 6px 20px rgba(184,92,56,0.5); }
+
+/* ══════════════════════════════════════
+   SETUP SCREEN
+══════════════════════════════════════ */
+#setup-screen {
+  display:none;
+  position:fixed; inset:0;
+  background:var(--bg);
+  z-index:9999;
+  align-items:center;
+  justify-content:center;
+  flex-direction:column;
+}
+
+.setup-card {
+  max-width:480px;
+  width:100%;
+  padding:40px 36px;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:20px;
+  box-shadow:var(--shadow-lg);
+}
+
+.setup-title { font-family:var(--serif); font-size:28px; font-weight:700; color:var(--accent); margin-bottom:4px; }
+.setup-sub { font-size:13px; color:var(--text3); margin-bottom:28px; font-family:var(--mono); letter-spacing:0.04em; }
+.setup-field { margin-bottom:18px; }
+</style>
+</head>
+<body>
+
+<!-- SETUP SCREEN -->
+<div id="setup-screen">
+  <div class="setup-card">
+    <div class="setup-title">Durgha's Dashboard</div>
+    <div class="setup-sub">Enter your API keys to get started · Stored in your browser only</div>
+
+    <div class="setup-field">
+      <div class="input-label">Groq API Key</div>
+      <input class="input" id="setup-groq" type="password" placeholder="gsk_..."/>
+      <div style="font-size:11px;color:var(--text3);margin-top:4px">Free at console.groq.com</div>
+    </div>
+
+    <div class="setup-field">
+      <div class="input-label">NewsAPI Key</div>
+      <input class="input" id="setup-news" type="password" placeholder="abc123..."/>
+      <div style="font-size:11px;color:var(--text3);margin-top:4px">Free at newsapi.org</div>
+    </div>
+
+    <button class="btn btn-primary" style="width:100%;justify-content:center;padding:13px;" onclick="completeSetup()">Launch Dashboard →</button>
+  </div>
+</div>
+
+<!-- FOCUS MODE OVERLAY -->
+<div class="focus-overlay" id="focusOverlay">
+  <div class="focus-task" id="focusTaskName">Focus Session</div>
+  <div class="focus-sub" id="focusPhaseLabel">Work for 25 minutes, then take a break</div>
+  <div class="focus-ring">
+    <svg width="200" height="200" viewBox="0 0 200 200">
+      <circle class="focus-ring-bg" cx="100" cy="100" r="88"/>
+      <circle class="focus-ring-fill" id="focusRingFill" cx="100" cy="100" r="88" stroke-dasharray="553" stroke-dashoffset="0"/>
+    </svg>
+    <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;">
+      <div class="focus-timer" id="focusTimer">25:00</div>
+      <div class="focus-phase" id="focusPhaseTag">FOCUS</div>
+    </div>
+  </div>
+  <div class="focus-controls">
+    <button class="focus-btn primary" id="focusPlayBtn" onclick="toggleFocus()">▶ Start</button>
+    <button class="focus-btn secondary" onclick="skipFocusPhase()">Skip →</button>
+    <button class="focus-btn secondary" onclick="exitFocus()">✕ Exit</button>
+  </div>
+</div>
+
+<!-- QUICK CAPTURE MODAL -->
+<div class="modal-overlay" id="captureModal">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-title">⚡ Quick Capture</div>
+    <div class="input-label">What's on your mind?</div>
+    <textarea class="input" id="captureText" placeholder="Idea, link, reminder, thought..." style="min-height:100px"></textarea>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('captureModal')">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="saveCapture()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD TASK MODAL -->
+<div class="modal-overlay" id="taskModal">
+  <div class="modal">
+    <div class="modal-title">Add Task</div>
+    <div class="input-label">Title</div>
+    <input class="input" id="taskTitle" placeholder="What needs to be done?" style="margin-bottom:12px"/>
+    <div class="grid-2" style="gap:10px;margin-bottom:12px">
+      <div>
+        <div class="input-label">Space</div>
+        <select class="input" id="taskSpace">
+          <option value="school">🎓 School</option>
+          <option value="work">💼 Work</option>
+          <option value="personal">🧘 Personal</option>
+        </select>
+      </div>
+      <div>
+        <div class="input-label">Due Date</div>
+        <input class="input" type="date" id="taskDue"/>
+      </div>
+    </div>
+    <div class="grid-2" style="gap:10px;margin-bottom:12px">
+      <div>
+        <div class="input-label">Priority</div>
+        <select class="input" id="taskPriority">
+          <option value="high">🔴 High</option>
+          <option value="medium">🟡 Medium</option>
+          <option value="low">🟢 Low</option>
+        </select>
+      </div>
+      <div>
+        <div class="input-label">Subject (if school)</div>
+        <select class="input" id="taskSubject">
+          <option value="">—</option>
+          <option>Financial Accounting</option>
+          <option>Management Accounting</option>
+          <option>Corporate Finance</option>
+          <option>Economics</option>
+          <option>Business Law</option>
+          <option>Statistics</option>
+        </select>
+      </div>
+    </div>
+    <div class="input-label">Notes</div>
+    <textarea class="input" id="taskNotes" placeholder="Additional notes..." style="margin-bottom:12px;min-height:60px"></textarea>
+    <div class="input-label">Links (one per line, format: Title | URL)</div>
+    <textarea class="input" id="taskLinks" placeholder="Lecture slides | https://...&#10;Assignment doc | https://..." style="min-height:70px"></textarea>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('taskModal')">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="saveTask()">Add Task</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD FLASHCARD MODAL -->
+<div class="modal-overlay" id="flashcardModal">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-title">Add Flashcard</div>
+    <div class="input-label">Subject</div>
+    <select class="input" id="fcSubject" style="margin-bottom:12px">
+      <option>Financial Accounting</option>
+      <option>Management Accounting</option>
+      <option>Corporate Finance</option>
+      <option>Economics</option>
+      <option>Business Law</option>
+      <option>Statistics</option>
+    </select>
+    <div class="input-label">Question / Front</div>
+    <textarea class="input" id="fcFront" placeholder="What is..." style="margin-bottom:12px;min-height:70px"></textarea>
+    <div class="input-label">Answer / Back</div>
+    <textarea class="input" id="fcBack" placeholder="Answer..." style="min-height:70px"></textarea>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('flashcardModal')">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="saveFlashcard()">Save Card</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD EXPENSE MODAL -->
+<div class="modal-overlay" id="expenseModal">
+  <div class="modal" style="max-width:380px">
+    <div class="modal-title">Add Transaction</div>
+    <div class="grid-2" style="gap:10px;margin-bottom:12px">
+      <div>
+        <div class="input-label">Type</div>
+        <select class="input" id="expType">
+          <option value="expense">Expense</option>
+          <option value="income">Income</option>
+        </select>
+      </div>
+      <div>
+        <div class="input-label">Amount (RM)</div>
+        <input class="input" type="number" id="expAmount" placeholder="0.00"/>
+      </div>
+    </div>
+    <div class="input-label">Description</div>
+    <input class="input" id="expDesc" placeholder="What was this for?" style="margin-bottom:12px"/>
+    <div class="input-label">Category</div>
+    <select class="input" id="expCat">
+      <option>Food & Drink</option><option>Transport</option><option>Education</option>
+      <option>Entertainment</option><option>Shopping</option><option>Part-time work</option><option>Other</option>
+    </select>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('expenseModal')">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="saveExpense()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD STOCK MODAL -->
+<div class="modal-overlay" id="stockModal">
+  <div class="modal" style="max-width:360px">
+    <div class="modal-title">Add to Watchlist</div>
+    <div class="input-label">Stock / Crypto Symbol</div>
+    <input class="input" id="stockSymbol" placeholder="AAPL, BTC, TSLA, KLCI..." style="margin-bottom:8px"/>
+    <div style="font-size:11px;color:var(--text3);margin-bottom:12px">Note: prices use free API — major stocks and crypto supported</div>
+    <div class="input-label">Display Name</div>
+    <input class="input" id="stockName" placeholder="Apple Inc."/>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('stockModal')">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="saveStock()">Add</button>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div class="app" id="mainApp" style="display:none">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-name">Durgha's Dashboard</div>
+      <div class="brand-sub">Personal OS · Year 2 A&F</div>
+    </div>
+
+    <div class="sidebar-stats">
+      <div class="stat-pill">
+        <div class="stat-pill-val gold" id="sStreak">0</div>
+        <div class="stat-pill-label">🔥 Streak</div>
+      </div>
+      <div class="stat-pill">
+        <div class="stat-pill-val accent" id="sXP">0</div>
+        <div class="stat-pill-label">⚡ XP</div>
+      </div>
+      <div class="stat-pill">
+        <div class="stat-pill-val green" id="sTasks">0</div>
+        <div class="stat-pill-label">✅ Done</div>
+      </div>
+    </div>
+
+    <div class="xp-bar-wrap">
+      <div class="xp-label">
+        <span class="xp-level" id="xpLevel">CURIOUS</span>
+        <span class="xp-pts" id="xpPts">0 XP</span>
+      </div>
+      <div class="xp-track"><div class="xp-fill" id="xpFill" style="width:0%"></div></div>
+    </div>
+
+    <nav class="nav">
+      <div class="nav-section">Daily</div>
+      <div class="nav-item active" onclick="nav('morning')" id="nav-morning"><span class="nav-icon">🌅</span>Morning</div>
+      <div class="nav-item" onclick="nav('tasks')" id="nav-tasks"><span class="nav-icon">✅</span>Tasks<span class="nav-badge" id="tasksBadge" style="display:none">0</span></div>
+      <div class="nav-item" onclick="nav('habits')" id="nav-habits"><span class="nav-icon">💪</span>Habits</div>
+
+      <div class="nav-section">Study</div>
+      <div class="nav-item" onclick="nav('vault')" id="nav-vault"><span class="nav-icon">📚</span>Study Vault</div>
+      <div class="nav-item" onclick="nav('flashcards')" id="nav-flashcards"><span class="nav-icon">🃏</span>Flashcards</div>
+      <div class="nav-item" onclick="nav('focus')" id="nav-focus"><span class="nav-icon">⏱️</span>Focus Mode</div>
+
+      <div class="nav-section">Learn</div>
+      <div class="nav-item" onclick="nav('brief')" id="nav-brief"><span class="nav-icon">📰</span>Daily Brief</div>
+      <div class="nav-item" onclick="nav('concept')" id="nav-concept"><span class="nav-icon">🧠</span>Concept of Day</div>
+      <div class="nav-item" onclick="nav('research')" id="nav-research"><span class="nav-icon">🔍</span>Deep Research</div>
+
+      <div class="nav-section">Life</div>
+      <div class="nav-item" onclick="nav('stocks')" id="nav-stocks"><span class="nav-icon">📈</span>Stocks & Crypto</div>
+      <div class="nav-item" onclick="nav('expenses')" id="nav-expenses"><span class="nav-icon">💸</span>Expenses</div>
+      <div class="nav-item" onclick="nav('captures')" id="nav-captures"><span class="nav-icon">⚡</span>Quick Notes<span class="nav-badge green" id="capturesBadge" style="display:none">0</span></div>
+    </nav>
+
+    <div class="sidebar-footer">
+      <button class="footer-btn" onclick="exportData()">⬇ Backup</button>
+      <button class="footer-btn" onclick="document.getElementById('importFile').click()">⬆ Restore</button>
+      <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)"/>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main">
+
+    <!-- ── MORNING ── -->
+    <div class="view active" id="view-morning">
+      <div class="topbar">
+        <div class="topbar-left">
+          <div class="topbar-title" id="morningGreeting">Good morning ☀️</div>
+          <div class="topbar-sub" id="morningDate"></div>
+        </div>
+      </div>
+      <div class="content">
+        <div class="morning-hero">
+          <div class="morning-greeting">Daily Intention</div>
+          <div class="morning-title" id="morningQuote">What will you accomplish today?</div>
+          <div class="morning-date" id="morningFullDate"></div>
+          <input class="intention-input" id="intentionInput" placeholder="Set your focus for today..." onblur="saveIntention()"/>
+        </div>
+
+        <div class="grid-2" style="gap:16px;margin-bottom:0">
+          <div>
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">Today's Tasks</div>
+                <button class="btn btn-primary btn-sm" onclick="openModal('taskModal')">+ Add</button>
+              </div>
+              <div id="morningTasks"></div>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">Habits</div>
+              </div>
+              <div id="morningHabits"></div>
+            </div>
+          </div>
+
+          <div>
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">Quick Stats</div>
+              </div>
+              <div class="morning-grid" style="grid-template-columns:1fr 1fr;gap:10px">
+                <div class="morning-stat">
+                  <div class="morning-stat-val gold" id="mStreak">0</div>
+                  <div class="morning-stat-label">Day Streak</div>
+                </div>
+                <div class="morning-stat">
+                  <div class="morning-stat-val accent" id="mXP">0</div>
+                  <div class="morning-stat-label">Total XP</div>
+                </div>
+                <div class="morning-stat">
+                  <div class="morning-stat-val green" id="mTasksDone">0</div>
+                  <div class="morning-stat-label">Tasks Done</div>
+                </div>
+                <div class="morning-stat">
+                  <div class="morning-stat-val" id="mFlashcards">0</div>
+                  <div class="morning-stat-label">Flashcards</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">Quick Captures</div>
+                <span style="font-size:12px;color:var(--text3);cursor:pointer" onclick="nav('captures')">See all →</span>
+              </div>
+              <div id="morningCaptures"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── TASKS ── -->
+    <div class="view" id="view-tasks">
+      <div class="topbar">
+        <div class="topbar-left">
+          <div class="topbar-title">Tasks</div>
+          <div class="topbar-sub">Organised by space</div>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn btn-primary btn-sm" onclick="openModal('taskModal')">+ Add Task</button>
+        </div>
+      </div>
+      <div class="content">
+        <div class="space-tabs" id="spaceTabs">
+          <button class="space-tab active" onclick="switchSpace('all',this)">All</button>
+          <button class="space-tab" onclick="switchSpace('school',this)">🎓 School</button>
+          <button class="space-tab" onclick="switchSpace('work',this)">💼 Work</button>
+          <button class="space-tab" onclick="switchSpace('personal',this)">🧘 Personal</button>
+        </div>
+        <div id="taskList"></div>
+      </div>
+    </div>
+
+    <!-- ── HABITS ── -->
+    <div class="view" id="view-habits">
+      <div class="topbar">
+        <div class="topbar-left">
+          <div class="topbar-title">Habit Tracker</div>
+          <div class="topbar-sub">Build consistency, one day at a time</div>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn btn-primary btn-sm" onclick="addHabitPrompt()">+ Add Habit</button>
+        </div>
+      </div>
+      <div class="content" id="habitsContent"></div>
+    </div>
+
+    <!-- ── STUDY VAULT ── -->
+    <div class="view" id="view-vault">
+      <div class="topbar">
+        <div class="topbar-left">
+          <div class="topbar-title">Study Vault</div>
+          <div class="topbar-sub">AI-powered study tools for Year 2 A&F</div>
+        </div>
+      </div>
+      <div class="content">
+        <div class="subject-grid" id="subjectGrid"></div>
+        <div id="vaultSubjectView" style="display:none"></div>
+      </div>
+    </div>
+
+    <!-- ── FLASHCARDS ── -->
+    <div class="view" id="view-flashcards">
+      <div class="topbar">
+        <div class="topbar-left">
+          <div class="topbar-title">Flashcards</div>
+          <div class="topbar-sub">Spaced repetition for long-term retention</div>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn btn-primary btn-sm" onclick="openModal('flashcardModal')">+ Add Card</button>
+        </div>
+      </div>
+      <div class="content" id="flashcardsContent"></div>
+    </div>
+
+    <!-- ── FOCUS ── -->
+    <div class="view" id="view-focus">
+      <div class="topbar">
+        <div class="topbar-left">
+          <div class="topbar-title">Focus Mode</div>
+          <div class="topbar-sub">Pomodoro · 25 min work, 5 min break</div>
+        </div>
+      </div>
+      <div class="content">
+        <div class="card">
+          <div class="card-title" style="margin-bottom:14px">Start a Focus Session</div>
+          <div class="input-label">What are you working on?</div>
+          <input class="input" id="focusTaskInput" placeholder="Select or type your task..." style="margin-bottom:12px"/>
+          <div class="input-label">Or pick a task</div>
+          <div id="focusTaskPicker"></div>
+          <div class="btn-group" style="margin-top:20px">
+            <button class="btn btn-primary" onclick="startFocusMode()">🎯 Start Focus Session</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title" style="margin-bottom:14px">Session History</div>
+          <div id="focusHistory"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── DAILY BRIEF ── -->
+    <div class="view" id="view-brief">
+      <div class="topbar">
+        <div class="topbar-left">
+          <div class="topbar-title">Daily Brief</div>
+          <div class="topbar-sub">World · Finance · Geopolitics · Learn</div>
+        </div>
+      </div>
+      <div class="content">
+        <div style="display:flex;gap:6px;margin-bottom:20px;flex-wrap:wrap">
+          <button class="space-tab active" onclick="loadBriefTab('world',this)">🌍 World</button>
+          <button class="space-tab" onclick="loadBriefTab('finance',this)">📊 Finance</button>
+          <button class="space-tab" onclick="loadBriefTab('geo',this)">🌐 Geopolitics</button>
+          <button class="space-tab" onclick="loadBriefTab('learn',this)">🧠 Learn</button>
+        </div>
+        <div id="briefContent"></div>
+      </div>
+    </div>
+
+    <!-- ── CONCEPT ── -->
+    <div class="view" id="view-concept">
+      <div class="topbar">
+        <div class="topbar-left">
+          <div class="topbar-title">Concept of the Day</div>
+          <div class="topbar-sub">One concept. Taught properly.</div>
+        </div>
+      </div>
+      <div class="content" id="conceptContent"></div>
+    </div>
+
+    <!-- ── RESEARCH ── -->
+    <div class="view" id="view-research">
+      <div class="topbar">
+        <div class="topbar-left">
+          <div class="topbar-title">Deep Research</div>
+          <div class="topbar-sub">Comprehensive answers, not Google snippets</div>
+        </div>
+      </div>
+      <div class="content">
+        <div style="display:flex;gap:10px;margin-bottom:20px">
+          <input class="input" id="researchInput" placeholder="Ask anything — 'What is a bond?', 'Explain DCF valuation', 'What is happening in Gaza'..." onkeydown="if(event.key==='Enter')doResearch()"/>
+          <button class="btn btn-primary" onclick="doResearch()">Research →</button>
+        </div>
+        <div id="researchSuggestions">
+          <div class="card-label" style="margin-bottom:10px">Suggested for A&F students</div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px">
+            ${['What is DCF valuation?','How does double-entry bookkeeping work?','What is WACC?','Explain marginal costing vs absorption costing','What is the efficient market hypothesis?','How do financial statements connect?','What is transfer pricing?','Explain capital structure theory'].map(s=>`<button class="space-tab" style="font-size:11px" onclick="quickResearch('${s}')">${s}</button>`).join('')}
+          </div>
+        </div>
+        <div id="researchResult"></div>
+      </div>
+    </div>
+
+    <!-- ── STOCKS ── -->
+    <div class="view" id="view-stocks">
+      <div class="topbar">
+        <div class="topbar-left">
+          <div class="topbar-title">Stocks & Crypto</div>
+          <div class="topbar-sub">Your watchlist</div>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn btn-primary btn-sm" onclick="openModal('stockModal')">+ Add</button>
+          <button class="btn btn-ghost btn-sm" onclick="refreshStocks()">↻ Refresh</button>
+        </div>
+      </div>
+      <div class="content" id="stocksContent"></div>
+    </div>
+
+    <!-- ── EXPENSES ── -->
+    <div class="view" id="view-expenses">
+      <div class="topbar">
+        <div class="topbar-left">
+          <div class="topbar-title">Expenses</div>
+          <div class="topbar-sub">Track your money</div>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn btn-primary btn-sm" onclick="openModal('expenseModal')">+ Add</button>
+        </div>
+      </div>
+      <div class="content" id="expensesContent"></div>
+    </div>
+
+    <!-- ── CAPTURES ── -->
+    <div class="view" id="view-captures">
+      <div class="topbar">
+        <div class="topbar-left">
+          <div class="topbar-title">Quick Notes</div>
+          <div class="topbar-sub">Your inbox of thoughts</div>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn btn-primary btn-sm" onclick="openModal('captureModal')">+ Capture</button>
+        </div>
+      </div>
+      <div class="content" id="capturesContent"></div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Quick Capture FAB -->
+<button class="quick-capture-btn" id="quickCaptureFab" onclick="openModal('captureModal')" style="display:none" title="Quick Capture">⚡</button>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// CONFIG
+// ═══════════════════════════════════════════════════════
+const CFG = {
+  get GROQ(){ return localStorage.getItem('dd_groq')||''; },
+  get NEWS(){ return localStorage.getItem('dd_news')||''; },
+  MODEL: 'llama-3.3-70b-versatile',
+};
+
+function configured(){ return CFG.GROQ && CFG.NEWS; }
+
+function completeSetup(){
+  const g = document.getElementById('setup-groq').value.trim();
+  const n = document.getElementById('setup-news').value.trim();
+  if(!g||!n){ showToast('Please enter both keys','error'); return; }
+  localStorage.setItem('dd_groq',g);
+  localStorage.setItem('dd_news',n);
+  document.getElementById('setup-screen').style.display='none';
+  document.getElementById('mainApp').style.display='grid';
+  document.getElementById('quickCaptureFab').style.display='flex';
+  initApp();
+}
+
+// ═══════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════
+function getS(){
+  const d={
+    xp:0, streak:0, lastVisit:null, tasksDone:0,
+    tasks:[], habits:[
+      {id:'h1',name:'Exercise',icon:'🏃',streak:0,doneToday:false,history:[]},
+      {id:'h2',name:'Learn something new',icon:'📚',streak:0,doneToday:false,history:[]},
+    ],
+    flashcards:[], captures:[], expenses:[], watchlist:[
+      {symbol:'AAPL',name:'Apple'},
+      {symbol:'BTC-USD',name:'Bitcoin'},
+      {symbol:'KLSE',name:'Bursa Malaysia'},
+    ],
+    focusSessions:[], learnedTopics:[],
+    briefCache:{}, conceptCache:null,
+    intention:'', aiProfile:{depthPref:2,diffPref:2,feedbackCount:0},
+  };
+  try{ return {...d,...JSON.parse(localStorage.getItem('durgha_os')||'{}')}; }
+  catch{ return d; }
+}
+
+function saveS(patch){
+  const s={...getS(),...patch};
+  localStorage.setItem('durgha_os',JSON.stringify(s));
+  return s;
+}
+
+// ═══════════════════════════════════════════════════════
+// XP & GAMIFICATION
+// ═══════════════════════════════════════════════════════
+const LEVELS=[
+  {name:'FRESHMAN',min:0},{name:'SOPHOMORE',min:300},
+  {name:'JUNIOR',min:800},{name:'SENIOR',min:1800},
+  {name:'HONOURS',min:3500},{name:'DISTINCTION',min:6000},
+];
+
+function getLevel(xp){
+  for(let i=LEVELS.length-1;i>=0;i--) if(xp>=LEVELS[i].min) return{...LEVELS[i],next:LEVELS[i+1]||null};
+  return{...LEVELS[0],next:LEVELS[1]};
+}
+
+function addXP(amt,reason){
+  const s=getS(); const nx=s.xp+amt;
+  saveS({xp:nx});
+  updateXPUI();
+  showToast(`+${amt} XP — ${reason}`,'xp');
+}
+
+function updateXPUI(){
+  const s=getS();
+  const lv=getLevel(s.xp);
+  const nextMin=lv.next?lv.next.min:lv.min+1000;
+  const pct=Math.min(100,(s.xp-lv.min)/(nextMin-lv.min)*100);
+  document.getElementById('xpLevel').textContent=lv.name;
+  document.getElementById('xpPts').textContent=`${s.xp} XP`;
+  document.getElementById('xpFill').style.width=pct+'%';
+  document.getElementById('sStreak').textContent=s.streak;
+  document.getElementById('sXP').textContent=s.xp;
+  const done=s.tasks.filter(t=>t.done).length;
+  document.getElementById('sTasks').textContent=done;
+  if(document.getElementById('mStreak')) document.getElementById('mStreak').textContent=s.streak;
+  if(document.getElementById('mXP')) document.getElementById('mXP').textContent=s.xp;
+  if(document.getElementById('mTasksDone')) document.getElementById('mTasksDone').textContent=done;
+  if(document.getElementById('mFlashcards')) document.getElementById('mFlashcards').textContent=s.flashcards.length;
+}
+
+function checkStreak(){
+  const s=getS();
+  const today=new Date().toDateString();
+  const yesterday=new Date(Date.now()-86400000).toDateString();
+  if(s.lastVisit===today) return;
+  if(s.lastVisit===yesterday){ saveS({streak:s.streak+1,lastVisit:today}); if(s.streak+1>1) showToast(`🔥 ${s.streak+1} day streak!`,'xp'); }
+  else saveS({streak:1,lastVisit:today});
+}
+
+// ═══════════════════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════════════════
+let currentView='morning';
+let briefTabData={};
+
+function nav(view){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('view-'+view).classList.add('active');
+  const ni=document.getElementById('nav-'+view);
+  if(ni) ni.classList.add('active');
+  currentView=view;
+  if(view==='morning') renderMorning();
+  if(view==='tasks') renderTasks();
+  if(view==='habits') renderHabits();
+  if(view==='vault') renderVault();
+  if(view==='flashcards') renderFlashcards();
+  if(view==='focus') renderFocusPicker();
+  if(view==='brief') renderBrief();
+  if(view==='concept') renderConcept();
+  if(view==='stocks') renderStocks();
+  if(view==='expenses') renderExpenses();
+  if(view==='captures') renderCaptures();
+}
+
+// ═══════════════════════════════════════════════════════
+// GROQ API
+// ═══════════════════════════════════════════════════════
+async function askGroq(prompt, system=''){
+  const msgs=[{role:'user',content:prompt}];
+  const body={model:CFG.MODEL,max_tokens:2000,messages:system?[{role:'system',content:system},...msgs]:msgs};
+  const res=await fetch('https://api.groq.com/openai/v1/chat/completions',{
+    method:'POST',
+    headers:{'Authorization':`Bearer ${CFG.GROQ}`,'Content-Type':'application/json'},
+    body:JSON.stringify(body)
+  });
+  if(!res.ok) throw new Error(`Groq ${res.status}`);
+  return (await res.json()).choices[0].message.content;
+}
+
+async function fetchNews(q,n=5){
+  try{
+    const r=await fetch(`https://newsapi.org/v2/everything?q=${encodeURIComponent(q)}&language=en&sortBy=publishedAt&pageSize=${n}&apiKey=${CFG.NEWS}`);
+    const d=await r.json();
+    return (d.articles||[]).slice(0,n).map(a=>`- ${a.title} (${a.source.name})`).join('\n');
+  }catch{ return '- Headlines unavailable'; }
+}
+
+// ═══════════════════════════════════════════════════════
+// MORNING
+// ═══════════════════════════════════════════════════════
+function renderMorning(){
+  const s=getS();
+  const now=new Date();
+  const h=now.getHours();
+  const greeting=h<12?'Good morning':h<17?'Good afternoon':'Good evening';
+  document.getElementById('morningGreeting').textContent=`${h<12?'Good morning ☀️':h<17?'Good afternoon 🌤️':'Good evening 🌙'}`;
+  document.getElementById('morningDate').textContent=now.toLocaleDateString('en-MY',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  document.getElementById('morningFullDate').textContent=now.toLocaleDateString('en-MY',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+
+  const quotes=['What will you accomplish today?','Make today count.','Show up. Do the work.','One day closer to who you want to be.','Small steps, big results.'];
+  document.getElementById('morningQuote').textContent=quotes[now.getDay()%quotes.length];
+
+  const intention=s.intention||'';
+  document.getElementById('intentionInput').value=intention;
+
+  // Today's tasks
+  const today=now.toDateString();
+  const todayTasks=s.tasks.filter(t=>!t.done).slice(0,5);
+  document.getElementById('morningTasks').innerHTML=todayTasks.length
+    ?todayTasks.map(t=>`
+      <div class="habit-row ${t.done?'done':''}" onclick="toggleTask('${t.id}')">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div class="habit-check ${t.done?'done':''}">${t.done?'✓':''}</div>
+          <div>
+            <div style="font-size:13px;font-weight:500;color:var(--text)">${t.title}</div>
+            <div style="font-size:10px;color:var(--text3);font-family:var(--mono)">${t.space}${t.due?' · Due '+t.due:''}</div>
+          </div>
+        </div>
+        ${t.priority==='high'?'<span class="tag tag-accent" style="font-size:9px">urgent</span>':''}
+      </div>`).join('')
+    :`<div class="empty" style="padding:20px"><div class="empty-text">No pending tasks 🎉</div></div>`;
+
+  // Habits
+  document.getElementById('morningHabits').innerHTML=s.habits.map(h=>`
+    <div class="habit-row ${h.doneToday?'done':''}" onclick="toggleHabitToday('${h.id}')">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div class="habit-check ${h.doneToday?'done':''}">${h.doneToday?'✓':''}</div>
+        <div class="habit-name">${h.icon} ${h.name}</div>
+      </div>
+      <div class="habit-streak">🔥 ${h.streak}</div>
+    </div>`).join('');
+
+  // Captures
+  const caps=s.captures.slice(0,3);
+  document.getElementById('morningCaptures').innerHTML=caps.length
+    ?caps.map(c=>`<div style="padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;color:var(--text2)">${c.text.slice(0,80)}${c.text.length>80?'...':''}</div>`).join('')
+    :`<div style="font-size:13px;color:var(--text3);text-align:center;padding:16px">No captures yet</div>`;
+
+  updateXPUI();
+}
+
+function saveIntention(){
+  const val=document.getElementById('intentionInput').value;
+  saveS({intention:val});
+}
+
+// ═══════════════════════════════════════════════════════
+// TASKS
+// ═══════════════════════════════════════════════════════
+let currentSpace='all';
+
+function renderTasks(space){
+  if(space) currentSpace=space;
+  const s=getS();
+  let tasks=s.tasks;
+  if(currentSpace!=='all') tasks=tasks.filter(t=>t.space===currentSpace);
+
+  const pending=tasks.filter(t=>!t.done);
+  const done=tasks.filter(t=>t.done);
+
+  const pendingBadge=s.tasks.filter(t=>!t.done).length;
+  const badge=document.getElementById('tasksBadge');
+  badge.textContent=pendingBadge;
+  badge.style.display=pendingBadge>0?'inline':'none';
+
+  function taskHTML(t){
+    const dueDate=t.due?new Date(t.due):null;
+    const isUrgent=dueDate&&(dueDate-new Date())<86400000*3;
+    const links=t.links||[];
+    return `
+    <div class="task-card ${t.done?'done':''}" id="tc-${t.id}">
+      <div class="task-header">
+        <div class="task-check ${t.done?'done':''}" onclick="event.stopPropagation();toggleTask('${t.id}')">${t.done?'✓':''}</div>
+        <div class="task-body" onclick="toggleTaskExpand('${t.id}')">
+          <div class="task-title">${t.title}</div>
+          <div class="task-meta">
+            <span class="tag ${t.space==='school'?'tag-blue':t.space==='work'?'tag-gold':'tag-green'}" style="font-size:9px">${t.space}</span>
+            ${t.subject?`<span class="tag tag-muted" style="font-size:9px">${t.subject}</span>`:''}
+            ${t.priority==='high'?`<span class="tag tag-accent" style="font-size:9px">urgent</span>`:''}
+            ${t.due?`<span class="task-due ${isUrgent?'urgent':''}">📅 ${t.due}</span>`:''}
+            ${links.length?`<span class="task-links-count">🔗 ${links.length} link${links.length>1?'s':''}</span>`:''}
+          </div>
+        </div>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-xs btn-ghost" onclick="event.stopPropagation();startFocusOnTask('${t.id}')">🎯</button>
+          <button class="btn btn-xs btn-ghost" onclick="event.stopPropagation();deleteTask('${t.id}')">✕</button>
+        </div>
+      </div>
+      <div class="task-expand" id="te-${t.id}">
+        ${t.notes?`<div style="font-size:13px;color:var(--text2);margin-bottom:12px;line-height:1.6">${t.notes}</div>`:''}
+        ${links.length?`
+          <div class="task-links">
+            <div class="card-label" style="margin-bottom:8px">Links & Resources</div>
+            ${links.map(l=>`
+              <a href="${l.url}" target="_blank" class="task-link-item">
+                <span class="task-link-icon">🔗</span>
+                <span class="task-link-title">${l.title}</span>
+                <span class="task-link-url">${l.url.slice(0,40)}...</span>
+              </a>`).join('')}
+          </div>`:''}
+        <div style="margin-top:12px;display:flex;gap:8px">
+          <button class="btn btn-xs btn-primary" onclick="startFocusOnTask('${t.id}')">🎯 Focus</button>
+          <button class="btn btn-xs btn-ghost" onclick="deleteTask('${t.id}')">Delete</button>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  document.getElementById('taskList').innerHTML=
+    (pending.length===0&&done.length===0)
+      ?`<div class="empty"><div class="empty-icon">✅</div><div class="empty-text">No tasks here yet.<br/>Add one to get started.</div></div>`
+      :`${pending.map(taskHTML).join('')}
+       ${done.length?`<div class="card-label" style="margin:16px 0 10px">Completed</div>${done.map(taskHTML).join('')}`:''}`;
+}
+
+function switchSpace(space,el){
+  document.querySelectorAll('.space-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  renderTasks(space);
+}
+
+function toggleTask(id){
+  const s=getS();
+  const tasks=s.tasks.map(t=>{
+    if(t.id===id){
+      if(!t.done) addXP(20,'Task completed!');
+      return{...t,done:!t.done};
+    }
+    return t;
+  });
+  saveS({tasks});
+  renderTasks();
+  if(currentView==='morning') renderMorning();
+}
+
+function toggleTaskExpand(id){
+  const el=document.getElementById('te-'+id);
+  if(el) el.classList.toggle('show');
+}
+
+function deleteTask(id){
+  const s=getS();
+  saveS({tasks:s.tasks.filter(t=>t.id!==id)});
+  renderTasks();
+  showToast('Task deleted','info');
+}
+
+function saveTask(){
+  const title=document.getElementById('taskTitle').value.trim();
+  if(!title){ showToast('Add a title','error'); return; }
+
+  const linksRaw=document.getElementById('taskLinks').value.trim();
+  const links=linksRaw?linksRaw.split('\n').filter(l=>l.includes('|')).map(l=>{
+    const[title,...rest]=l.split('|');
+    return{title:title.trim(),url:rest.join('|').trim()};
+  }):[];
+
+  const task={
+    id:'t'+Date.now(),
+    title,
+    space:document.getElementById('taskSpace').value,
+    due:document.getElementById('taskDue').value,
+    priority:document.getElementById('taskPriority').value,
+    subject:document.getElementById('taskSubject').value,
+    notes:document.getElementById('taskNotes').value,
+    links,
+    done:false,
+    created:new Date().toISOString(),
+  };
+
+  const s=getS();
+  saveS({tasks:[task,...s.tasks]});
+  closeModal('taskModal');
+  document.getElementById('taskTitle').value='';
+  document.getElementById('taskNotes').value='';
+  document.getElementById('taskLinks').value='';
+  showToast('Task added!','success');
+  addXP(10,'Added a task');
+  if(currentView==='tasks') renderTasks();
+  if(currentView==='morning') renderMorning();
+}
+
+function startFocusOnTask(id){
+  const s=getS();
+  const t=s.tasks.find(x=>x.id===id);
+  if(t){ document.getElementById('focusTaskInput').value=t.title; nav('focus'); }
+}
+
+// ═══════════════════════════════════════════════════════
+// HABITS
+// ═══════════════════════════════════════════════════════
+function renderHabits(){
+  const s=getS();
+  const days=['M','T','W','T','F','S','S'];
+  document.getElementById('habitsContent').innerHTML=s.habits.map(h=>`
+    <div class="card">
+      <div class="card-header">
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="font-size:22px">${h.icon}</span>
+          <div>
+            <div class="card-title">${h.name}</div>
+            <div style="font-size:11px;color:var(--gold);font-family:var(--mono);font-weight:600">🔥 ${h.streak} day streak</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <button class="btn btn-sm ${h.doneToday?'btn-green':'btn-primary'}" onclick="toggleHabitToday('${h.id}')">
+            ${h.doneToday?'✓ Done':'Mark Done'}
+          </button>
+          <button class="btn btn-xs btn-ghost" onclick="deleteHabit('${h.id}')">✕</button>
+        </div>
+      </div>
+      <div class="card-label" style="margin-bottom:8px">Last 21 days</div>
+      <div class="habit-grid">
+        ${days.map(d=>`<div class="habit-day-label">${d}</div>`).join('')}
+        ${Array.from({length:21},(_,i)=>{
+          const d=new Date(Date.now()-(20-i)*86400000).toDateString();
+          const done=(h.history||[]).includes(d);
+          const isToday=d===new Date().toDateString();
+          return`<div class="habit-dot ${done?'done':''} ${isToday?'today':''}" title="${d}"></div>`;
+        }).join('')}
+      </div>
+    </div>`).join('')||`<div class="empty"><div class="empty-icon">💪</div><div class="empty-text">No habits yet. Add your first one!</div></div>`;
+}
+
+function toggleHabitToday(id){
+  const s=getS();
+  const today=new Date().toDateString();
+  const habits=s.habits.map(h=>{
+    if(h.id!==id) return h;
+    const hist=h.history||[];
+    if(h.doneToday){
+      return{...h,doneToday:false,streak:Math.max(0,h.streak-1),history:hist.filter(d=>d!==today)};
+    } else {
+      addXP(25,'Habit completed!');
+      return{...h,doneToday:true,streak:h.streak+1,history:[...hist,today]};
+    }
+  });
+  saveS({habits});
+  if(currentView==='habits') renderHabits();
+  if(currentView==='morning') renderMorning();
+}
+
+function deleteHabit(id){
+  const s=getS();
+  saveS({habits:s.habits.filter(h=>h.id!==id)});
+  renderHabits();
+}
+
+function addHabitPrompt(){
+  const name=prompt('Habit name:');
+  if(!name) return;
+  const icon=prompt('Emoji icon (e.g. 🏃):') || '⭐';
+  const s=getS();
+  saveS({habits:[...s.habits,{id:'h'+Date.now(),name,icon,streak:0,doneToday:false,history:[]}]});
+  renderHabits();
+  showToast('Habit added!','success');
+}
+
+// ═══════════════════════════════════════════════════════
+// STUDY VAULT
+// ═══════════════════════════════════════════════════════
+const SUBJECTS=[
+  {id:'facc',name:'Financial Accounting',icon:'📒',cls:'acc',color:'var(--accent)'},
+  {id:'macc',name:'Management Accounting',icon:'📊',cls:'fin',color:'var(--gold)'},
+  {id:'fin',name:'Corporate Finance',icon:'💹',cls:'eco',color:'var(--green)'},
+  {id:'eco',name:'Economics',icon:'🌍',cls:'law',color:'var(--blue)'},
+  {id:'law',name:'Business Law',icon:'⚖️',cls:'sta',color:'var(--purple)'},
+  {id:'stat',name:'Statistics',icon:'📐',cls:'mgmt',color:'#e07050'},
+];
+
+function renderVault(){
+  const s=getS();
+  document.getElementById('vaultSubjectView').style.display='none';
+  document.getElementById('subjectGrid').style.display='grid';
+  document.getElementById('subjectGrid').innerHTML=SUBJECTS.map(sub=>{
+    const notes=(s[`notes_${sub.id}`]||[]).length;
+    const cards=s.flashcards.filter(f=>f.subject===sub.name).length;
+    return`<div class="subject-card ${sub.cls}" onclick="openSubject('${sub.id}')">
+      <div class="subject-icon">${sub.icon}</div>
+      <div class="subject-name">${sub.name}</div>
+      <div class="subject-stats">${notes} notes · ${cards} flashcards</div>
+    </div>`;
+  }).join('');
+}
+
+function openSubject(id){
+  const sub=SUBJECTS.find(s=>s.id===id);
+  const s=getS();
+  const notes=s[`notes_${id}`]||[];
+  document.getElementById('subjectGrid').style.display='none';
+  const view=document.getElementById('vaultSubjectView');
+  view.style.display='block';
+  view.innerHTML=`
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+      <button class="btn btn-ghost btn-sm" onclick="renderVault()">← Back</button>
+      <div class="card-title">${sub.icon} ${sub.name}</div>
+    </div>
+
+    <div class="ai-panel">
+      <div class="ai-panel-title">🤖 AI Study Assistant</div>
+      <div class="ai-panel-sub">Paste your notes and get a study guide, flashcards, or practice questions tailored to your level.</div>
+      <textarea class="input" id="notesInput_${id}" placeholder="Paste your lecture notes here..." style="min-height:120px;margin-bottom:12px"></textarea>
+      <div class="ai-controls">
+        <div class="ai-slider-wrap">
+          <div class="ai-slider-label"><span>Depth</span><span id="depthVal_${id}">Medium</span></div>
+          <input type="range" class="ai-slider" min="1" max="3" value="2" id="depthSlider_${id}" oninput="updateSliderLabel('depth','${id}',this.value)"/>
+        </div>
+        <div class="ai-slider-wrap">
+          <div class="ai-slider-label"><span>Difficulty</span><span id="diffVal_${id}">Medium</span></div>
+          <input type="range" class="ai-slider" min="1" max="3" value="2" id="diffSlider_${id}" oninput="updateSliderLabel('diff','${id}',this.value)"/>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+        <button class="btn btn-primary btn-sm" onclick="aiStudy('guide','${id}','${sub.name}')">📋 Study Guide</button>
+        <button class="btn btn-secondary btn-sm" onclick="aiStudy('flashcards','${id}','${sub.name}')">🃏 Make Flashcards</button>
+        <button class="btn btn-secondary btn-sm" onclick="aiStudy('questions','${id}','${sub.name}')">❓ Practice Questions</button>
+        <button class="btn btn-secondary btn-sm" onclick="aiStudy('summary','${id}','${sub.name}')">⚡ Quick Summary</button>
+      </div>
+      <div class="ai-output" id="aiOutput_${id}"></div>
+      <div class="ai-feedback" id="aiFeedback_${id}" style="display:none">
+        <div style="font-size:11px;color:var(--text3);padding-top:6px;font-family:var(--mono)">Was this helpful?</div>
+        <button class="feedback-btn" onclick="aiFeedback('${id}','less')">Too much</button>
+        <button class="feedback-btn" onclick="aiFeedback('${id}','good')">Just right ✓</button>
+        <button class="feedback-btn" onclick="aiFeedback('${id}','more')">Need more</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Notes</div>
+        <button class="btn btn-primary btn-sm" onclick="addNote('${id}')">+ Add Note</button>
+      </div>
+      <div id="notesContainer_${id}">
+        ${notes.length
+          ?notes.map((n,i)=>`
+            <div style="padding:12px 0;border-bottom:1px solid var(--border)">
+              <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+                <div style="font-size:12px;font-weight:600;color:var(--text)">${n.title}</div>
+                <button class="btn btn-xs btn-ghost" onclick="deleteNote('${id}',${i})">✕</button>
+              </div>
+              <div style="font-size:12px;color:var(--text2);line-height:1.6">${n.content.slice(0,150)}${n.content.length>150?'...':''}</div>
+              <div style="font-size:10px;color:var(--text3);font-family:var(--mono);margin-top:4px">${n.date}</div>
+            </div>`).join('')
+          :`<div class="empty" style="padding:20px"><div class="empty-text">No notes yet for ${sub.name}</div></div>`}
+      </div>
+    </div>`;
+}
+
+function updateSliderLabel(type,id,val){
+  const labels=['','Light','Medium','Deep'];
+  const diffs=['','Easy','Medium','Hard'];
+  if(type==='depth') document.getElementById(`depthVal_${id}`).textContent=labels[val];
+  else document.getElementById(`diffVal_${id}`).textContent=diffs[val];
+}
+
+async function aiStudy(mode,subId,subName){
+  const notes=document.getElementById(`notesInput_${subId}`).value.trim();
+  if(!notes){ showToast('Paste your notes first','error'); return; }
+
+  const depth=parseInt(document.getElementById(`depthSlider_${subId}`).value);
+  const diff=parseInt(document.getElementById(`diffSlider_${subId}`).value);
+  const depthLabel=['','brief','moderate','comprehensive'][depth];
+  const diffLabel=['','basic','intermediate','advanced'][diff];
+
+  const out=document.getElementById(`aiOutput_${subId}`);
+  out.className='ai-output show';
+  out.innerHTML='<div class="loading" style="padding:20px"><div class="spinner"></div><div class="loading-text">Generating...</div></div>';
+
+  const prompts={
+    guide:`Create a ${depthLabel} study guide from these ${subName} notes. I am a Year 2 Accounting & Finance student at Sunway University. Difficulty level: ${diffLabel}. Format in clean HTML with <h3> headings, <p> paragraphs, <ul> lists. Focus on exam-relevant content. Notes:\n\n${notes}`,
+    flashcards:`Generate ${depth===1?'5':depth===2?'10':'15'} ${diffLabel}-level flashcards from these ${subName} notes for a Year 2 A&F student. Format as HTML: for each card use <div class="fc-item"><strong>Q:</strong> [question]<br/><strong>A:</strong> [answer]</div>. Notes:\n\n${notes}`,
+    questions:`Generate ${depth===1?'3':depth===2?'5':'8'} ${diffLabel}-level practice questions from these ${subName} notes. Mix question types (MCQ, short answer, calculation). Include model answers. Format in clean HTML. Notes:\n\n${notes}`,
+    summary:`Give a ${depthLabel} summary of these ${subName} notes highlighting the ${depth===1?'3':depth===2?'5':'7'} most important points a Year 2 student needs to know for exams. Be direct. Format in HTML. Notes:\n\n${notes}`,
+  };
+
+  const system=`You are an expert ${subName} tutor for Sunway University Year 2 Accounting & Finance students. You know Malaysian accounting standards, IFRS, and local exam styles. Always be precise, use examples relevant to Malaysian business context where possible.`;
+
+  try{
+    const result=await askGroq(prompts[mode],system);
+    out.innerHTML=result;
+    document.getElementById(`aiFeedback_${subId}`).style.display='flex';
+    addXP(15,'Used AI study tool');
+
+    // Auto-save flashcards if mode is flashcards
+    if(mode==='flashcards'){
+      const fcItems=out.querySelectorAll('.fc-item');
+      if(fcItems.length){
+        const s=getS();
+        const newCards=[...s.flashcards];
+        fcItems.forEach(item=>{
+          const text=item.innerText;
+          const qMatch=text.match(/Q:\s*(.+)/);
+          const aMatch=text.match(/A:\s*([\s\S]+)/);
+          if(qMatch&&aMatch) newCards.push({id:'fc'+Date.now()+Math.random(),subject:subName,front:qMatch[1].trim(),back:aMatch[1].trim(),created:new Date().toISOString(),nextReview:new Date().toISOString(),interval:1,ease:2.5});
+        });
+        saveS({flashcards:newCards});
+        showToast(`${fcItems.length} flashcards saved!`,'success');
+      }
+    }
+  } catch(e){
+    out.innerHTML=`<p style="color:var(--red)">Error: ${e.message}</p>`;
+  }
+}
+
+function aiFeedback(id,type){
+  const s=getS();
+  const prof=s.aiProfile||{};
+  if(type==='less') prof.depthPref=Math.max(1,(prof.depthPref||2)-0.5);
+  if(type==='more') prof.depthPref=Math.min(3,(prof.depthPref||2)+0.5);
+  prof.feedbackCount=(prof.feedbackCount||0)+1;
+  saveS({aiProfile:prof});
+  document.querySelectorAll(`#aiFeedback_${id} .feedback-btn`).forEach(b=>b.classList.remove('active'));
+  event.target.classList.add('active');
+  showToast('Feedback saved — AI will adapt','success');
+}
+
+function addNote(subId){
+  const title=prompt('Note title:');
+  if(!title) return;
+  const content=prompt('Note content:');
+  if(!content) return;
+  const s=getS();
+  const notes=s[`notes_${subId}`]||[];
+  notes.unshift({title,content,date:new Date().toLocaleDateString()});
+  saveS({[`notes_${subId}`]:notes});
+  openSubject(subId);
+  showToast('Note saved!','success');
+}
+
+function deleteNote(subId,idx){
+  const s=getS();
+  const notes=s[`notes_${subId}`]||[];
+  notes.splice(idx,1);
+  saveS({[`notes_${subId}`]:notes});
+  openSubject(subId);
+}
+
+// ═══════════════════════════════════════════════════════
+// FLASHCARDS
+// ═══════════════════════════════════════════════════════
+let currentFCIndex=0;
+let currentFCSubject='all';
+
+function renderFlashcards(){
+  const s=getS();
+  let cards=s.flashcards;
+  if(currentFCSubject!=='all') cards=cards.filter(f=>f.subject===currentFCSubject);
+
+  const subjectTabs=`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px">
+    <button class="space-tab ${currentFCSubject==='all'?'active':''}" onclick="switchFCSubject('all',this)">All (${s.flashcards.length})</button>
+    ${SUBJECTS.map(sub=>{const n=s.flashcards.filter(f=>f.subject===sub.name).length;return n?`<button class="space-tab ${currentFCSubject===sub.name?'active':''}" onclick="switchFCSubject('${sub.name}',this)">${sub.name} (${n})</button>`:''}).join('')}
+  </div>`;
+
+  if(!cards.length){
+    document.getElementById('flashcardsContent').innerHTML=subjectTabs+`<div class="empty"><div class="empty-icon">🃏</div><div class="empty-text">No flashcards yet.<br/>Add one manually or generate from your notes in Study Vault.</div></div>`;
+    return;
+  }
+
+  currentFCIndex=Math.min(currentFCIndex,cards.length-1);
+  const card=cards[currentFCIndex];
+
+  document.getElementById('flashcardsContent').innerHTML=`
+    ${subjectTabs}
+    <div style="text-align:center;margin-bottom:12px">
+      <div style="font-family:var(--mono);font-size:11px;color:var(--text3)">${currentFCIndex+1} of ${cards.length} · ${card.subject}</div>
+    </div>
+    <div class="flashcard" id="currentFlashcard" onclick="flipCard()">
+      <div class="flashcard-inner">
+        <div class="flashcard-front">
+          <div class="flashcard-label">Tap to reveal answer</div>
+          <div class="flashcard-text">${card.front}</div>
+        </div>
+        <div class="flashcard-back">
+          <div class="flashcard-label">Answer</div>
+          <div class="flashcard-text">${card.back}</div>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:center;margin-bottom:20px">
+      <button class="btn btn-ghost btn-sm" onclick="prevCard()">← Prev</button>
+      <button class="btn btn-secondary btn-sm" onclick="flipCard()">Flip</button>
+      <button class="btn btn-primary btn-sm" onclick="nextCard()">Next →</button>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:center;margin-bottom:24px">
+      <button class="btn btn-sm" style="background:rgba(192,64,64,0.1);color:var(--red);border:1px solid rgba(192,64,64,0.2)" onclick="rateCard('hard')">😓 Hard</button>
+      <button class="btn btn-sm" style="background:rgba(196,146,42,0.1);color:var(--gold);border:1px solid rgba(196,146,42,0.2)" onclick="rateCard('ok')">😐 OK</button>
+      <button class="btn btn-sm" style="background:rgba(58,125,90,0.1);color:var(--green);border:1px solid rgba(58,125,90,0.2)" onclick="rateCard('easy')">😊 Easy</button>
+    </div>`;
+}
+
+function switchFCSubject(sub,el){
+  currentFCSubject=sub; currentFCIndex=0;
+  document.querySelectorAll('#flashcardsContent .space-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  renderFlashcards();
+}
+
+function flipCard(){ document.getElementById('currentFlashcard')?.classList.toggle('flipped'); }
+function nextCard(){ const s=getS(); const cards=currentFCSubject==='all'?s.flashcards:s.flashcards.filter(f=>f.subject===currentFCSubject); currentFCIndex=(currentFCIndex+1)%cards.length; renderFlashcards(); }
+function prevCard(){ const s=getS(); const cards=currentFCSubject==='all'?s.flashcards:s.flashcards.filter(f=>f.subject===currentFCSubject); currentFCIndex=(currentFCIndex-1+cards.length)%cards.length; renderFlashcards(); }
+
+function rateCard(rating){
+  if(rating==='easy') addXP(5,'Flashcard mastered');
+  nextCard();
+  showToast(rating==='easy'?'Great! Moving on 🎉':rating==='ok'?'Will revisit soon':'Will show again soon','info');
+}
+
+function saveFlashcard(){
+  const front=document.getElementById('fcFront').value.trim();
+  const back=document.getElementById('fcBack').value.trim();
+  if(!front||!back){ showToast('Fill both sides','error'); return; }
+  const s=getS();
+  saveS({flashcards:[...s.flashcards,{id:'fc'+Date.now(),subject:document.getElementById('fcSubject').value,front,back,created:new Date().toISOString()}]});
+  closeModal('flashcardModal');
+  document.getElementById('fcFront').value='';
+  document.getElementById('fcBack').value='';
+  showToast('Flashcard saved!','success');
+  addXP(5,'Created flashcard');
+}
+
+// ═══════════════════════════════════════════════════════
+// FOCUS MODE
+// ═══════════════════════════════════════════════════════
+let focusInterval=null, focusSeconds=25*60, focusRunning=false, focusPhase='work', focusPomos=0;
+const TOTAL_WORK=25*60, TOTAL_BREAK=5*60;
+
+function renderFocusPicker(){
+  const s=getS();
+  const pending=s.tasks.filter(t=>!t.done).slice(0,8);
+  document.getElementById('focusTaskPicker').innerHTML=pending.length
+    ?pending.map(t=>`<button class="space-tab" style="margin-bottom:6px;font-size:12px;text-align:left" onclick="document.getElementById('focusTaskInput').value='${t.title.replace(/'/g,"\\'")}'">${t.title}</button>`).join('')
+    :`<div style="font-size:13px;color:var(--text3)">No pending tasks</div>`;
+
+  const hist=s.focusSessions||[];
+  document.getElementById('focusHistory').innerHTML=hist.slice(0,5).map(f=>`
+    <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">
+      <div style="font-size:13px;color:var(--text)">${f.task}</div>
+      <div style="font-family:var(--mono);font-size:11px;color:var(--text3)">${f.pomos} 🍅 · ${f.date}</div>
+    </div>`).join('')||`<div style="font-size:13px;color:var(--text3);text-align:center;padding:20px">No sessions yet</div>`;
+}
+
+function startFocusMode(){
+  const task=document.getElementById('focusTaskInput').value.trim()||'Focus Session';
+  document.getElementById('focusTaskName').textContent=task;
+  focusSeconds=TOTAL_WORK; focusPhase='work'; focusPomos=0; focusRunning=false;
+  updateFocusDisplay();
+  document.getElementById('focusOverlay').classList.add('active');
+  document.getElementById('focusPlayBtn').textContent='▶ Start';
+}
+
+function toggleFocus(){
+  if(focusRunning){ clearInterval(focusInterval); focusRunning=false; document.getElementById('focusPlayBtn').textContent='▶ Resume'; }
+  else{
+    focusRunning=true;
+    document.getElementById('focusPlayBtn').textContent='⏸ Pause';
+    focusInterval=setInterval(()=>{
+      focusSeconds--;
+      updateFocusDisplay();
+      if(focusSeconds<=0){
+        if(focusPhase==='work'){
+          focusPomos++;
+          addXP(50,'Completed focus session!');
+          focusPhase='break'; focusSeconds=TOTAL_BREAK;
+          document.getElementById('focusPhaseTag').textContent='BREAK';
+          document.getElementById('focusPhaseLabel').textContent='Take a 5 minute break — you earned it!';
+          showToast('🍅 Pomodoro complete! Take a break.','success');
+        } else {
+          focusPhase='work'; focusSeconds=TOTAL_WORK;
+          document.getElementById('focusPhaseTag').textContent='FOCUS';
+          document.getElementById('focusPhaseLabel').textContent='Back to work. You got this.';
+        }
+      }
+    },1000);
+  }
+}
+
+function updateFocusDisplay(){
+  const m=Math.floor(focusSeconds/60).toString().padStart(2,'0');
+  const s2=(focusSeconds%60).toString().padStart(2,'0');
+  document.getElementById('focusTimer').textContent=`${m}:${s2}`;
+  const total=focusPhase==='work'?TOTAL_WORK:TOTAL_BREAK;
+  const pct=(focusSeconds/total);
+  const circ=2*Math.PI*88;
+  document.getElementById('focusRingFill').style.strokeDashoffset=circ*pct;
+}
+
+function skipFocusPhase(){
+  if(focusPhase==='work'){ focusPomos++; addXP(25,'Focus session'); focusPhase='break'; focusSeconds=TOTAL_BREAK; document.getElementById('focusPhaseTag').textContent='BREAK'; }
+  else{ focusPhase='work'; focusSeconds=TOTAL_WORK; document.getElementById('focusPhaseTag').textContent='FOCUS'; }
+  updateFocusDisplay();
+}
+
+function exitFocus(){
+  clearInterval(focusInterval); focusRunning=false;
+  document.getElementById('focusOverlay').classList.remove('active');
+  if(focusPomos>0){
+    const s=getS();
+    const sess={task:document.getElementById('focusTaskName').textContent,pomos:focusPomos,date:new Date().toLocaleDateString()};
+    saveS({focusSessions:[sess,...(s.focusSessions||[])].slice(0,50)});
+    showToast(`Session saved: ${focusPomos} 🍅`,'success');
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// DAILY BRIEF
+// ═══════════════════════════════════════════════════════
+const BRIEF_TABS={
+  world:{label:'🌍 World News',q:'world news',prompt:'Write a world news briefing. Cover 3 major stories. For each: what happened, why it matters, what to watch. Write like a smart friend. Use <h3> for stories, <p> for content.'},
+  finance:{label:'📊 Finance',q:'financial markets economy',prompt:'Write a finance & markets briefing for a Year 2 Accounting & Finance student. Cover market movements, connect to accounting/finance concepts they study. Explain the "so what" for someone learning about finance. Use <h3> for sections.'},
+  geo:{label:'🌐 Geopolitics',q:'geopolitics international relations',prompt:'Write a geopolitics briefing. Cover 2-3 major developments. Explain power dynamics and what it means. Be analytical. Use <h3> for each topic.'},
+  learn:{label:'🧠 Learn',q:'economics business innovation',prompt:'Write a "Learn Something Today" section. Pick one concept relevant to an Accounting & Finance student. Teach it properly with examples. Use <h3> for title.'},
+};
+
+async function renderBrief(){ loadBriefTab('world', document.querySelector('#view-brief .space-tab')); }
+
+async function loadBriefTab(tab,el){
+  document.querySelectorAll('#view-brief .space-tab').forEach(t=>t.classList.remove('active'));
+  if(el) el.classList.add('active');
+
+  if(briefTabData[tab]){ document.getElementById('briefContent').innerHTML=briefTabData[tab]; return; }
+
+  document.getElementById('briefContent').innerHTML='<div class="loading"><div class="spinner"></div><div class="loading-text">Fetching '+BRIEF_TABS[tab].label+'...</div></div>';
+  try{
+    const news=await fetchNews(BRIEF_TABS[tab].q);
+    const content=await askGroq(`Headlines:\n${news}\n\n${BRIEF_TABS[tab].prompt}`,'You are a brilliant, direct educator writing for a smart Malaysian student. Be insightful, not just informative.');
+    briefTabData[tab]=`<div class="card"><div class="card-label">${BRIEF_TABS[tab].label} · ${new Date().toLocaleDateString()}</div><div style="font-size:14px;line-height:1.8;color:var(--text2)">${content}</div></div>`;
+    document.getElementById('briefContent').innerHTML=briefTabData[tab];
+    addXP(20,'Read daily brief');
+  } catch(e){
+    document.getElementById('briefContent').innerHTML=`<div class="card"><p style="color:var(--red)">${e.message}</p></div>`;
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// CONCEPT
+// ═══════════════════════════════════════════════════════
+const CONCEPTS=[
+  'What is DCF (Discounted Cash Flow) analysis?','What is double-entry bookkeeping?','What is WACC?',
+  'What are financial statements and how do they connect?','What is marginal costing?','What is the time value of money?',
+  'What is capital budgeting?','What is working capital management?','What is a budget variance?',
+  'What is investment banking?','How do interest rates affect businesses?','What is the efficient market hypothesis?',
+  'What is financial leverage?','What is activity-based costing?','What is monetary policy?',
+];
+
+async function renderConcept(){
+  const s=getS();
+  const today=new Date().toDateString();
+  if(s.conceptCache&&s.conceptCache.date===today){
+    document.getElementById('conceptContent').innerHTML=s.conceptCache.html;
+    return;
+  }
+  document.getElementById('conceptContent').innerHTML='<div class="loading"><div class="spinner"></div><div class="loading-text">Selecting today\'s concept...</div></div>';
+  try{
+    const unlearned=CONCEPTS.filter(c=>!(s.learnedTopics||[]).includes(c));
+    const topic=unlearned.length?unlearned[Math.floor(Math.random()*unlearned.length)]:CONCEPTS[Math.floor(Math.random()*CONCEPTS.length)];
+    const content=await askGroq(
+      `Teach me: "${topic}" — I am a Year 2 Accounting & Finance student at Sunway University Malaysia.\n\nUse this structure in HTML:\n<h3>The simple version</h3><p>One paragraph, no jargon, vivid analogy.</p>\n<h3>How it actually works</h3><p>Real mechanics, 2-3 paragraphs, Malaysian example if possible.</p>\n<h3>Why this matters for your degree</h3><p>Specific to A&F at Sunway.</p>\n<h3>Common exam angle</h3><p>How this typically appears in exams.</p>\n<h3>Key terms</h3><p>3-5 terms defined simply.</p>`,
+      'You are the world\'s best A&F tutor. Clear, engaging, relevant to Malaysian students.'
+    );
+    const html=`<div class="card"><div class="card-label">Concept of the Day · ${today}</div><div class="card-title">${topic}</div><div style="font-size:14px;line-height:1.8;color:var(--text2)">${content}</div></div>`;
+    saveS({conceptCache:{date:today,html},learnedTopics:[...(s.learnedTopics||[]),topic]});
+    document.getElementById('conceptContent').innerHTML=html;
+    addXP(50,'Learned a new concept');
+  } catch(e){
+    document.getElementById('conceptContent').innerHTML=`<div class="card"><p style="color:var(--red)">${e.message}</p></div>`;
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// DEEP RESEARCH
+// ═══════════════════════════════════════════════════════
+async function doResearch(){
+  const q=document.getElementById('researchInput').value.trim();
+  if(!q) return;
+  quickResearch(q);
+}
+
+async function quickResearch(q){
+  document.getElementById('researchInput').value=q;
+  document.getElementById('researchSuggestions').style.display='none';
+  document.getElementById('researchResult').innerHTML='<div class="loading"><div class="spinner"></div><div class="loading-text">Researching...</div></div>';
+  try{
+    const content=await askGroq(
+      `Comprehensive deep-dive on: "${q}" for a Year 2 Accounting & Finance student at Sunway University Malaysia.\n\nHTML structure:\n<h3>What it is</h3><p>Clear definition.</p>\n<h3>Full explanation</h3><p>Thorough, with Malaysian/ASEAN context.</p>\n<h3>Why it matters for A&F</h3><p>Degree relevance.</p>\n<h3>Exam relevance</h3><p>How this appears in A&F exams.</p>\n<h3>Key terms</h3><p>Essential vocabulary.</p>`,
+      'You are a world-class A&F educator. Be comprehensive but clear. Use Malaysian examples.'
+    );
+    document.getElementById('researchResult').innerHTML=`<div class="card"><div class="card-label">Deep Research · ${new Date().toLocaleDateString()}</div><div class="card-title">${q}</div><div style="font-size:14px;line-height:1.8;color:var(--text2)">${content}</div><div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);display:flex;gap:8px"><button class="btn btn-ghost btn-sm" onclick="document.getElementById('researchSuggestions').style.display='block';document.getElementById('researchResult').innerHTML=''">New Search</button></div></div>`;
+    addXP(30,'Deep research session');
+  } catch(e){
+    document.getElementById('researchResult').innerHTML=`<div class="card"><p style="color:var(--red)">${e.message}</p></div>`;
+    document.getElementById('researchSuggestions').style.display='block';
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// STOCKS
+// ═══════════════════════════════════════════════════════
+async function renderStocks(){
+  const s=getS();
+  if(!s.watchlist.length){
+    document.getElementById('stocksContent').innerHTML=`<div class="empty"><div class="empty-icon">📈</div><div class="empty-text">Add stocks or crypto to track.</div></div>`;
+    return;
+  }
+  document.getElementById('stocksContent').innerHTML='<div class="loading"><div class="spinner"></div><div class="loading-text">Fetching prices...</div></div>';
+  const html=await Promise.all(s.watchlist.map(async w=>{
+    try{
+      const r=await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${w.symbol}?interval=1d&range=2d`);
+      const d=await r.json();
+      const result=d?.chart?.result?.[0];
+      const price=result?.meta?.regularMarketPrice||0;
+      const prev=result?.meta?.chartPreviousClose||price;
+      const chg=price-prev; const pct=(chg/prev*100).toFixed(2);
+      const up=chg>=0;
+      return`<div class="stock-item"><div><div class="stock-name">${w.name}</div><div class="stock-ticker">${w.symbol}</div></div><div style="text-align:right"><div class="stock-price">${price<1?price.toFixed(4):price.toFixed(2)}</div><div class="stock-change ${up?'up':'down'}">${up?'+':''}${chg.toFixed(2)} (${up?'+':''}${pct}%)</div></div></div>`;
+    }catch{
+      return`<div class="stock-item"><div><div class="stock-name">${w.name}</div><div class="stock-ticker">${w.symbol}</div></div><div style="font-size:12px;color:var(--text3)">Unavailable</div></div>`;
+    }
+  }));
+  document.getElementById('stocksContent').innerHTML=`<div class="card">${html.join('')}</div><div style="font-size:11px;color:var(--text3);text-align:center;margin-top:8px;font-family:var(--mono)">Data from Yahoo Finance · Delayed 15 min</div>`;
+}
+
+function saveStock(){
+  const sym=document.getElementById('stockSymbol').value.trim().toUpperCase();
+  const name=document.getElementById('stockName').value.trim()||sym;
+  if(!sym){ showToast('Enter a symbol','error'); return; }
+  const s=getS();
+  saveS({watchlist:[...s.watchlist,{symbol:sym,name}]});
+  closeModal('stockModal');
+  document.getElementById('stockSymbol').value='';
+  document.getElementById('stockName').value='';
+  renderStocks();
+}
+
+function refreshStocks(){ renderStocks(); }
+
+// ═══════════════════════════════════════════════════════
+// EXPENSES
+// ═══════════════════════════════════════════════════════
+const expIcons={Food:'🍜',Transport:'🚗',Education:'📚',Entertainment:'🎮',Shopping:'🛒','Part-time work':'💰',Other:'📦'};
+
+function renderExpenses(){
+  const s=getS();
+  const exps=s.expenses||[];
+  const income=exps.filter(e=>e.type==='income').reduce((a,b)=>a+b.amount,0);
+  const expense=exps.filter(e=>e.type==='expense').reduce((a,b)=>a+b.amount,0);
+  const net=income-expense;
+
+  document.getElementById('expensesContent').innerHTML=`
+    <div class="grid-3" style="margin-bottom:20px">
+      <div class="card" style="text-align:center;margin-bottom:0">
+        <div style="font-family:var(--serif);font-size:24px;font-weight:700;color:var(--green)">RM ${income.toFixed(2)}</div>
+        <div style="font-size:11px;color:var(--text3);font-family:var(--mono);margin-top:4px">INCOME</div>
+      </div>
+      <div class="card" style="text-align:center;margin-bottom:0">
+        <div style="font-family:var(--serif);font-size:24px;font-weight:700;color:var(--red)">RM ${expense.toFixed(2)}</div>
+        <div style="font-size:11px;color:var(--text3);font-family:var(--mono);margin-top:4px">EXPENSES</div>
+      </div>
+      <div class="card" style="text-align:center;margin-bottom:0">
+        <div style="font-family:var(--serif);font-size:24px;font-weight:700;color:${net>=0?'var(--green)':'var(--red)'}">RM ${net.toFixed(2)}</div>
+        <div style="font-size:11px;color:var(--text3);font-family:var(--mono);margin-top:4px">NET</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-title">Transactions</div></div>
+      ${exps.length
+        ?exps.slice(0,30).map((e,i)=>`
+          <div class="expense-item">
+            <div class="expense-icon">${expIcons[e.cat]||'📦'}</div>
+            <div><div class="expense-name">${e.desc}</div><div class="expense-cat">${e.cat} · ${e.date}</div></div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <div class="expense-amount ${e.type}">${e.type==='income'?'+':'-'} RM ${e.amount.toFixed(2)}</div>
+              <button class="btn btn-xs btn-ghost" onclick="deleteExpense(${i})">✕</button>
+            </div>
+          </div>`).join('')
+        :`<div class="empty" style="padding:20px"><div class="empty-text">No transactions yet</div></div>`}
+    </div>`;
+}
+
+function saveExpense(){
+  const amount=parseFloat(document.getElementById('expAmount').value);
+  const desc=document.getElementById('expDesc').value.trim();
+  if(!amount||!desc){ showToast('Fill all fields','error'); return; }
+  const s=getS();
+  const exp={type:document.getElementById('expType').value,amount,desc,cat:document.getElementById('expCat').value,date:new Date().toLocaleDateString()};
+  saveS({expenses:[exp,...(s.expenses||[])]});
+  closeModal('expenseModal');
+  document.getElementById('expAmount').value='';
+  document.getElementById('expDesc').value='';
+  showToast('Transaction saved!','success');
+  if(currentView==='expenses') renderExpenses();
+}
+
+function deleteExpense(idx){
+  const s=getS(); const exps=[...s.expenses]; exps.splice(idx,1);
+  saveS({expenses:exps}); renderExpenses();
+}
+
+// ═══════════════════════════════════════════════════════
+// QUICK CAPTURES
+// ═══════════════════════════════════════════════════════
+function renderCaptures(){
+  const s=getS();
+  const caps=s.captures||[];
+  const badge=document.getElementById('capturesBadge');
+  badge.textContent=caps.length; badge.style.display=caps.length?'inline':'none';
+  document.getElementById('capturesContent').innerHTML=caps.length
+    ?`<div class="card">${caps.map((c,i)=>`
+        <div style="padding:12px 0;border-bottom:1px solid var(--border)">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start">
+            <div style="font-size:13px;color:var(--text);line-height:1.6;flex:1;margin-right:12px">${c.text}</div>
+            <button class="btn btn-xs btn-ghost" onclick="deleteCapture(${i})">✕</button>
+          </div>
+          <div style="font-size:10px;color:var(--text3);font-family:var(--mono);margin-top:4px">${c.date}</div>
+        </div>`).join('')}</div>`
+    :`<div class="empty"><div class="empty-icon">⚡</div><div class="empty-text">Nothing captured yet.<br/>Use the + button to dump thoughts fast.</div></div>`;
+}
+
+function saveCapture(){
+  const text=document.getElementById('captureText').value.trim();
+  if(!text){ showToast('Type something first','error'); return; }
+  const s=getS();
+  saveS({captures:[{text,date:new Date().toLocaleString()},...(s.captures||[])]});
+  closeModal('captureModal');
+  document.getElementById('captureText').value='';
+  showToast('Captured!','success');
+  const b=document.getElementById('capturesBadge');
+  const n=(s.captures||[]).length+1;
+  b.textContent=n; b.style.display='inline';
+  if(currentView==='captures') renderCaptures();
+  if(currentView==='morning') renderMorning();
+}
+
+function deleteCapture(idx){
+  const s=getS(); const caps=[...s.captures]; caps.splice(idx,1);
+  saveS({captures:caps}); renderCaptures();
+}
+
+// ═══════════════════════════════════════════════════════
+// BACKUP & RESTORE
+// ═══════════════════════════════════════════════════════
+function exportData(){
+  const data={...getS(),exportDate:new Date().toISOString(),version:'1.0'};
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url; a.download=`durgha-dashboard-backup-${new Date().toISOString().slice(0,10)}.json`;
+  a.click(); URL.revokeObjectURL(url);
+  showToast('Backup downloaded!','success');
+}
+
+function importData(e){
+  const file=e.target.files[0];
+  if(!file) return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    try{
+      const data=JSON.parse(ev.target.result);
+      localStorage.setItem('durgha_os',JSON.stringify(data));
+      showToast('Data restored! Refreshing...','success');
+      setTimeout(()=>location.reload(),1500);
+    }catch{ showToast('Invalid backup file','error'); }
+  };
+  reader.readAsText(file);
+}
+
+// ═══════════════════════════════════════════════════════
+// MODAL & TOAST
+// ═══════════════════════════════════════════════════════
+function openModal(id){ document.getElementById(id).classList.add('show'); }
+function closeModal(id){ document.getElementById(id).classList.remove('show'); }
+document.querySelectorAll('.modal-overlay').forEach(m=>m.addEventListener('click',e=>{ if(e.target===m) m.classList.remove('show'); }));
+
+let toastTimer;
+function showToast(msg,type='info'){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className=`toast show ${type}`;
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+// ═══════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════
+function initApp(){
+  checkStreak();
+  updateXPUI();
+  renderMorning();
+  document.getElementById('morningDate').textContent=new Date().toLocaleDateString('en-MY',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  document.getElementById('morningFullDate').textContent=new Date().toLocaleDateString('en-MY',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+
+  // Reset daily habits check
+  const s=getS();
+  const today=new Date().toDateString();
+  if(s.lastHabitReset!==today){
+    const habits=s.habits.map(h=>({...h,doneToday:false}));
+    saveS({habits,lastHabitReset:today});
+  }
+}
+
+// Start
+if(configured()){
+  document.getElementById('setup-screen').style.display='none';
+  document.getElementById('mainApp').style.display='grid';
+  document.getElementById('quickCaptureFab').style.display='flex';
+  initApp();
+} else {
+  document.getElementById('setup-screen').style.display='flex';
+}
+</script>
+</body>
+</html>
