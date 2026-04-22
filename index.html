@@ -133,9 +133,9 @@ select.input{cursor:pointer;appearance:none;}
 .empty-text{font-size:12px;line-height:1.6;}
 
 /* ── MODAL ── */
-.modal-overlay{position:fixed;inset:0;background:rgba(42,31,20,0.45);backdrop-filter:blur(4px);z-index:200;display:none;align-items:center;justify-content:center;padding:20px;}
+.modal-overlay{position:fixed;inset:0;background:rgba(42,31,20,0.55);backdrop-filter:blur(8px);z-index:200;display:none;align-items:center;justify-content:center;padding:20px;}
 .modal-overlay.show{display:flex;}
-.modal{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px;max-width:500px;width:100%;max-height:85vh;overflow-y:auto;box-shadow:var(--shadow-lg);animation:fadeIn 0.2s ease;}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:28px 32px;max-width:520px;width:100%;max-height:88vh;overflow-y:auto;box-shadow:0 20px 60px rgba(42,31,20,0.2),0 4px 16px rgba(42,31,20,0.1);animation:modalPop 0.25s cubic-bezier(0.34,1.56,0.64,1) both;}
 .modal-title{font-family:var(--serif);font-size:18px;font-weight:700;margin-bottom:16px;color:var(--text);}
 .modal-footer{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;padding-top:14px;border-top:1px solid var(--border);}
 
@@ -301,6 +301,7 @@ select.input{cursor:pointer;appearance:none;}
 
 /* ── ANIMATIONS ── */
 @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+@keyframes modalPop{from{opacity:0;transform:scale(0.92) translateY(8px)}to{opacity:1;transform:scale(1) translateY(0)}}
 @keyframes spin{to{transform:rotate(360deg)}}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
 
@@ -496,7 +497,7 @@ select.input{cursor:pointer;appearance:none;}
     <div class="field"><div class="input-label">Title</div><input class="input" id="t-title" placeholder="What needs to be done?"/></div>
     <div class="grid-2">
       <div class="field">
-        <div class="input-label">Space</div>
+        <div class="input-label">Project</div>
         <select class="input" id="t-space"></select>
       </div>
       <div class="field">
@@ -515,7 +516,7 @@ select.input{cursor:pointer;appearance:none;}
         </select>
       </div>
     </div>
-    <div class="field"><div class="input-label">Subject / Category (optional)</div><input class="input" id="t-subject" placeholder="e.g. Financial Accounting, Internship App, Personal Finance..."/></div>
+    <div class="field"><div class="input-label">Sub-category (optional)</div><input class="input" id="t-subject" placeholder="e.g. Financial Accounting, Internship Application, CFA..."/></div>
     <div class="field"><div class="input-label">Notes (optional)</div><textarea class="input" id="t-notes" style="min-height:60px" placeholder="Add context..."></textarea></div>
     <div class="modal-footer">
       <button class="btn btn-ghost btn-sm" onclick="closeModal('taskModal')">Cancel</button>
@@ -581,8 +582,8 @@ select.input{cursor:pointer;appearance:none;}
 <!-- Add Space -->
 <div class="modal-overlay" id="spaceModal">
   <div class="modal" style="max-width:360px">
-    <div class="modal-title">Add Space</div>
-    <div class="field"><div class="input-label">Space Name</div><input class="input" id="sp-name" placeholder="e.g. Internship, Research, Club..."/></div>
+    <div class="modal-title">Add Project</div>
+    <div class="field"><div class="input-label">Space Name</div><input class="input" id="sp-name" placeholder="e.g. Internship, CFA Prep, Side Project..."/></div>
     <div class="field"><div class="input-label">Icon (emoji)</div><input class="input" id="sp-icon" placeholder="📁" maxlength="2"/></div>
     <div class="modal-footer">
       <button class="btn btn-ghost btn-sm" onclick="closeModal('spaceModal')">Cancel</button>
@@ -682,7 +683,7 @@ select.input{cursor:pointer;appearance:none;}
       <div class="nav-item" onclick="nav('habits')" id="nav-habits"><span class="nav-icon">💪</span>Habits</div>
 
       <div class="nav-section">Study</div>
-      <div class="nav-item" onclick="nav('vault')" id="nav-vault"><span class="nav-icon">📚</span>Study Vault</div>
+      <div class="nav-item" onclick="nav('vault')" id="nav-vault"><span class="nav-icon">🗂️</span>Vault</div>
       <div class="nav-item" onclick="nav('notes')" id="nav-notes"><span class="nav-icon">📝</span>All Notes</div>
       <div class="nav-item" onclick="nav('focus')" id="nav-focus"><span class="nav-icon">⏱️</span>Focus Mode</div>
       <div class="nav-item" onclick="nav('gpa')" id="nav-gpa"><span class="nav-icon">🎓</span>GPA</div>
@@ -836,21 +837,21 @@ select.input{cursor:pointer;appearance:none;}
           <div class="topbar-sub">All spaces · click any task for details</div>
         </div>
         <div class="topbar-actions">
-          <select class="input" id="taskSortSelect" onchange="renderTasks()" style="max-width:140px;font-size:11px;padding:6px 10px">
-            <option value="created">Sort: Newest</option>
-            <option value="due">Sort: Due Date</option>
-            <option value="priority">Sort: Priority</option>
-            <option value="subject">Sort: Subject</option>
-            <option value="alpha">Sort: A–Z</option>
+          <select class="input" id="taskSortSel" onchange="renderTasks()" style="max-width:130px;font-size:11px;padding:5px 10px">
+            <option value="created">Newest first</option>
+            <option value="due">By due date</option>
+            <option value="priority">By priority</option>
+            <option value="subject">By sub-category</option>
+            <option value="alpha">A – Z</option>
           </select>
-          <select class="input" id="taskFilterPriority" onchange="renderTasks()" style="max-width:120px;font-size:11px;padding:6px 10px">
+          <select class="input" id="taskPrioFilter" onchange="renderTasks()" style="max-width:120px;font-size:11px;padding:5px 10px">
             <option value="all">All priorities</option>
             <option value="high">🔴 High</option>
             <option value="medium">🟡 Medium</option>
             <option value="low">🟢 Low</option>
           </select>
           <button class="btn btn-primary btn-sm" onclick="openModal('taskModal')">+ Task</button>
-          <button class="btn btn-ghost btn-sm" onclick="openModal('spaceModal')">+ Space</button>
+          <button class="btn btn-ghost btn-sm" onclick="openModal('spaceModal')">+ Project</button>
         </div>
       </div>
       <div class="content">
@@ -878,8 +879,8 @@ select.input{cursor:pointer;appearance:none;}
     <div class="view" id="view-vault">
       <div class="topbar">
         <div class="topbar-left">
-          <div class="topbar-title">Study Vault</div>
-          <div class="topbar-sub">Notes, resources &amp; AI tools by subject</div>
+          <div class="topbar-title">Vault</div>
+          <div class="topbar-sub">Documents, notes &amp; resources by project</div>
         </div>
         <div class="topbar-actions">
           <button class="btn btn-primary btn-sm" onclick="openModal('subjectModal')">+ Subject</button>
@@ -1509,58 +1510,47 @@ function renderTaskItem(t,compact){
         (lbl?'<span class="label-dot" style="'+dotStyle+'"></span>':'  ')+
         (lbl?renderLabelPill(t.labelId,true):'')+
         (t.due?'<span class="task-due '+dueClass+'">📅 '+fmtDate(t.due)+(days===0?' · TODAY':days===1?' · tomorrow':'')+'</span>':'')+
-        (t.subject?'<span style="font-size:9px;color:var(--text3);font-family:var(--mono);background:var(--surface2);padding:1px 5px;border-radius:3px">'+t.subject+'</span>':'')+
-        (t.notes&&!compact?'<span style="font-size:9px;color:var(--text3);font-family:var(--mono)">📝 has notes</span>':'')+
+        (t.subject?'<span style="font-size:9px;color:var(--text3);font-family:var(--mono);background:var(--surface2);border-radius:3px;padding:1px 5px">'+t.subject+'</span>':'')+
+        (t.notes&&!compact?'<span style="font-size:9px;color:var(--text3);font-family:var(--mono)">📝 notes</span>':'')+
       '</div>'+
     '</div>'+
   '</div>';
 }
 
 function _renderTasksBase(){
+  const s=getS();
   const tabsEl=document.getElementById('spaceTabs');
   tabsEl.innerHTML='<button class="space-tab'+(currentSpace==='all'?' active':'')+'" onclick="switchSpace(\'all\',this)">All</button>'+
     s.spaces.map(function(sp){
       return '<button class="space-tab'+(currentSpace===sp.id?' active':'')+'" onclick="switchSpace(\''+sp.id+'\',this)">'+sp.icon+' '+sp.name+'</button>';
     }).join('')+
-    '<button class="space-tab" onclick="openModal(\'spaceModal\')" style="border-style:dashed;opacity:0.6">+ Space</button>';
+    '<button class="space-tab" onclick="openModal(\'spaceModal\')" style="border-style:dashed;opacity:0.6">+ Project</button>';
 
-  var tasks=s.tasks.filter(function(t){return !t.done;});
+  let tasks=s.tasks.filter(function(t){return !t.done;});
   if(currentSpace!=='all')tasks=tasks.filter(function(t){return t.space===currentSpace;});
 
-  var prioFilter=document.getElementById('taskFilterPriority');
-  if(prioFilter&&prioFilter.value!=='all'){
-    tasks=tasks.filter(function(t){return t.priority===prioFilter.value;});
-  }
+  // Priority filter
+  const pf=document.getElementById('taskPrioFilter');
+  if(pf&&pf.value!=='all')tasks=tasks.filter(function(t){return t.priority===pf.value;});
 
-  var sortSel=document.getElementById('taskSortSelect');
-  var sortBy=sortSel?sortSel.value:'created';
-  var PRIO_ORDER={high:0,medium:1,low:2};
+  // Sort
+  const ss=document.getElementById('taskSortSel');
+  const sortBy=ss?ss.value:'created';
+  const PO={high:0,medium:1,low:2};
   tasks.sort(function(a,b){
-    if(sortBy==='due'){
-      if(!a.due&&!b.due)return 0;
-      if(!a.due)return 1;
-      if(!b.due)return -1;
-      return new Date(a.due)-new Date(b.due);
-    }
-    if(sortBy==='priority')return (PRIO_ORDER[a.priority]||1)-(PRIO_ORDER[b.priority]||1);
+    if(sortBy==='due'){if(!a.due&&!b.due)return 0;if(!a.due)return 1;if(!b.due)return -1;return new Date(a.due)-new Date(b.due);}
+    if(sortBy==='priority')return (PO[a.priority]||1)-(PO[b.priority]||1);
     if(sortBy==='subject')return (a.subject||'').localeCompare(b.subject||'');
     if(sortBy==='alpha')return a.title.localeCompare(b.title);
     return new Date(b.created)-new Date(a.created);
   });
 
-  var listEl=document.getElementById('taskList');
+  const listEl=document.getElementById('taskList');
   if(sortBy==='subject'&&tasks.length>0){
-    var groups={};
-    tasks.forEach(function(t){
-      var key=t.subject||'Uncategorised';
-      if(!groups[key])groups[key]=[];
-      groups[key].push(t);
-    });
+    const groups={};
+    tasks.forEach(function(t){const k=t.subject||'Uncategorised';if(!groups[k])groups[k]=[];groups[k].push(t);});
     listEl.innerHTML=Object.entries(groups).map(function(e){
-      return '<div style="margin-bottom:16px">'+
-        '<div style="font-family:var(--mono);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.1em;padding:4px 0;border-bottom:1px solid var(--border);margin-bottom:8px">'+e[0]+'</div>'+
-        e[1].map(function(t){return renderTaskItem(t,false);}).join('')+
-      '</div>';
+      return '<div style="margin-bottom:16px"><div style="font-family:var(--mono);font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.1em;padding:4px 0;border-bottom:1px solid var(--border);margin-bottom:8px">'+e[0]+'</div>'+e[1].map(function(t){return renderTaskItem(t,false);}).join('')+'</div>';
     }).join('');
   } else {
     listEl.innerHTML=tasks.length>0
@@ -1568,9 +1558,10 @@ function _renderTasksBase(){
       :'<div class="empty"><div class="empty-icon">✅</div><div class="empty-text">No tasks here.<br/>Add one to get started.</div></div>';
   }
 
-  var compEl=document.getElementById('completedSection');
-  var completed=s.completedTasks||[];
-  var showBtn='<button class="btn btn-ghost btn-sm" onclick="toggleCompleted()">'+(showCompleted?'Hide':'Show')+' completed ('+completed.length+')</button>';
+  // Completed section
+  const compEl=document.getElementById('completedSection');
+  const completed=s.completedTasks||[];
+  const showBtn='<button class="btn btn-ghost btn-sm" onclick="toggleCompleted()">'+(showCompleted?'Hide':'Show')+' completed ('+completed.length+')</button>';
   compEl.innerHTML=showBtn+(showCompleted&&completed.length>0
     ?'<div style="margin-top:10px">'+completed.slice(0,20).map(function(t){return renderTaskItem(t,false);}).join('')+'</div>'
     :'');
@@ -1614,7 +1605,7 @@ function toggleTask(id){
 function saveTask(){
   const title=document.getElementById('t-title').value.trim();
   if(!title){showToast('Enter a title','error');return;}
-  const subjectEl=document.getElementById('t-subject');
+  const subEl=document.getElementById('t-subject');
   const task={
     id:'t'+Date.now(),
     title:title,
@@ -1622,7 +1613,7 @@ function saveTask(){
     labelId:document.getElementById('t-label').value,
     due:document.getElementById('t-due').value,
     priority:document.getElementById('t-priority').value,
-    subject:subjectEl?subjectEl.value:'',
+    subject:subEl?subEl.value.trim():'',
     notes:document.getElementById('t-notes').value,
     content:'',
     links:[],
@@ -1632,7 +1623,7 @@ function saveTask(){
   const s=getS();
   saveS({tasks:[task,...s.tasks]});
   closeModal('taskModal');
-  ['t-title','t-notes'].forEach(function(id){document.getElementById(id).value=''});
+  ['t-title','t-notes'].forEach(function(id){document.getElementById(id).value='';});
   document.getElementById('t-due').value='';
   if(document.getElementById('t-subject'))document.getElementById('t-subject').value='';
   showToast('Task added!','success');
@@ -2088,6 +2079,28 @@ function openSubject(id){
     '<div class="card-label" style="margin-bottom:8px">PDFs &amp; Resources</div>'+
     '<div id="pdfList_'+id+'"></div>'+
 
+    (function(){
+      var projTasks=getS().tasks.filter(function(t){return t.space===id&&!t.done;});
+      var compTasks=(getS().completedTasks||[]).filter(function(t){return t.space===id;});
+      if(!projTasks.length&&!compTasks.length) return '';
+      return '<div class="card" style="margin-bottom:14px">'+
+        '<div class="card-header"><div class="card-title" style="font-size:14px">Tasks in this Project</div>'+
+        '<button class="btn btn-primary btn-xs" onclick="openModal(\'taskModal\');document.getElementById(\'t-space\').value=\''+id+'\'">+ Task</button></div>'+
+        (projTasks.length?projTasks.map(function(t){return renderTaskItem(t,true);}).join(''):'')+
+        (compTasks.length?'<div style="margin-top:8px"><div style="font-size:10px;color:var(--text3);font-family:var(--mono);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px">Completed</div>'+compTasks.slice(0,5).map(function(t){return renderTaskItem(t,true);}).join('')+'</div>':'')+
+      '</div>';
+    })()+
+    (function(){
+      var projTasks=getS().tasks.filter(function(t){return t.space===id&&!t.done;});
+      var compTasks=(getS().completedTasks||[]).filter(function(t){return t.space===id;});
+      if(!projTasks.length&&!compTasks.length) return '';
+      return '<div class="card" style="margin-bottom:14px">'+
+        '<div class="card-header"><div class="card-title" style="font-size:14px">Project Tasks</div>'+
+        '<button class="btn btn-primary btn-xs" onclick="openModal(\'taskModal\');setTimeout(function(){var s=document.getElementById(\'t-space\');if(s)s.value=\''+id+'\';},50)">+ Task</button></div>'+
+        (projTasks.length?projTasks.map(function(t){return renderTaskItem(t,true);}).join(''):'')+
+        (compTasks.length?'<div style="margin-top:8px"><div style="font-size:9px;color:var(--text3);font-family:var(--mono);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px">Completed</div>'+compTasks.slice(0,5).map(function(t){return renderTaskItem(t,true);}).join('')+'</div>':'')+
+      '</div>';
+    })()+
     '<div class="card-label" style="margin-bottom:8px">Notes ('+subNotes.length+')</div>'+
     (subNotes.length>0
       ?subNotes.map(function(n){
@@ -2490,11 +2503,28 @@ async function askGroq(prompt,system){
 }
 
 async function fetchNews(q,n){
-  n=n||5;
+  n=n||6;
   try{
-    const r=await fetch('https://newsapi.org/v2/everything?q='+encodeURIComponent(q)+'&language=en&sortBy=publishedAt&pageSize='+n+'&apiKey='+CFG.NEWS);
+    // Get articles from last 7 days for freshness
+    var fromDate=new Date(Date.now()-7*86400000).toISOString().slice(0,10);
+    var url='https://newsapi.org/v2/everything?q='+encodeURIComponent(q)+'&language=en&sortBy=publishedAt&pageSize='+n+'&from='+fromDate+'&apiKey='+CFG.NEWS;
+    const r=await fetch(url);
     const d=await r.json();
-    return (d.articles||[]).slice(0,n).map(function(a){return '- '+a.title+' ('+a.source.name+', '+new Date(a.publishedAt).toLocaleDateString()+')';}).join('\n');
+    if(!d.articles||d.articles.length===0){
+      // fallback without date filter
+      const r2=await fetch('https://newsapi.org/v2/everything?q='+encodeURIComponent(q)+'&language=en&sortBy=publishedAt&pageSize='+n+'&apiKey='+CFG.NEWS);
+      const d2=await r2.json();
+      return (d2.articles||[]).slice(0,n).map(function(a){
+        var pub=new Date(a.publishedAt);
+        var age=Math.floor((Date.now()-pub)/86400000);
+        return '- '+a.title+' ('+a.source.name+', '+pub.toLocaleDateString()+', '+age+' days ago)';
+      }).join('\n');
+    }
+    return d.articles.slice(0,n).map(function(a){
+      var pub=new Date(a.publishedAt);
+      var age=Math.floor((Date.now()-pub)/86400000);
+      return '- '+a.title+' ('+a.source.name+', '+pub.toLocaleDateString()+', '+age+' days ago)';
+    }).join('\n');
   } catch(e){return '- Headlines unavailable';}
 }
 
@@ -2505,10 +2535,26 @@ var briefTabData={};
 var currentBriefTab='world';
 
 var BRIEF_CFG={
-  world:{label:'World News',q:'world news breaking',sys:'You are a sharp news analyst. Give deep context, not headlines. Explain WHY events matter and the forces at play. Be specific about dates and when things happened.'},
-  finance:{label:'Finance & Markets',q:'Goldman Sachs investment banking markets hedge fund private equity trading',sys:'You are a sharp finance professional writing for an ambitious student who wants to work at Goldman Sachs, McKinsey, BCG or the Big 4. Cover real market moves, deals, and industry news. Explain concepts used by practitioners, not academics. Be specific — name firms, numbers, deals.'},
-  geo:{label:'Geopolitics',q:'geopolitics diplomacy trade wars international relations',sys:'You are a geopolitics analyst writing for a future finance or consulting professional. Explain how geopolitical events move markets, create deal flow, and affect business strategy. Be analytical and precise.'},
-  learn:{label:'Finance & Consulting',q:'investment banking consulting strategy McKinsey BCG Goldman finance careers',sys:'You are a former Goldman Sachs analyst and McKinsey consultant. Teach concepts that actually matter in high finance and consulting — valuation, deal structures, strategy frameworks, how top firms think. Be direct, specific, and practitioner-focused. No academic fluff.'}
+  world:{
+    label:'World News',
+    q:'breaking news world politics 2025',
+    sys:'You are a sharp news analyst. Always reference specific recent dates. Cover what is actually happening RIGHT NOW this week, not general background. Be specific about dates, names, and numbers. Explain the deeper forces at play beyond the headline.'
+  },
+  finance:{
+    label:'Finance & Markets',
+    q:'Goldman Sachs Wall Street investment banking hedge fund private equity IPO deal 2025',
+    sys:'You are a former Goldman Sachs MD writing for an ambitious student who wants to break into high finance. Cover real deals, market moves, and what top firms are doing this week. Name firms, numbers, and people. Practitioner-level, not academic.'
+  },
+  geo:{
+    label:'Geopolitics',
+    q:'geopolitics trade war sanctions diplomacy US China 2025',
+    sys:'You are a geopolitical strategist. Cover what is actually happening this week — specific events, specific actors, specific stakes. Explain how geopolitical shifts create risks and opportunities for markets and business. Be precise about timing.'
+  },
+  learn:{
+    label:'Finance & Consulting',
+    q:'investment banking consulting McKinsey BCG strategy finance career Wall Street',
+    sys:'You are a former Goldman Sachs analyst and McKinsey consultant teaching the next generation. Teach one concept that a first-year analyst at a top firm would be expected to know cold. Be specific, use real examples, and teach like a practitioner not a professor.'
+  }
 };
 
 async function renderBrief(){
@@ -2525,10 +2571,10 @@ async function loadBriefTab(tab,el){
     const news=await fetchNews(BRIEF_CFG[tab].q,6);
     const today=new Date().toLocaleDateString('en-MY',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
     const prompt='Today is '+today+'.\n\nHere are today\'s headlines:\n'+news+'\n\n'+
-      (tab==='world'?'Write a deep analysis of the 3 most important world stories from this week (today is '+today+'). For each: when exactly this happened (be specific about dates), background context, what just happened, why it matters beyond the headline, what to watch next. Use <h3> for story titles with the date included e.g. <h3>Story Title · 22 April 2025</h3>. Do NOT just summarise headlines — give analysis that goes beyond a Google search.':'')+
-      (tab==='finance'?'Write a finance and markets briefing dated '+today+'. Cover: (1) what moved in major markets THIS WEEK and the real institutional reasons why (be specific about index levels, moves, catalysts), (2) one significant deal, IPO, or M&A transaction in the news, (3) what top investment banks or hedge funds are positioning for right now, (4) one concept practitioners at Goldman, JPMorgan or similar use. Always specify dates. Never be vague. Use <h3> for sections.':'')+
-      (tab==='geo'?'Write a geopolitics briefing. Cover 2-3 major developments. For each: the situation, historical context, the competing interests at play, what each side wants and why, what it means for Southeast Asia. Use <h3> for each topic.':'')+
-      (tab==='learn'?'Teach one concept that a first-year analyst at Goldman Sachs, McKinsey, BCG, or the Big 4 would be expected to know. Pick from: valuation methods (DCF, comps, precedent transactions), consulting frameworks (MECE, issue trees, Porter 5 forces), deal structures (LBOs, M&A, IPOs), or market concepts (basis, carry, convexity). Teach it as a practitioner would explain it to a junior: what it is (one vivid analogy), how it actually works in a real deal or engagement, the numbers (a worked example), what experienced practitioners know that textbooks miss. Use <h3> for sections. Be specific and practitioner-level.':'');
+      (tab==='world'?'Write a deep analysis of the 3 most important world stories from THIS week (today is '+today+'). Always state the exact date each event happened. For each story: precisely when it happened, 2 sentences of background context, exactly what just happened, why it matters beyond the headline, what to watch next. Use <h3> for story titles with the date: e.g. <h3>Story Title · April 22, 2025</h3>. Do NOT just summarise headlines — give analysis that goes beyond a Google search.':'')+
+      (tab==='finance'?'Write a finance and markets briefing for '+today+'. Use the headlines as raw material. Cover: (1) the biggest market move or deal this week — institutional reasons why, who the key players are, (2) one notable deal, M&A or IPO in the news this week, (3) what this signals about where smart money is positioned. Name real firms, numbers, and people. Write like a Goldman Sachs morning research note. Use <h3> for sections.':'')+
+      (tab==='geo'?'Write a geopolitics briefing based on THIS week\'s news (today is '+today+'). State the specific date of each development. Cover 2-3 major developments. For each: exactly when it happened, the competing interests at play, what each side wants and why, what it means for markets, business, and Southeast Asia specifically. Use <h3> for each topic with the date.':'')+
+      (tab==='learn'?'Teach one concept that a first-year analyst at Goldman Sachs, McKinsey, or a top hedge fund would be expected to know cold. Pick one relevant to this week\'s news. Teach it as a practitioner: clear definition, how it is used in real deals or trades with firm names, a worked numerical example, and what experienced professionals know that books miss. Do not mention exams or academic modules. Use <h3> for sections.':'');
     const content=await askGroq(prompt,BRIEF_CFG[tab].sys);
     const html='<div class="card">'+
       '<div class="card-label" style="margin-bottom:4px">'+BRIEF_CFG[tab].label+' · '+today+'</div>'+
@@ -2560,33 +2606,7 @@ function saveArticleAsNote(tab){
 // ═══════════════════════════════════════════════
 // CONCEPT
 // ═══════════════════════════════════════════════
-var CONCEPTS=[
-  'What is DCF valuation and how do bankers actually use it?',
-  'How does a Leveraged Buyout (LBO) work?',
-  'What are comparable company analysis (comps) and how do you run them?',
-  'How does McKinsey structure problem solving? The MECE framework explained.',
-  'What is the difference between equity and enterprise value?',
-  'How does an IPO actually work from start to finish?',
-  'What is a hedge fund and how do they make money?',
-  'How does M&A due diligence work at a top investment bank?',
-  'What is private equity and how does a PE firm create returns?',
-  'What is the carry trade and why does it matter in FX markets?',
-  'How do Goldman Sachs and JPMorgan make money? Revenue breakdown.',
-  'What is the BCG Growth-Share Matrix and when do consultants use it?',
-  'What is an issue tree and how do top consultants use them?',
-  'How does bond pricing and duration work in practice?',
-  'What is the VIX and why do traders watch it?',
-  'How does short selling actually work?',
-  'What is venture capital and how is it different from private equity?',
-  'What is a credit default swap (CDS) and why did it matter in 2008?',
-  'What does a Goldman Sachs first-year analyst actually do?',
-  'What is EBITDA and why do deal professionals use it instead of net profit?',
-  'How does options pricing work? Delta, gamma, vega explained simply.',
-  'What is a pitch book and how do bankers structure one?',
-  'How does the Big 4 advisory differ from investment banking?',
-  'What is Porter Five Forces and how do consultants actually apply it?',
-  'What is quantitative easing and how does it affect asset prices?'
-];
+var CONCEPTS=['How does a Leveraged Buyout (LBO) work?','What is DCF valuation and how do bankers build one?','How do comparable company analysis (comps) work?','What is EBITDA and why do deal professionals use it?','How does McKinsey structure problem solving — issue trees explained','What is MECE and how do consultants use it?','What is the difference between equity value and enterprise value?','How does an IPO work from mandate to listing?','What is a hedge fund and what are the main strategies?','How does M&A due diligence work?','What is private equity and how does a fund generate returns?','What is the carry trade and why do macro funds use it?','How do Goldman Sachs and JPMorgan actually make money?','What is the BCG Growth-Share Matrix?','How does options pricing work — delta, gamma, vega?','What is a pitch book and how do bankers structure one?','How does short selling work mechanically?','What is a credit default swap (CDS)?','What does a first-year analyst at Goldman Sachs do all day?','What is venture capital and how does the VC model work?','What is the Porter Five Forces framework?','What is yield curve inversion and why does it matter?','How does a consulting engagement run at McKinsey or BCG?','What is the 2-and-20 fee structure in hedge funds?','What is the difference between buy-side and sell-side?','What is a Special Purpose Acquisition Company (SPAC)?','How does fixed income trading work at a bank?','What is quantitative easing and how does it affect asset prices?'];
 
 async function renderConcept(){
   const s=getS();
@@ -2601,8 +2621,8 @@ async function renderConcept(){
     const pool=CONCEPTS.filter(function(c){return !learned.includes(c);});
     const topic=(pool.length>0?pool:CONCEPTS)[Math.floor(Math.random()*(pool.length>0?pool.length:CONCEPTS.length))];
     const content=await askGroq(
-      'Teach me: "'+topic+'"\n\nI am an ambitious finance student who wants to work at Goldman Sachs, McKinsey, BCG, or a top firm.\n\nStructure in HTML:\n<h3>The simple version</h3><p>One paragraph. No jargon. One vivid analogy that sticks.</p>\n<h3>How practitioners actually use it</h3><p>How this is used in real deals, real markets, or real consulting engagements. Name specific firms or situations. 2-3 paragraphs.</p>\n<h3>The numbers</h3><p>A worked example with real numbers. Walk through it step by step as a junior analyst would present it.</p>\n<h3>What separates beginners from experts</h3><p>The nuances, edge cases, and non-obvious insights that experienced professionals know but textbooks miss.</p>\n\nDo NOT include sections about exam tips, degree relevance, or why you need to know this. Just teach it at a practitioner level.',
-      'You are the world\'s best Accounting & Finance tutor. You explain things with crystal clarity, vivid examples, and genuine insight. You never pad content or state the obvious. Every sentence teaches something.'
+      'Teach me: \"'+topic+'\"\n\nI want to understand this at a practitioner level — as a first-year analyst at Goldman Sachs or junior consultant at McKinsey would know it.\n\nStructure in HTML:\n<h3>The one-sentence version</h3><p>The clearest definition. Then one vivid analogy that makes it immediately stick.</p>\n<h3>How it actually works</h3><p>The real mechanics. How professionals use this in real deals, trades, or engagements. Name actual firms or situations. 2-3 paragraphs.</p>\n<h3>Walk me through the numbers</h3><p>A concrete worked example with real numbers, step by step as you would present it in an interview.</p>\n<h3>What beginners get wrong</h3><p>The nuances that separate someone who read about it from someone who has done it.</p>\n\nDo NOT mention exams, degrees, or academic relevance. Teach it purely as a practitioner would.',
+      'You are a former Goldman Sachs VP and McKinsey Senior Consultant. You teach with precision, real-world examples, and practitioner language. Never reference textbooks or academic courses. Every explanation uses actual firm names and real deal structures.'
     );
     const todayStr=new Date().toLocaleDateString('en-MY',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
     const html='<div class="card">'+
@@ -2747,7 +2767,7 @@ async function quickResearch(q){
     const s=getS();
     const context=s.learnedTopics&&s.learnedTopics.length?'The student has studied: '+s.learnedTopics.slice(-5).join(', ')+'. Build on that where relevant.':'';
     const content=await askGroq(
-      context+'\n\nGive a comprehensive deep-dive on: "'+q+'" for an ambitious student who wants to work in high finance or consulting.\n\nHTML structure:\n<h3>What it is</h3><p>Clear definition. One vivid analogy that makes it immediately understandable.</p>\n<h3>The full picture</h3><p>Complete explanation — history, how it works, who the key players are. Go deep. Better than anything on Google.</p>\n<h3>How it works in practice</h3><p>Real-world application. Specific firms, deals, or situations. Name names and numbers where possible.</p>\n<h3>What experts debate</h3><p>Non-obvious nuances and disagreements that separate surface-level knowledge from real understanding.</p>\n<h3>Key terms</h3><p>5-7 essential terms defined precisely as practitioners use them.</p>',
+      context+'\n\nGive a comprehensive deep-dive on: "'+q+'" for a Year 2 Accounting & Finance student at Sunway University Malaysia.\n\nHTML structure:\n<h3>What it is</h3><p>Clear definition. Simple analogy first.</p>\n<h3>The full picture</h3><p>Complete explanation — history, mechanics, key players. Go deep. This should be better than anything they would find on Google.</p>\n<h3>Malaysian and ASEAN context</h3><p>How this applies locally. Specific examples.</p>\n<h3>Degree relevance</h3><p>Which modules, how it appears in exams, how it connects to other concepts.</p>\n<h3>What experts actually debate</h3><p>The non-obvious disagreements or nuances that show real understanding.</p>\n<h3>Key terms to know</h3><p>5-7 essential terms defined precisely.</p>',
       'You are a world-class A&F educator. Be genuinely comprehensive. Never be superficial. Use Malaysian examples. Make this the best explanation available anywhere.'
     );
     res.innerHTML='<div class="card">'+
