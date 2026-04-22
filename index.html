@@ -8,6 +8,7 @@
 <title>Durgha's Dashboard</title>
 <link rel="manifest" href="manifest.json"/>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;900&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
 :root {
   --bg: #f7f3ee;
@@ -307,6 +308,97 @@ select.input{cursor:pointer;appearance:none;}
 .colour-options{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;}
 .colour-swatch{width:22px;height:22px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:all 0.15s;}
 .colour-swatch.selected{border-color:var(--text);transform:scale(1.15);}
+
+/* ── DARK MODE ── */
+[data-theme="dark"]{
+  --bg:#1a1410;--surface:#231c15;--surface2:#2d231a;
+  --border:#3d2e22;--border2:#52402f;
+  --accent:#d4764e;--accent2:#e08a62;--accent-soft:rgba(212,118,78,0.12);
+  --gold:#d4a83a;--green:#4a9d6a;--blue:#4a8baa;--red:#d05050;
+  --text:#f0e8df;--text2:#c8b09a;--text3:#8a7060;
+}
+
+/* ── GLOBAL SEARCH OVERLAY ── */
+.search-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(8px);z-index:9000;display:none;align-items:flex-start;justify-content:center;padding-top:80px;}
+.search-overlay.show{display:flex;}
+.search-box{background:var(--surface);border:1px solid var(--border2);border-radius:16px;width:100%;max-width:580px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.3);}
+.search-input-wrap{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid var(--border);}
+.search-icon{font-size:16px;color:var(--text3);}
+.search-main-input{flex:1;border:none;background:transparent;font-size:15px;color:var(--text);outline:none;font-family:var(--sans);}
+.search-main-input::placeholder{color:var(--text3);}
+.search-hint{font-size:10px;color:var(--text3);font-family:var(--mono);}
+.search-results{max-height:380px;overflow-y:auto;}
+.search-section-label{padding:8px 18px 4px;font-size:9px;font-family:var(--mono);letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);}
+.search-result{display:flex;align-items:center;gap:10px;padding:10px 18px;cursor:pointer;transition:background 0.1s;}
+.search-result:hover,.search-result.active{background:var(--accent-soft);}
+.search-result-icon{font-size:14px;width:20px;text-align:center;flex-shrink:0;}
+.search-result-title{font-size:13px;font-weight:500;color:var(--text);flex:1;}
+.search-result-meta{font-size:10px;color:var(--text3);font-family:var(--mono);}
+.search-empty{padding:24px;text-align:center;font-size:12px;color:var(--text3);}
+
+/* ── PDF VIEWER ── */
+.pdf-overlay{position:fixed;inset:0;background:var(--bg);z-index:400;display:none;flex-direction:column;overflow:hidden;}
+.pdf-overlay.show{display:flex;}
+.pdf-topbar{display:flex;align-items:center;gap:10px;padding:10px 20px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;}
+.pdf-title{font-family:var(--serif);font-size:14px;font-weight:700;color:var(--text);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.pdf-page-info{font-family:var(--mono);font-size:11px;color:var(--text3);}
+.pdf-tool-btn{padding:5px 10px;border-radius:6px;border:1px solid var(--border);background:none;cursor:pointer;font-size:11px;color:var(--text2);transition:all 0.15s;font-family:var(--sans);}
+.pdf-tool-btn:hover{border-color:var(--accent);color:var(--accent);}
+.pdf-tool-btn.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+.pdf-body{flex:1;overflow:auto;display:flex;gap:0;}
+.pdf-canvas-wrap{flex:1;overflow:auto;display:flex;flex-direction:column;align-items:center;padding:20px;gap:16px;}
+.pdf-canvas-wrap canvas{box-shadow:0 4px 20px rgba(0,0,0,0.2);max-width:100%;}
+.pdf-annot-panel{width:260px;border-left:1px solid var(--border);background:var(--surface);overflow-y:auto;padding:14px;flex-shrink:0;}
+.pdf-annot-title{font-family:var(--mono);font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:10px;}
+.pdf-annot-item{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:8px;font-size:12px;color:var(--text2);line-height:1.5;cursor:pointer;transition:border-color 0.15s;}
+.pdf-annot-item:hover{border-color:var(--accent);}
+.pdf-annot-item .annot-page{font-size:9px;color:var(--text3);font-family:var(--mono);margin-top:4px;}
+.pdf-annot-item .annot-type{display:inline-block;padding:1px 6px;border-radius:10px;font-size:9px;font-weight:600;margin-bottom:4px;}
+.annot-type.highlight{background:#ffeb3b33;color:#c4a000;border:1px solid #c4a00044;}
+.annot-type.note{background:#3a7d5a22;color:var(--green);border:1px solid #3a7d5a44;}
+
+/* ── FLASHCARDS ── */
+.flashcard-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);backdrop-filter:blur(6px);z-index:600;display:none;align-items:center;justify-content:center;flex-direction:column;gap:20px;}
+.flashcard-overlay.show{display:flex;}
+.flashcard-wrap{perspective:1000px;width:500px;max-width:90vw;height:280px;cursor:pointer;}
+.flashcard{width:100%;height:100%;position:relative;transform-style:preserve-3d;transition:transform 0.5s ease;}
+.flashcard.flipped{transform:rotateY(180deg);}
+.flashcard-face{position:absolute;inset:0;backface-visibility:hidden;background:var(--surface);border:1px solid var(--border);border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px;box-shadow:0 8px 32px rgba(0,0,0,0.15);}
+.flashcard-back{transform:rotateY(180deg);}
+.flashcard-label{font-family:var(--mono);font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:12px;}
+.flashcard-text{font-family:var(--serif);font-size:17px;font-weight:600;color:var(--text);text-align:center;line-height:1.5;}
+.flashcard-answer{font-size:14px;color:var(--text2);text-align:center;line-height:1.7;}
+.flashcard-controls{display:flex;gap:10px;align-items:center;}
+.flashcard-progress{font-family:var(--mono);font-size:11px;color:var(--text3);}
+
+/* ── BUDGET BARS ── */
+.budget-bar-wrap{margin-bottom:12px;}
+.budget-bar-label{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;font-size:11px;}
+.budget-bar-track{height:7px;background:var(--border);border-radius:4px;overflow:hidden;}
+.budget-bar-fill{height:100%;border-radius:4px;transition:width 0.4s ease;}
+
+/* ── DRAG AND DROP ── */
+.task-item.dragging{opacity:0.4;transform:rotate(1.5deg);}
+.task-item.drag-over{border-color:var(--accent);box-shadow:0 0 0 2px rgba(184,92,56,0.2);}
+
+/* ── NOTE BACKLINK AUTOCOMPLETE ── */
+.backlink-dropdown{position:absolute;background:var(--surface);border:1px solid var(--border2);border-radius:8px;box-shadow:var(--shadow-lg);z-index:9999;min-width:200px;max-height:180px;overflow-y:auto;}
+.backlink-item{padding:8px 12px;cursor:pointer;font-size:12px;color:var(--text2);transition:background 0.1s;}
+.backlink-item:hover{background:var(--accent-soft);color:var(--accent);}
+.note-link{color:var(--accent);text-decoration:underline;cursor:pointer;font-weight:500;}
+
+/* ── SESSION CHART ── */
+.session-bar{display:flex;align-items:flex-end;gap:6px;height:80px;margin-bottom:4px;}
+.session-bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;}
+.session-bar-fill{width:100%;background:var(--accent);border-radius:3px 3px 0 0;transition:height 0.4s ease;min-height:2px;}
+.session-bar-label{font-size:8px;font-family:var(--mono);color:var(--text3);}
+.session-bar-val{font-size:9px;font-family:var(--mono);color:var(--accent);font-weight:600;}
+
+/* ── EXPENSE MODAL ── */
+.exp-type-toggle{display:flex;gap:0;border-radius:8px;overflow:hidden;border:1px solid var(--border2);margin-bottom:12px;}
+.exp-type-btn{flex:1;padding:8px;border:none;background:none;cursor:pointer;font-size:12px;font-weight:600;font-family:var(--sans);transition:all 0.15s;color:var(--text3);}
+.exp-type-btn.active.income{background:#3a7d5a22;color:var(--green);}
+.exp-type-btn.active.expense{background:rgba(192,64,64,0.12);color:var(--red);}
 </style>
 </head>
 <body>
@@ -384,6 +476,10 @@ select.input{cursor:pointer;appearance:none;}
     <button class="toolbar-btn" onclick="insertTemplate('essay')" title="Essay template">✍️ Essay</button>
     <button class="toolbar-btn" onclick="insertTemplate('casestudy')" title="Case study template">🔍 Case Study</button>
     <button class="toolbar-btn" onclick="insertTemplate('problemset')" title="Problem set template">🧮 Problem Set</button>
+    <div class="toolbar-sep"></div>
+    <button class="toolbar-btn" onclick="insertBacklink()" title="Link to another note">🔗 [[Note]]</button>
+    <button class="toolbar-btn" onclick="exportCurrentNote()" title="Export note">📤 Export</button>
+    <button class="toolbar-btn" onclick="generateFlashcardsFromNote()" title="Generate flashcards">🃏 Flashcards</button>
   </div>
   <div class="detail-body">
     <div id="detailMeta" style="margin-bottom:16px;display:flex;gap:8px;flex-wrap:wrap;align-items:center"></div>
@@ -602,6 +698,8 @@ select.input{cursor:pointer;appearance:none;}
     </nav>
 
     <div class="sidebar-footer">
+      <button class="footer-btn" onclick="openSearch()" title="Search (Ctrl+K)">🔍 Search</button>
+      <button class="footer-btn" id="darkModeBtn" onclick="toggleDarkMode()">🌙 Dark</button>
       <button class="footer-btn" onclick="exportData()">⬇ Backup</button>
       <button class="footer-btn" onclick="document.getElementById('importFile').click()">⬆ Restore</button>
       <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)"/>
@@ -936,6 +1034,108 @@ select.input{cursor:pointer;appearance:none;}
 
 <button class="fab" id="fab" onclick="openModal('captureModal')">⚡</button>
 <div class="toast" id="toast"></div>
+
+<!-- GLOBAL SEARCH OVERLAY -->
+<div class="search-overlay" id="searchOverlay" onclick="if(event.target===this)closeSearch()">
+  <div class="search-box">
+    <div class="search-input-wrap">
+      <span class="search-icon">🔍</span>
+      <input class="search-main-input" id="searchMainInput" placeholder="Search notes, tasks, events..." oninput="runSearch(this.value)" onkeydown="handleSearchKey(event)" autocomplete="off"/>
+      <span class="search-hint">ESC to close</span>
+    </div>
+    <div class="search-results" id="searchResults">
+      <div class="search-empty">Start typing to search everything…</div>
+    </div>
+  </div>
+</div>
+
+<!-- PDF VIEWER OVERLAY -->
+<div class="pdf-overlay" id="pdfOverlay">
+  <div class="pdf-topbar">
+    <button class="btn btn-ghost btn-sm" onclick="closePdfViewer()">← Back</button>
+    <div class="pdf-title" id="pdfTitle">Document</div>
+    <button class="pdf-tool-btn" id="pdfHighlightBtn" onclick="setPdfTool('highlight')" title="Highlight tool">🖊 Highlight</button>
+    <button class="pdf-tool-btn" id="pdfNoteBtn" onclick="setPdfTool('note')" title="Add note">📝 Note</button>
+    <button class="pdf-tool-btn" onclick="setPdfTool(null)">✋ Select</button>
+    <div style="width:1px;height:20px;background:var(--border);margin:0 4px"></div>
+    <button class="pdf-tool-btn" onclick="pdfPrevPage()">← Prev</button>
+    <div class="pdf-page-info" id="pdfPageInfo">1 / 1</div>
+    <button class="pdf-tool-btn" onclick="pdfNextPage()">Next →</button>
+    <button class="pdf-tool-btn" onclick="exportPdfAnnotsAsNote()">📤 To Note</button>
+  </div>
+  <div class="pdf-body">
+    <div class="pdf-canvas-wrap" id="pdfCanvasWrap"></div>
+    <div class="pdf-annot-panel">
+      <div class="pdf-annot-title">Annotations</div>
+      <div id="pdfAnnotList"><div style="font-size:12px;color:var(--text3);text-align:center;padding:20px">No annotations yet.<br/>Use tools above.</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- FLASHCARD OVERLAY -->
+<div class="flashcard-overlay" id="flashcardOverlay">
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
+    <div style="font-family:var(--serif);font-size:16px;font-weight:700;color:#fff" id="flashDeckName">Flashcards</div>
+    <button class="btn btn-ghost btn-sm" onclick="closeFlashcards()" style="color:#fff;border-color:rgba(255,255,255,0.3)">✕ Close</button>
+  </div>
+  <div class="flashcard-wrap" onclick="flipCard()">
+    <div class="flashcard" id="flashcard">
+      <div class="flashcard-face flashcard-front">
+        <div class="flashcard-label">Question</div>
+        <div class="flashcard-text" id="flashFront">—</div>
+      </div>
+      <div class="flashcard-face flashcard-back">
+        <div class="flashcard-label">Answer</div>
+        <div class="flashcard-answer" id="flashBack">—</div>
+      </div>
+    </div>
+  </div>
+  <div style="font-size:11px;color:rgba(255,255,255,0.5);margin-bottom:8px">Click card to flip · Use buttons to navigate</div>
+  <div class="flashcard-controls">
+    <button class="btn btn-ghost btn-sm" onclick="prevCard()" style="color:#fff;border-color:rgba(255,255,255,0.3)">← Prev</button>
+    <div class="flashcard-progress" id="flashProgress" style="color:rgba(255,255,255,0.6)">1 / 1</div>
+    <button class="btn btn-ghost btn-sm" onclick="nextCard()" style="color:#fff;border-color:rgba(255,255,255,0.3)">Next →</button>
+    <button class="btn btn-primary btn-sm" onclick="shuffleCards()">🔀 Shuffle</button>
+  </div>
+</div>
+
+<!-- EXPENSE ADD MODAL -->
+<div class="modal-overlay" id="expenseModal">
+  <div class="modal" style="max-width:360px">
+    <div class="modal-title">Add Transaction</div>
+    <div class="exp-type-toggle">
+      <button class="exp-type-btn expense active" id="expTypeExpense" onclick="setExpType('expense')">− Expense</button>
+      <button class="exp-type-btn income" id="expTypeIncome" onclick="setExpType('income')">+ Income</button>
+    </div>
+    <input type="hidden" id="expTypeVal" value="expense"/>
+    <div class="field"><div class="input-label">Amount (RM)</div><input class="input" id="exp-amount" type="number" step="0.01" placeholder="0.00"/></div>
+    <div class="field"><div class="input-label">Description</div><input class="input" id="exp-desc" placeholder="e.g. Lunch at mamak..."/></div>
+    <div class="field">
+      <div class="input-label">Category</div>
+      <select class="input" id="exp-cat">
+        <option>Food</option><option>Transport</option><option>Education</option>
+        <option>Entertainment</option><option>Shopping</option><option>Part-time</option><option>Other</option>
+      </select>
+    </div>
+    <div class="field"><div class="input-label">Date</div><input class="input" type="date" id="exp-date"/></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('expenseModal')">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="saveExpenseModal()">Add</button>
+    </div>
+  </div>
+</div>
+
+<!-- SET BUDGET MODAL -->
+<div class="modal-overlay" id="budgetModal">
+  <div class="modal" style="max-width:360px">
+    <div class="modal-title">Set Monthly Budgets</div>
+    <div id="budgetFields"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('budgetModal')">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="saveBudgets()">Save Budgets</button>
+    </div>
+  </div>
+</div>
 
 <script>
 'use strict';
@@ -1301,9 +1501,7 @@ function renderTaskItem(t,compact){
   '</div>';
 }
 
-function renderTasks(){
-  const s=getS();
-  // Space tabs
+function _renderTasksBase(){
   const tabsEl=document.getElementById('spaceTabs');
   tabsEl.innerHTML='<button class="space-tab'+(currentSpace==='all'?' active':'')+'" onclick="switchSpace(\'all\',this)">All</button>'+
     s.spaces.map(function(sp){
@@ -1444,6 +1642,8 @@ function openNoteDetail(id){
   document.getElementById('detailMeta').innerHTML=
     (sub?'<span class="tag" style="color:'+sub.colour+';border-color:'+sub.colour+'44">'+sub.icon+' '+sub.name+'</span>':'');
   document.getElementById('detailHeaderActions').innerHTML=
+    '<button class="btn btn-ghost btn-sm" onclick="generateFlashcardsFromNote()">🃏 Flashcards</button>'+
+    '<button class="btn btn-ghost btn-sm" onclick="exportCurrentNote()">📤 Export</button>'+
     '<button class="btn btn-danger btn-sm" onclick="deleteNote(\''+id+'\')">Delete</button>';
   document.getElementById('detailExtras').innerHTML='';
   document.getElementById('detailPage').classList.add('show');
@@ -1811,6 +2011,8 @@ function openSubject(id){
     '<div style="display:flex;gap:8px;margin-bottom:16px">'+
       '<button class="btn btn-primary btn-sm" onclick="createNoteForSubject(\''+id+'\')">+ New Note</button>'+
       '<button class="btn btn-ghost btn-sm" onclick="toggleAIPanel(\''+id+'\')">🤖 AI Study Tools</button>'+
+      '<button class="btn btn-secondary btn-sm" onclick="document.getElementById(\'pdfUpload_'+id+'\').click()">📎 Attach PDF</button>'+
+      '<input type="file" id="pdfUpload_'+id+'" accept=".pdf" style="display:none" onchange="uploadPdfForSubject(\''+id+'\',this)"/>'+
     '</div>'+
 
     '<div id="aiPanel_'+id+'" style="display:none;margin-bottom:14px">'+
@@ -1830,6 +2032,9 @@ function openSubject(id){
       '</div>'+
     '</div>'+
 
+    '<div class="card-label" style="margin-bottom:8px">PDFs &amp; Resources</div>'+
+    '<div id="pdfList_'+id+'"></div>'+
+
     '<div class="card-label" style="margin-bottom:8px">Notes ('+subNotes.length+')</div>'+
     (subNotes.length>0
       ?subNotes.map(function(n){
@@ -1840,6 +2045,7 @@ function openSubject(id){
         '</div>';
       }).join('')
       :'<div class="empty" style="padding:20px"><div class="empty-text">No notes yet for '+sub.name+'.<br/>Click New Note to start.</div></div>');
+  renderPdfList(id);
 }
 
 function toggleAIPanel(id){
@@ -2002,27 +2208,7 @@ function selectDuration(mins,el){
   }
 }
 
-function renderFocus(){
-  const s=getS();
-  const pending=s.tasks.filter(function(t){return !t.done;});
-  document.getElementById('focusTaskPicker').innerHTML=pending.map(function(t){
-    return '<div style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;cursor:pointer;transition:background 0.15s" onmouseover="this.style.background=\'var(--bg)\'" onmouseout="this.style.background=\'\'" onclick="document.getElementById(\'focusTaskInput\').value=\''+t.title.replace(/'/g,'\\\'')+'\'">'+
-      (t.labelId?'<div class="label-dot" style="background:'+(getLabelById(t.labelId)||{colour:'var(--text3)'}).colour+'"></div>':'')+
-      '<span style="font-size:12px;color:var(--text)">'+t.title+'</span>'+
-      (t.due?'<span style="font-size:9px;color:var(--text3);font-family:var(--mono);margin-left:auto">'+fmtDate(t.due)+'</span>':'')+
-    '</div>';
-  }).join('')||'<div style="font-size:12px;color:var(--text3);padding:8px">No pending tasks</div>';
-
-  const hist=s.focusSessions||[];
-  document.getElementById('focusHistory').innerHTML=hist.length>0
-    ?hist.slice(0,8).map(function(f){
-      return '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)">'+
-        '<div><div style="font-size:12px;font-weight:500;color:var(--text)">'+f.task+'</div>'+
-        (f.plan?'<div style="font-size:10px;color:var(--text3)">'+f.plan.slice(0,50)+'</div>':'')+
-        '</div><div style="font-family:var(--mono);font-size:10px;color:var(--text3)">'+f.pomos+'🍅 · '+f.date+'</div></div>';
-    }).join('')
-    :'<div class="empty" style="padding:16px"><div class="empty-text">No sessions yet</div></div>';
-}
+// renderFocus — full implementation with chart is defined below at the end of the script
 
 function startFocus(){
   const custom=document.getElementById('customDuration');
@@ -2517,14 +2703,40 @@ var EXP_ICONS={Food:'🍜',Transport:'🚗',Education:'📚',Entertainment:'🎮
 function renderExpenses(){
   const s=getS();
   const exps=s.expenses||[];
+  const budgets=s.budgets||{};
   const income=exps.filter(function(e){return e.type==='income';}).reduce(function(a,b){return a+b.amount;},0);
   const expense=exps.filter(function(e){return e.type==='expense';}).reduce(function(a,b){return a+b.amount;},0);
+
+  // Category breakdown
+  const cats=Object.keys(EXP_ICONS);
+  const catTotals={};
+  exps.filter(function(e){return e.type==='expense';}).forEach(function(e){
+    catTotals[e.cat]=(catTotals[e.cat]||0)+e.amount;
+  });
+
+  const budgetSection=cats.filter(function(c){return catTotals[c]||budgets[c];}).map(function(cat){
+    const spent=catTotals[cat]||0;
+    const bud=budgets[cat]||0;
+    const pct=bud>0?Math.min(100,(spent/bud)*100):0;
+    const over=bud>0&&spent>bud;
+    return '<div class="budget-bar-wrap">'+
+      '<div class="budget-bar-label">'+
+        '<span>'+EXP_ICONS[cat]+' '+cat+'</span>'+
+        '<span style="font-family:var(--mono);color:'+(over?'var(--red)':'var(--text3)')+'">RM '+spent.toFixed(2)+(bud?' / RM '+bud.toFixed(2):'')+'</span>'+
+      '</div>'+
+      '<div class="budget-bar-track"><div class="budget-bar-fill" style="width:'+pct+'%;background:'+(over?'var(--red)':pct>80?'var(--gold)':'var(--green)')+'"></div></div>'+
+    '</div>';
+  }).join('');
+
   document.getElementById('expensesContent').innerHTML=
     '<div class="grid-3" style="margin-bottom:14px">'+
       '<div class="card" style="text-align:center;margin-bottom:0"><div style="font-family:var(--serif);font-size:22px;font-weight:700;color:var(--green)">RM '+income.toFixed(2)+'</div><div class="stat-label">INCOME</div></div>'+
       '<div class="card" style="text-align:center;margin-bottom:0"><div style="font-family:var(--serif);font-size:22px;font-weight:700;color:var(--red)">RM '+expense.toFixed(2)+'</div><div class="stat-label">EXPENSES</div></div>'+
       '<div class="card" style="text-align:center;margin-bottom:0"><div style="font-family:var(--serif);font-size:22px;font-weight:700;color:'+(income-expense>=0?'var(--green)':'var(--red)')+'">RM '+(income-expense).toFixed(2)+'</div><div class="stat-label">NET</div></div>'+
     '</div>'+
+
+    (budgetSection?'<div class="card" style="margin-bottom:14px"><div class="card-header"><div class="card-title">Budget Overview</div><button class="btn btn-ghost btn-sm" onclick="openBudgetModal()">⚙ Set Budgets</button></div>'+budgetSection+'</div>':'<div style="margin-bottom:10px"><button class="btn btn-ghost btn-sm" onclick="openBudgetModal()">⚙ Set Monthly Budgets</button></div>')+
+
     '<div class="card">'+
       (exps.length>0
         ?exps.slice(0,30).map(function(e,i){
@@ -2539,18 +2751,56 @@ function renderExpenses(){
     '</div>';
 }
 
-function addExpensePrompt(){
-  const type=prompt('Type (income/expense):','expense');
-  if(!type)return;
-  const amount=parseFloat(prompt('Amount (RM):'));
-  if(!amount)return;
-  const desc=prompt('Description:');
-  if(!desc)return;
-  const cat=prompt('Category (Food/Transport/Education/Entertainment/Shopping/Part-time/Other):','Food');
+function openBudgetModal(){
   const s=getS();
-  saveS({expenses:[{type:type,amount:amount,desc:desc,cat:cat||'Other',date:new Date().toLocaleDateString()},...(s.expenses||[])]});
+  const budgets=s.budgets||{};
+  const cats=Object.keys(EXP_ICONS);
+  document.getElementById('budgetFields').innerHTML=cats.map(function(cat){
+    return '<div class="field"><div class="input-label">'+EXP_ICONS[cat]+' '+cat+'</div>'+
+      '<input class="input" id="bud_'+cat+'" type="number" step="0.01" placeholder="No limit" value="'+(budgets[cat]||'')+'"/></div>';
+  }).join('');
+  openModal('budgetModal');
+}
+
+function saveBudgets(){
+  const cats=Object.keys(EXP_ICONS);
+  const budgets={};
+  cats.forEach(function(cat){
+    const val=parseFloat(document.getElementById('bud_'+cat).value);
+    if(val>0)budgets[cat]=val;
+  });
+  saveS({budgets:budgets});
+  closeModal('budgetModal');
+  showToast('Budgets saved!','success');
   renderExpenses();
-  showToast('Saved!','success');
+}
+
+function addExpensePrompt(){
+  document.getElementById('exp-date').value=new Date().toISOString().slice(0,10);
+  setExpType('expense');
+  openModal('expenseModal');
+}
+
+function setExpType(type){
+  document.getElementById('expTypeVal').value=type;
+  document.getElementById('expTypeExpense').className='exp-type-btn expense'+(type==='expense'?' active':'');
+  document.getElementById('expTypeIncome').className='exp-type-btn income'+(type==='income'?' active':'');
+}
+
+function saveExpenseModal(){
+  const type=document.getElementById('expTypeVal').value;
+  const amount=parseFloat(document.getElementById('exp-amount').value);
+  const desc=document.getElementById('exp-desc').value.trim();
+  const cat=document.getElementById('exp-cat').value;
+  const date=document.getElementById('exp-date').value||new Date().toLocaleDateString();
+  if(!amount||!desc){showToast('Fill in amount and description','error');return;}
+  const s=getS();
+  saveS({expenses:[{type,amount,desc,cat,date},...(s.expenses||[])]});
+  closeModal('expenseModal');
+  document.getElementById('exp-amount').value='';
+  document.getElementById('exp-desc').value='';
+  showToast('Transaction saved!','success');
+  if(currentView==='expenses')renderExpenses();
 }
 
 function deleteExpense(idx){
@@ -3223,9 +3473,653 @@ function openPdfByIndex(subjectId, idx) {
   var s = getS();
   var pdfs = s.pdfFiles && s.pdfFiles[subjectId] ? s.pdfFiles[subjectId] : [];
   if (pdfs[idx]) {
-    loadPdfAnnotations();
-    openPdfViewer(pdfs[idx].data, pdfs[idx].name);
+    openPdfViewer(pdfs[idx].data, pdfs[idx].name, pdfs[idx].id);
   }
+}
+
+// ═══════════════════════════════════════════════
+// PDF UPLOAD + VIEWER + ANNOTATIONS
+// ═══════════════════════════════════════════════
+var pdfCurrentDoc = null;
+var pdfCurrentPage = 1;
+var pdfTotalPages = 0;
+var pdfActiveTool = null;
+var pdfCurrentId = null;
+var pdfScale = 1.4;
+
+function uploadPdfForSubject(subjectId, input) {
+  var file = input.files[0];
+  if (!file) return;
+  if (file.size > 10 * 1024 * 1024) { showToast('PDF too large (max 10MB)', 'error'); return; }
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var s = getS();
+    var pdfFiles = s.pdfFiles || {};
+    pdfFiles[subjectId] = pdfFiles[subjectId] || [];
+    var pdfId = 'pdf' + Date.now();
+    pdfFiles[subjectId].push({ id: pdfId, name: file.name, data: e.target.result, uploaded: new Date().toISOString() });
+    saveS({ pdfFiles: pdfFiles });
+    showToast('PDF uploaded: ' + file.name, 'success');
+    renderPdfList(subjectId);
+    input.value = '';
+  };
+  reader.readAsDataURL(file);
+}
+
+function renderPdfList(subjectId) {
+  var el = document.getElementById('pdfList_' + subjectId);
+  if (!el) return;
+  var s = getS();
+  var pdfs = (s.pdfFiles && s.pdfFiles[subjectId]) || [];
+  if (pdfs.length === 0) {
+    el.innerHTML = '<div style="font-size:11px;color:var(--text3);margin-bottom:12px;padding:8px 0">No PDFs attached yet. Click "Attach PDF" to upload.</div>';
+    return;
+  }
+  el.innerHTML = pdfs.map(function(pdf, i) {
+    var annots = ((s.pdfAnnotations || {})[pdf.id] || []);
+    return '<div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--surface);border:1px solid var(--border);border-radius:8px;margin-bottom:6px;transition:all 0.15s" onmouseover="this.style.borderColor=\'var(--border2)\'" onmouseout="this.style.borderColor=\'var(--border)\'">' +
+      '<span style="font-size:18px">📄</span>' +
+      '<div style="flex:1;min-width:0">' +
+        '<div style="font-size:12px;font-weight:500;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + pdf.name + '</div>' +
+        '<div style="font-size:9px;color:var(--text3);font-family:var(--mono)">' + annots.length + ' annotation' + (annots.length !== 1 ? 's' : '') + ' · ' + new Date(pdf.uploaded).toLocaleDateString() + '</div>' +
+      '</div>' +
+      '<button class="btn btn-primary btn-xs" onclick="openPdfByIndex(\'' + subjectId + '\',' + i + ')">Open</button>' +
+      '<button onclick="deletePdf(\'' + subjectId + '\',' + i + ')" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:12px;padding:4px">✕</button>' +
+    '</div>';
+  }).join('');
+}
+
+function deletePdf(subjectId, idx) {
+  if (!confirm('Remove this PDF?')) return;
+  var s = getS();
+  var pdfFiles = s.pdfFiles || {};
+  pdfFiles[subjectId] = (pdfFiles[subjectId] || []).filter(function(_, i) { return i !== idx; });
+  saveS({ pdfFiles: pdfFiles });
+  renderPdfList(subjectId);
+  showToast('PDF removed', 'info');
+}
+
+function openPdfViewer(dataUrl, name, pdfId) {
+  pdfCurrentId = pdfId;
+  document.getElementById('pdfTitle').textContent = name;
+  document.getElementById('pdfOverlay').classList.add('show');
+  pdfCurrentPage = 1;
+  setPdfTool(null);
+
+  if (typeof pdfjsLib === 'undefined') {
+    document.getElementById('pdfCanvasWrap').innerHTML = '<div style="padding:40px;color:var(--red);text-align:center">PDF.js library failed to load. Please check your internet connection and refresh.</div>';
+    return;
+  }
+
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  pdfjsLib.getDocument(dataUrl).promise.then(function(doc) {
+    pdfCurrentDoc = doc;
+    pdfTotalPages = doc.numPages;
+    renderPdfPage(1);
+    renderAnnotPanel();
+  }).catch(function(err) {
+    document.getElementById('pdfCanvasWrap').innerHTML = '<div style="padding:40px;color:var(--red);text-align:center">Could not load PDF: ' + err.message + '</div>';
+  });
+}
+
+function renderPdfPage(pageNum) {
+  if (!pdfCurrentDoc) return;
+  pdfCurrentDoc.getPage(pageNum).then(function(page) {
+    var viewport = page.getViewport({ scale: pdfScale });
+    var canvas = document.createElement('canvas');
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+    canvas.id = 'pdfCanvas_' + pageNum;
+    canvas.style.cursor = pdfActiveTool ? 'crosshair' : 'default';
+
+    var ctx = canvas.getContext('2d');
+    page.render({ canvasContext: ctx, viewport: viewport }).promise.then(function() {
+      drawPageAnnotations(canvas, pageNum);
+    });
+
+    canvas.addEventListener('click', function(e) {
+      if (!pdfActiveTool) return;
+      var rect = canvas.getBoundingClientRect();
+      var x = ((e.clientX - rect.left) / rect.width * 100).toFixed(1);
+      var y = ((e.clientY - rect.top) / rect.height * 100).toFixed(1);
+      if (pdfActiveTool === 'highlight') {
+        var sel = window.getSelection ? window.getSelection().toString().trim() : '';
+        var text = sel || prompt('Text to highlight (or enter text manually):');
+        if (text) addPdfAnnotation({ type: 'highlight', text: text, page: pageNum, x: parseFloat(x), y: parseFloat(y) });
+      } else if (pdfActiveTool === 'note') {
+        var noteText = prompt('Add a note for this location:');
+        if (noteText) addPdfAnnotation({ type: 'note', text: noteText, page: pageNum, x: parseFloat(x), y: parseFloat(y) });
+      }
+    });
+
+    var wrap = document.getElementById('pdfCanvasWrap');
+    wrap.innerHTML = '';
+    wrap.appendChild(canvas);
+    document.getElementById('pdfPageInfo').textContent = pageNum + ' / ' + pdfTotalPages;
+    pdfCurrentPage = pageNum;
+  });
+}
+
+function drawPageAnnotations(canvas, pageNum) {
+  if (!pdfCurrentId) return;
+  var s = getS();
+  var allAnnots = (s.pdfAnnotations || {})[pdfCurrentId] || [];
+  var pageAnnots = allAnnots.filter(function(a) { return a.page === pageNum; });
+  if (pageAnnots.length === 0) return;
+
+  var ctx = canvas.getContext('2d');
+  pageAnnots.forEach(function(a) {
+    var px = (a.x / 100) * canvas.width;
+    var py = (a.y / 100) * canvas.height;
+    if (a.type === 'highlight') {
+      ctx.save();
+      ctx.globalAlpha = 0.35;
+      ctx.fillStyle = '#ffeb3b';
+      ctx.fillRect(px - 4, py - 14, Math.min(200, ctx.measureText(a.text).width + 8), 18);
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = '#b8860b';
+      ctx.font = '11px sans-serif';
+      ctx.fillText(a.text.slice(0, 30), px, py);
+      ctx.restore();
+    } else if (a.type === 'note') {
+      ctx.save();
+      ctx.fillStyle = '#3a7d5a';
+      ctx.beginPath();
+      ctx.arc(px, py, 8, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 10px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('N', px, py);
+      ctx.restore();
+    }
+  });
+}
+
+function addPdfAnnotation(annot) {
+  if (!pdfCurrentId) return;
+  var s = getS();
+  var allAnnots = s.pdfAnnotations || {};
+  allAnnots[pdfCurrentId] = allAnnots[pdfCurrentId] || [];
+  allAnnots[pdfCurrentId].push(Object.assign({ id: 'a' + Date.now() }, annot));
+  saveS({ pdfAnnotations: allAnnots });
+  renderPdfPage(pdfCurrentPage);
+  renderAnnotPanel();
+  showToast('Annotation added', 'success');
+}
+
+function renderAnnotPanel() {
+  if (!pdfCurrentId) return;
+  var s = getS();
+  var annots = (s.pdfAnnotations || {})[pdfCurrentId] || [];
+  var el = document.getElementById('pdfAnnotList');
+  if (annots.length === 0) {
+    el.innerHTML = '<div style="font-size:12px;color:var(--text3);text-align:center;padding:20px">No annotations yet.<br/>Use tools above to add highlights or notes.</div>';
+    return;
+  }
+  el.innerHTML = annots.map(function(a, i) {
+    return '<div class="pdf-annot-item" onclick="renderPdfPage(' + a.page + ')">' +
+      '<div class="annot-type ' + a.type + '">' + (a.type === 'highlight' ? '🖊 Highlight' : '📝 Note') + '</div>' +
+      '<div>' + a.text + '</div>' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px">' +
+        '<div class="annot-page">Page ' + a.page + '</div>' +
+        '<button onclick="event.stopPropagation();deletePdfAnnotation(' + i + ')" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:11px">✕</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function deletePdfAnnotation(idx) {
+  var s = getS();
+  var allAnnots = s.pdfAnnotations || {};
+  if (allAnnots[pdfCurrentId]) {
+    allAnnots[pdfCurrentId].splice(idx, 1);
+    saveS({ pdfAnnotations: allAnnots });
+    renderAnnotPanel();
+    renderPdfPage(pdfCurrentPage);
+    showToast('Annotation removed', 'info');
+  }
+}
+
+function setPdfTool(tool) {
+  pdfActiveTool = tool;
+  document.getElementById('pdfHighlightBtn').classList.toggle('active', tool === 'highlight');
+  document.getElementById('pdfNoteBtn').classList.toggle('active', tool === 'note');
+  var canvas = document.querySelector('#pdfCanvasWrap canvas');
+  if (canvas) canvas.style.cursor = tool ? 'crosshair' : 'default';
+}
+
+function pdfPrevPage() { if (pdfCurrentPage > 1) renderPdfPage(pdfCurrentPage - 1); }
+function pdfNextPage() { if (pdfCurrentPage < pdfTotalPages) renderPdfPage(pdfCurrentPage + 1); }
+
+function closePdfViewer() {
+  document.getElementById('pdfOverlay').classList.remove('show');
+  pdfCurrentDoc = null; pdfCurrentId = null; pdfActiveTool = null;
+  document.getElementById('pdfCanvasWrap').innerHTML = '';
+}
+
+function exportPdfAnnotsAsNote() {
+  if (!pdfCurrentId) return;
+  var s = getS();
+  var annots = (s.pdfAnnotations || {})[pdfCurrentId] || [];
+  if (annots.length === 0) { showToast('No annotations to export', 'error'); return; }
+  var title = document.getElementById('pdfTitle').textContent;
+  var content = '<h2>📄 Annotations: ' + title + '</h2>' +
+    annots.map(function(a) {
+      return '<div style="margin-bottom:10px;padding:10px;background:' + (a.type === 'highlight' ? '#ffeb3b22' : '#3a7d5a11') + ';border-radius:6px;border-left:3px solid ' + (a.type === 'highlight' ? '#c4a000' : 'var(--green)') + '">' +
+        '<p><strong>' + (a.type === 'highlight' ? '🖊 Highlight' : '📝 Note') + ' (p.' + a.page + '):</strong> ' + a.text + '</p>' +
+      '</div>';
+    }).join('');
+  var note = { id: 'n' + Date.now(), title: 'Annotations: ' + title, subject: 'general', content: content, created: new Date().toISOString(), updated: new Date().toISOString() };
+  saveS({ notes: [note, ...s.notes] });
+  showToast('Annotations saved as note!', 'success');
+  closePdfViewer();
+  openNoteDetail(note.id);
+}
+
+// ═══════════════════════════════════════════════
+// GLOBAL SEARCH (Ctrl/Cmd+K)
+// ═══════════════════════════════════════════════
+var searchSelectedIdx = -1;
+
+function openSearch() {
+  document.getElementById('searchOverlay').classList.add('show');
+  setTimeout(function() { document.getElementById('searchMainInput').focus(); }, 60);
+  document.getElementById('searchMainInput').value = '';
+  document.getElementById('searchResults').innerHTML = '<div class="search-empty">Start typing to search everything…</div>';
+  searchSelectedIdx = -1;
+}
+
+function closeSearch() {
+  document.getElementById('searchOverlay').classList.remove('show');
+}
+
+function runSearch(q) {
+  q = q.trim().toLowerCase();
+  var el = document.getElementById('searchResults');
+  if (!q) { el.innerHTML = '<div class="search-empty">Start typing to search everything…</div>'; return; }
+  var s = getS();
+  var results = [];
+
+  s.notes.forEach(function(n) {
+    if (n.title.toLowerCase().includes(q) || stripHtml(n.content || '').toLowerCase().includes(q)) {
+      results.push({ icon: '📝', title: n.title, meta: 'Note · ' + (s.subjects.find(function(sub) { return sub.id === n.subject; }) || { name: 'General' }).name, action: function() { closeSearch(); openNoteDetail(n.id); } });
+    }
+  });
+
+  s.tasks.filter(function(t) { return !t.done; }).forEach(function(t) {
+    if (t.title.toLowerCase().includes(q)) {
+      results.push({ icon: '✅', title: t.title, meta: 'Task · ' + (t.due ? fmtDate(t.due) : 'No due date'), action: function() { closeSearch(); nav('tasks'); openTaskDetail(t.id); } });
+    }
+  });
+
+  (s.events || []).forEach(function(ev) {
+    if (ev.title.toLowerCase().includes(q)) {
+      results.push({ icon: '📅', title: ev.title, meta: 'Event · ' + fmtDate(ev.date), action: function() { closeSearch(); nav('calendar'); } });
+    }
+  });
+
+  (s.captures || []).forEach(function(c) {
+    if (c.text.toLowerCase().includes(q)) {
+      results.push({ icon: '⚡', title: c.text.slice(0, 60), meta: 'Quick Note · ' + c.date, action: function() { closeSearch(); nav('captures'); } });
+    }
+  });
+
+  if (results.length === 0) {
+    el.innerHTML = '<div class="search-empty">No results for "<strong>' + q + '</strong>"</div>';
+    return;
+  }
+
+  searchSelectedIdx = 0;
+  el.innerHTML = results.slice(0, 12).map(function(r, i) {
+    return '<div class="search-result' + (i === 0 ? ' active' : '') + '" data-idx="' + i + '" onclick="searchResultActions[' + i + ']()">' +
+      '<span class="search-result-icon">' + r.icon + '</span>' +
+      '<span class="search-result-title">' + r.title + '</span>' +
+      '<span class="search-result-meta">' + r.meta + '</span>' +
+    '</div>';
+  }).join('');
+
+  window.searchResultActions = results.slice(0, 12).map(function(r) { return r.action; });
+}
+
+function handleSearchKey(e) {
+  var items = document.querySelectorAll('.search-result');
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    searchSelectedIdx = Math.min(searchSelectedIdx + 1, items.length - 1);
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    searchSelectedIdx = Math.max(searchSelectedIdx - 1, 0);
+  } else if (e.key === 'Enter') {
+    if (window.searchResultActions && window.searchResultActions[searchSelectedIdx]) {
+      window.searchResultActions[searchSelectedIdx]();
+    }
+    return;
+  } else if (e.key === 'Escape') {
+    closeSearch(); return;
+  }
+  items.forEach(function(el, i) { el.classList.toggle('active', i === searchSelectedIdx); });
+  if (items[searchSelectedIdx]) items[searchSelectedIdx].scrollIntoView({ block: 'nearest' });
+}
+
+document.addEventListener('keydown', function(e) {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+    e.preventDefault();
+    openSearch();
+  }
+  if (e.key === 'Escape' && document.getElementById('searchOverlay').classList.contains('show')) {
+    closeSearch();
+  }
+});
+
+// ═══════════════════════════════════════════════
+// DARK MODE
+// ═══════════════════════════════════════════════
+function toggleDarkMode() {
+  var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  var newTheme = isDark ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', newTheme);
+  localStorage.setItem('dd_theme', newTheme);
+  var btn = document.getElementById('darkModeBtn');
+  if (btn) btn.textContent = newTheme === 'dark' ? '☀️ Light' : '🌙 Dark';
+}
+
+function initTheme() {
+  var saved = localStorage.getItem('dd_theme') || 'light';
+  document.documentElement.setAttribute('data-theme', saved);
+  var btn = document.getElementById('darkModeBtn');
+  if (btn) btn.textContent = saved === 'dark' ? '☀️ Light' : '🌙 Dark';
+}
+
+// ═══════════════════════════════════════════════
+// EXPORT NOTES
+// ═══════════════════════════════════════════════
+function exportCurrentNote() {
+  if (!detailId || detailType !== 'note') { showToast('Open a note to export', 'error'); return; }
+  var s = getS();
+  var note = s.notes.find(function(n) { return n.id === detailId; });
+  if (!note) return;
+
+  var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>' + note.title + '</title>' +
+    '<style>body{font-family:Georgia,serif;max-width:720px;margin:40px auto;padding:0 20px;color:#2a1f14;line-height:1.8;}h1,h2,h3{font-family:\'Playfair Display\',Georgia,serif;}blockquote{border-left:3px solid #b85c38;padding-left:12px;color:#6b5040;font-style:italic;}table{border-collapse:collapse;width:100%;}td,th{border:1px solid #e4d9cc;padding:8px;}</style>' +
+    '</head><body>' +
+    '<h1>' + note.title + '</h1>' +
+    '<p style="color:#a08878;font-size:12px;font-family:monospace">Exported ' + new Date().toLocaleDateString() + '</p>' +
+    '<hr style="border:none;border-top:1px solid #e4d9cc;margin:20px 0"/>' +
+    (note.content || '') +
+    '</body></html>';
+
+  var blob = new Blob([html], { type: 'text/html' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = note.title.replace(/[^a-z0-9]/gi, '_').toLowerCase() + '.html';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('Note exported as HTML!', 'success');
+}
+
+// ═══════════════════════════════════════════════
+// FLASHCARDS (AI-powered from notes)
+// ═══════════════════════════════════════════════
+var flashcardDeck = [];
+var flashcardIdx = 0;
+
+async function generateFlashcardsFromNote() {
+  if (!detailId || detailType !== 'note') { showToast('Open a note first', 'error'); return; }
+  var s = getS();
+  var note = s.notes.find(function(n) { return n.id === detailId; });
+  if (!note) return;
+  var content = stripHtml(note.content || '').trim();
+  if (content.length < 50) { showToast('Note is too short to generate flashcards', 'error'); return; }
+
+  showToast('Generating flashcards…', 'info');
+  try {
+    var raw = await askGroq(
+      'Generate 8 flashcards from this note content. Return ONLY a JSON array with objects: {"q":"question","a":"answer"}. No preamble, no markdown code fences, just the raw JSON array.\n\nNote title: ' + note.title + '\n\nContent:\n' + content.slice(0, 2000),
+      'You are a study assistant. Create clear, exam-style flashcards. Be concise. Return ONLY valid JSON.'
+    );
+    var cleaned = raw.replace(/```json|```/g, '').trim();
+    var cards = JSON.parse(cleaned);
+    if (!Array.isArray(cards) || cards.length === 0) throw new Error('Invalid response');
+    flashcardDeck = cards;
+    flashcardIdx = 0;
+    document.getElementById('flashDeckName').textContent = '🃏 ' + note.title;
+    showFlashcard();
+    document.getElementById('flashcardOverlay').classList.add('show');
+  } catch (err) {
+    showToast('Could not generate flashcards: ' + err.message, 'error');
+  }
+}
+
+function showFlashcard() {
+  var card = flashcardDeck[flashcardIdx];
+  if (!card) return;
+  document.getElementById('flashFront').textContent = card.q;
+  document.getElementById('flashBack').textContent = card.a;
+  document.getElementById('flashProgress').textContent = (flashcardIdx + 1) + ' / ' + flashcardDeck.length;
+  document.getElementById('flashcard').classList.remove('flipped');
+}
+
+function flipCard() { document.getElementById('flashcard').classList.toggle('flipped'); }
+
+function nextCard() {
+  flashcardIdx = (flashcardIdx + 1) % flashcardDeck.length;
+  showFlashcard();
+}
+
+function prevCard() {
+  flashcardIdx = (flashcardIdx - 1 + flashcardDeck.length) % flashcardDeck.length;
+  showFlashcard();
+}
+
+function shuffleCards() {
+  for (var i = flashcardDeck.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var tmp = flashcardDeck[i]; flashcardDeck[i] = flashcardDeck[j]; flashcardDeck[j] = tmp;
+  }
+  flashcardIdx = 0;
+  showFlashcard();
+  showToast('Cards shuffled!', 'info');
+}
+
+function closeFlashcards() {
+  document.getElementById('flashcardOverlay').classList.remove('show');
+  document.getElementById('flashcard').classList.remove('flipped');
+}
+
+// ═══════════════════════════════════════════════
+// DRAG-AND-DROP TASK REORDERING
+// ═══════════════════════════════════════════════
+var dragSrcId = null;
+
+function enableTaskDragDrop() {
+  var items = document.querySelectorAll('#taskList .task-item');
+  items.forEach(function(item) {
+    item.setAttribute('draggable', 'true');
+    item.addEventListener('dragstart', function(e) {
+      dragSrcId = item.dataset.taskId;
+      item.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+    });
+    item.addEventListener('dragend', function() {
+      item.classList.remove('dragging');
+      document.querySelectorAll('.task-item.drag-over').forEach(function(el) { el.classList.remove('drag-over'); });
+    });
+    item.addEventListener('dragover', function(e) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      document.querySelectorAll('.task-item.drag-over').forEach(function(el) { el.classList.remove('drag-over'); });
+      item.classList.add('drag-over');
+    });
+    item.addEventListener('drop', function(e) {
+      e.preventDefault();
+      var targetId = item.dataset.taskId;
+      if (dragSrcId && targetId && dragSrcId !== targetId) {
+        var s = getS();
+        var tasks = [...s.tasks];
+        var fromIdx = tasks.findIndex(function(t) { return t.id === dragSrcId; });
+        var toIdx = tasks.findIndex(function(t) { return t.id === targetId; });
+        if (fromIdx > -1 && toIdx > -1) {
+          var moved = tasks.splice(fromIdx, 1)[0];
+          tasks.splice(toIdx, 0, moved);
+          saveS({ tasks: tasks });
+          renderTasks();
+        }
+      }
+    });
+  });
+}
+
+// ═══════════════════════════════════════════════
+// NOTE BACKLINKS ([[note title]])
+// ═══════════════════════════════════════════════
+var backlinkDropdown = null;
+
+function insertBacklink() {
+  var editor = document.getElementById('richEditor');
+  editor.focus();
+  document.execCommand('insertText', false, '[[');
+  showBacklinkDropdown();
+}
+
+function showBacklinkDropdown() {
+  removeBacklinkDropdown();
+  var s = getS();
+  var sel = window.getSelection();
+  if (!sel.rangeCount) return;
+  var range = sel.getRangeAt(0);
+  var rect = range.getBoundingClientRect();
+
+  backlinkDropdown = document.createElement('div');
+  backlinkDropdown.className = 'backlink-dropdown';
+  backlinkDropdown.style.cssText = 'position:fixed;top:' + (rect.bottom + 4) + 'px;left:' + rect.left + 'px;';
+
+  backlinkDropdown.innerHTML = s.notes.slice(0, 8).map(function(n) {
+    return '<div class="backlink-item" data-id="' + n.id + '" data-title="' + n.title.replace(/"/g, '&quot;') + '">' + n.title + '</div>';
+  }).join('') || '<div class="backlink-item" style="color:var(--text3)">No notes found</div>';
+
+  backlinkDropdown.querySelectorAll('.backlink-item[data-id]').forEach(function(el) {
+    el.addEventListener('mousedown', function(e) {
+      e.preventDefault();
+      var noteId = el.dataset.id;
+      var noteTitle = el.dataset.title;
+      var editor = document.getElementById('richEditor');
+      editor.focus();
+      // Replace [[ with linked text
+      var html = '<a class="note-link" onclick="openNoteDetail(\'' + noteId + '\')" href="#">📝 ' + noteTitle + '</a>&nbsp;';
+      document.execCommand('insertHTML', false, html.replace('[[', ''));
+      // Remove the [[ we typed
+      var content = editor.innerHTML;
+      var lastBracket = content.lastIndexOf('[[');
+      if (lastBracket > -1) {
+        editor.innerHTML = content.slice(0, lastBracket) + html;
+        var r = document.createRange();
+        r.selectNodeContents(editor);
+        r.collapse(false);
+        var sel2 = window.getSelection();
+        sel2.removeAllRanges();
+        sel2.addRange(r);
+      }
+      removeBacklinkDropdown();
+    });
+  });
+
+  document.body.appendChild(backlinkDropdown);
+  setTimeout(function() {
+    document.addEventListener('click', removeBacklinkDropdown, { once: true });
+  }, 100);
+}
+
+function removeBacklinkDropdown() {
+  if (backlinkDropdown && backlinkDropdown.parentNode) {
+    backlinkDropdown.parentNode.removeChild(backlinkDropdown);
+  }
+  backlinkDropdown = null;
+}
+
+// ═══════════════════════════════════════════════
+// ENHANCED FOCUS HISTORY WITH CHART
+// ═══════════════════════════════════════════════
+function renderFocus() {
+  var s = getS();
+  var pending = s.tasks.filter(function(t) { return !t.done; });
+  document.getElementById('focusTaskPicker').innerHTML = pending.map(function(t) {
+    return '<div style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;cursor:pointer;transition:background 0.15s" onmouseover="this.style.background=\'var(--bg)\'" onmouseout="this.style.background=\'\'" onclick="document.getElementById(\'focusTaskInput\').value=\'' + t.title.replace(/'/g, "\\'") + '\'">' +
+      (t.labelId ? '<div class="label-dot" style="background:' + (getLabelById(t.labelId) || { colour: 'var(--text3)' }).colour + '"></div>' : '') +
+      '<span style="font-size:12px;color:var(--text)">' + t.title + '</span>' +
+      (t.due ? '<span style="font-size:9px;color:var(--text3);font-family:var(--mono);margin-left:auto">' + fmtDate(t.due) + '</span>' : '') +
+    '</div>';
+  }).join('') || '<div style="font-size:12px;color:var(--text3);padding:8px">No pending tasks</div>';
+
+  var hist = s.focusSessions || [];
+
+  // Build 7-day chart
+  var days = [];
+  for (var i = 6; i >= 0; i--) {
+    var d = new Date(Date.now() - i * 86400000);
+    days.push({ label: d.toLocaleDateString('en', { weekday: 'short' }), date: d.toLocaleDateString() });
+  }
+  var dailyPomos = {};
+  hist.forEach(function(f) {
+    dailyPomos[f.date] = (dailyPomos[f.date] || 0) + (f.pomos || 1);
+  });
+  var maxPomos = Math.max(1, ...days.map(function(d) { return dailyPomos[d.date] || 0; }));
+
+  var chartHtml = '<div class="session-bar">' +
+    days.map(function(d) {
+      var val = dailyPomos[d.date] || 0;
+      var h = Math.round((val / maxPomos) * 70);
+      return '<div class="session-bar-col">' +
+        '<div class="session-bar-val">' + (val > 0 ? val + '🍅' : '') + '</div>' +
+        '<div class="session-bar-fill" style="height:' + h + 'px;' + (val === 0 ? 'background:var(--border)' : '') + '"></div>' +
+        '<div class="session-bar-label">' + d.label + '</div>' +
+      '</div>';
+    }).join('') +
+  '</div>';
+
+  var totalPomos = hist.reduce(function(a, f) { return a + (f.pomos || 0); }, 0);
+  var totalMins = hist.reduce(function(a, f) { return a + (f.mins || 0); }, 0);
+
+  document.getElementById('focusHistory').innerHTML =
+    '<div style="display:flex;gap:10px;margin-bottom:14px">' +
+      '<div class="stat-pill" style="flex:1;text-align:center"><div class="stat-val gold">' + totalPomos + '</div><div class="stat-label">Total 🍅</div></div>' +
+      '<div class="stat-pill" style="flex:1;text-align:center"><div class="stat-val accent">' + Math.round(totalMins / 60 * 10) / 10 + 'h</div><div class="stat-label">Focus Time</div></div>' +
+      '<div class="stat-pill" style="flex:1;text-align:center"><div class="stat-val green">' + hist.length + '</div><div class="stat-label">Sessions</div></div>' +
+    '</div>' +
+    chartHtml +
+    (hist.length > 0 ?
+      '<div style="margin-top:14px">' +
+      hist.slice(0, 6).map(function(f) {
+        return '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)">' +
+          '<div><div style="font-size:12px;font-weight:500;color:var(--text)">' + f.task + '</div>' +
+          (f.plan && f.plan !== 'Stay focused. You got this.' ? '<div style="font-size:10px;color:var(--text3)">' + f.plan.slice(0, 50) + '</div>' : '') +
+          '</div><div style="font-family:var(--mono);font-size:10px;color:var(--text3)">' + f.pomos + '🍅 · ' + f.date + '</div></div>';
+      }).join('') + '</div>'
+    : '<div class="empty" style="padding:16px"><div class="empty-text">No sessions yet — start your first focus session above!</div></div>');
+}
+
+// ═══════════════════════════════════════════════
+// TASK LIST RENDER — inject data-task-id for DnD
+// ═══════════════════════════════════════════════
+// (DnD attr injected via renderTasks patch below)
+
+// ═══════════════════════════════════════════════
+// PATCH renderTasks to enable drag-drop after render
+// ═══════════════════════════════════════════════
+var _origRenderTasks = _renderTasksBase;
+function renderTasks() {
+  _renderTasksBase();
+  // inject data-task-id on each rendered task item
+  var s = getS();
+  var items = document.querySelectorAll('#taskList .task-item');
+  var tasks = s.tasks.filter(function(t) { return !t.done; });
+  if (currentSpace !== 'all') tasks = tasks.filter(function(t) { return t.space === currentSpace; });
+  items.forEach(function(el, i) {
+    if (tasks[i]) el.dataset.taskId = tasks[i].id;
+  });
+  setTimeout(enableTaskDragDrop, 50);
 }
 
 // Boot
@@ -3233,9 +4127,11 @@ if(configured()){
   document.getElementById('setup-screen').style.display='none';
   document.getElementById('mainApp').style.display='grid';
   document.getElementById('fab').style.display='flex';
+  initTheme();
   initApp();
 } else {
   document.getElementById('setup-screen').style.display='flex';
+  initTheme();
 }
 </script>
 </body>
