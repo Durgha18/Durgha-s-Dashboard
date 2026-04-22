@@ -349,12 +349,12 @@ select.input{cursor:pointer;appearance:none;}
 .pdf-tool-btn{padding:5px 10px;border-radius:6px;border:1px solid var(--border);background:none;cursor:pointer;font-size:11px;color:var(--text2);transition:all 0.15s;font-family:var(--sans);}
 .pdf-tool-btn:hover{border-color:var(--accent);color:var(--accent);}
 .pdf-tool-btn.active{background:var(--accent);color:#fff;border-color:var(--accent);}
-.pdf-body{flex:1;overflow:auto;display:flex;gap:0;}
-.pdf-canvas-wrap{flex:1;overflow:auto;display:flex;flex-direction:column;align-items:center;padding:20px;gap:16px;}
-.pdf-canvas-wrap canvas{box-shadow:0 4px 20px rgba(0,0,0,0.2);max-width:100%;display:block;}
-.pdf-canvas-wrap{position:relative;}
+.pdf-body{flex:1;overflow:hidden;display:flex;gap:0;min-height:0;}
+.pdf-canvas-wrap{flex:1;overflow:auto;display:flex;flex-direction:column;align-items:center;padding:20px;gap:16px;position:relative;background:#e8e8e8;}
+.pdf-canvas-wrap canvas{box-shadow:0 4px 20px rgba(0,0,0,0.3);display:block;}
+.pdf-page-wrap{position:relative;display:inline-block;margin-bottom:16px;}
 .pdf-highlight-canvas{position:absolute;top:0;left:0;pointer-events:none;z-index:2;}
-.pdf-draw-canvas{position:absolute;top:0;left:0;z-index:3;cursor:crosshair;}
+.pdf-draw-canvas{position:absolute;top:0;left:0;z-index:3;}
 .pdf-annot-panel{width:260px;border-left:1px solid var(--border);background:var(--surface);overflow-y:auto;padding:14px;flex-shrink:0;}
 .pdf-annot-title{font-family:var(--mono);font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:10px;}
 .pdf-annot-item{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:8px;font-size:12px;color:var(--text2);line-height:1.5;cursor:pointer;transition:border-color 0.15s;}
@@ -522,6 +522,7 @@ select.input{cursor:pointer;appearance:none;}
         </select>
       </div>
     </div>
+    <div class="field"><div class="input-label">Sub-category (optional)</div><input class="input" id="t-subject" placeholder="e.g. Financial Accounting, Internship, CFA..."/></div>
     <div class="field"><div class="input-label">Notes (optional)</div><textarea class="input" id="t-notes" style="min-height:60px" placeholder="Add context..."></textarea></div>
     <div class="modal-footer">
       <button class="btn btn-ghost btn-sm" onclick="closeModal('taskModal')">Cancel</button>
@@ -1550,22 +1551,45 @@ function renderTaskItem(t,compact){
 }
 
 function _renderTasksBase(){
+  const s=getS();
   const tabsEl=document.getElementById('spaceTabs');
   tabsEl.innerHTML='<button class="space-tab'+(currentSpace==='all'?' active':'')+'" onclick="switchSpace(\'all\',this)">All</button>'+
     s.spaces.map(function(sp){
       return '<button class="space-tab'+(currentSpace===sp.id?' active':'')+'" onclick="switchSpace(\''+sp.id+'\',this)">'+sp.icon+' '+sp.name+'</button>';
     }).join('')+
-    '<button class="space-tab" onclick="openModal(\'spaceModal\')" style="border-style:dashed;opacity:0.6">+ Space</button>';
+    '<button class="space-tab" onclick="openModal(\'spaceModal\')" style="border-style:dashed;opacity:0.6">+ Project</button>';
 
   let tasks=s.tasks.filter(function(t){return !t.done;});
   if(currentSpace!=='all')tasks=tasks.filter(function(t){return t.space===currentSpace;});
 
-  const listEl=document.getElementById('taskList');
-  listEl.innerHTML=tasks.length>0
-    ?tasks.map(function(t){return renderTaskItem(t,false);}).join('')
-    :'<div class="empty"><div class="empty-icon">✅</div><div class="empty-text">No tasks here.<br/>Add one to get started.</div></div>';
+  const pf=document.getElementById('taskPrioFilter');
+  if(pf&&pf.value&&pf.value!=='all')tasks=tasks.filter(function(t){return t.priority===pf.value;});
 
-  // Completed section
+  const ss=document.getElementById('taskSortSel');
+  const sortBy=ss?ss.value:'created';
+  const PO={high:0,medium:1,low:2};
+  tasks.sort(function(a,b){
+    if(sortBy==='due'){if(!a.due&&!b.due)return 0;if(!a.due)return 1;if(!b.due)return -1;return new Date(a.due)-new Date(b.due);}
+    if(sortBy==='priority')return (PO[a.priority]||1)-(PO[b.priority]||1);
+    if(sortBy==='subject')return (a.subject||'').localeCompare(b.subject||'');
+    if(sortBy==='alpha')return a.title.localeCompare(b.title);
+    return new Date(b.created)-new Date(a.created);
+  });
+
+  const listEl=document.getElementById('taskList');
+  if(sortBy==='subject'&&tasks.length>0){
+    const groups={};
+    tasks.forEach(function(t){const k=t.subject||'Uncategorised';if(!groups[k])groups[k]=[];groups[k].push(t);});
+    listEl.innerHTML=Object.entries(groups).map(function(e){
+      return '<div style="margin-bottom:16px"><div style="font-family:var(--mono);font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.1em;padding:4px 0;border-bottom:1px solid var(--border);margin-bottom:8px">'+e[0]+'</div>'+
+        e[1].map(function(t){return renderTaskItem(t,false);}).join('')+'</div>';
+    }).join('');
+  } else {
+    listEl.innerHTML=tasks.length>0
+      ?tasks.map(function(t){return renderTaskItem(t,false);}).join('')
+      :'<div class="empty"><div class="empty-icon">✅</div><div class="empty-text">No tasks here. Add one above.</div></div>';
+  }
+
   const compEl=document.getElementById('completedSection');
   const completed=s.completedTasks||[];
   const showBtn='<button class="btn btn-ghost btn-sm" onclick="toggleCompleted()">'+(showCompleted?'Hide':'Show')+' completed ('+completed.length+')</button>';
@@ -2484,32 +2508,70 @@ async function askGroq(prompt,system){
   return (await res.json()).choices[0].message.content;
 }
 
-async function fetchNews(q,n){
-  n=n||8;
-  try{
-    // Use top-headlines for world/finance which gives fresher results
-    var from=new Date(Date.now()-4*86400000).toISOString().slice(0,10);
-    var url='https://newsapi.org/v2/everything?q='+encodeURIComponent(q)+'&language=en&sortBy=publishedAt&pageSize='+n+'&from='+from+'&apiKey='+CFG.NEWS;
-    const r=await fetch(url);
-    const d=await r.json();
-    var articles=(d.articles||[]).filter(function(a){
-      // Filter out articles older than 7 days
-      var age=(Date.now()-new Date(a.publishedAt))/86400000;
-      return age<=7 && a.title && a.title!=='[Removed]';
-    }).slice(0,n);
-    if(articles.length===0){
-      // Fallback: broader search without date filter
-      const r2=await fetch('https://newsapi.org/v2/everything?q='+encodeURIComponent(q)+'&language=en&sortBy=publishedAt&pageSize='+n+'&apiKey='+CFG.NEWS);
-      const d2=await r2.json();
-      articles=(d2.articles||[]).filter(function(a){return a.title&&a.title!=='[Removed]';}).slice(0,n);
+// RSS feeds - always current, no API key needed
+var RSS_FEEDS = {
+  world: [
+    'https://feeds.bbci.co.uk/news/world/rss.xml',
+    'https://rss.nytimes.com/services/xml/rss/nyt/World.xml',
+    'https://feeds.reuters.com/reuters/worldNews'
+  ],
+  finance: [
+    'https://feeds.bloomberg.com/markets/news.rss',
+    'https://www.ft.com/rss/home/uk',
+    'https://feeds.reuters.com/reuters/businessNews'
+  ],
+  geo: [
+    'https://feeds.bbci.co.uk/news/world/rss.xml',
+    'https://feeds.reuters.com/Reuters/worldNews'
+  ],
+  learn: [
+    'https://feeds.reuters.com/reuters/businessNews',
+    'https://feeds.bbci.co.uk/news/business/rss.xml'
+  ]
+};
+
+async function fetchRSS(url) {
+  // Use allorigins to bypass CORS
+  var proxy = 'https://api.allorigins.win/get?url=' + encodeURIComponent(url);
+  var r = await fetch(proxy);
+  var d = await r.json();
+  var parser = new DOMParser();
+  var xml = parser.parseFromString(d.contents, 'text/xml');
+  var items = Array.from(xml.querySelectorAll('item')).slice(0, 6);
+  return items.map(function(item) {
+    var title = item.querySelector('title') ? item.querySelector('title').textContent : '';
+    var pubDate = item.querySelector('pubDate') ? item.querySelector('pubDate').textContent : '';
+    var source = xml.querySelector('channel > title') ? xml.querySelector('channel > title').textContent : 'RSS';
+    var pub = pubDate ? new Date(pubDate) : new Date();
+    var age = Math.floor((Date.now() - pub) / 3600000); // hours
+    var ageLabel = age < 1 ? 'just now' : age < 24 ? age + 'h ago' : Math.floor(age/24) + 'd ago';
+    return '- [' + ageLabel + '] ' + title.trim() + ' (' + source.trim() + ', ' + pub.toLocaleDateString('en-MY',{day:'numeric',month:'short'}) + ')';
+  }).filter(function(s) { return s.length > 10; }).join('\n');
+}
+
+async function fetchNews(topic, n) {
+  n = n || 6;
+  var feeds = RSS_FEEDS[topic] || RSS_FEEDS.world;
+  var results = [];
+
+  // Try feeds in order, combine results
+  for (var i = 0; i < feeds.length && results.length < n; i++) {
+    try {
+      var items = await fetchRSS(feeds[i]);
+      if (items && items.trim()) {
+        results.push(items);
+        break; // one feed is usually enough
+      }
+    } catch(e) {
+      // try next feed
     }
-    return articles.map(function(a){
-      var pub=new Date(a.publishedAt);
-      var age=Math.floor((Date.now()-pub)/86400000);
-      var ageLabel=age===0?'today':age===1?'yesterday':age+' days ago';
-      return '- ['+ageLabel+'] '+a.title+' ('+a.source.name+', '+pub.toLocaleDateString('en-MY',{day:'numeric',month:'short',year:'numeric'})+')';
-    }).join('\n')||'- No recent articles found';
-  } catch(e){return '- Headlines unavailable: '+e.message;}
+  }
+
+  if (results.length === 0) {
+    // Final fallback: use Groq's own knowledge with a date prompt
+    return '- No live feed available. Use AI knowledge for context.';
+  }
+  return results.join('\n');
 }
 
 // ═══════════════════════════════════════════════
@@ -2536,7 +2598,7 @@ async function loadBriefTab(tab,el){
   if(briefTabData[tab]){document.getElementById('briefContent').innerHTML=briefTabData[tab];return;}
   document.getElementById('briefContent').innerHTML='<div class="loading"><div class="spinner"></div><div class="loading-text">Fetching '+BRIEF_CFG[tab].label+'...</div></div>';
   try{
-    const news=await fetchNews(BRIEF_CFG[tab].q,6);
+    const news=await fetchNews(tab,6);
     const today=new Date().toLocaleDateString('en-MY',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
     const prompt='Today is '+today+'.\n\nHere are today\'s headlines:\n'+news+'\n\n'+
       (tab==='world'?'Write a deep analysis of the 3 most important world stories. For each: background context (2-3 sentences), what just happened, why it matters beyond the headline, what to watch next. Use <h3> for story titles. Do NOT just summarise headlines — give me the analysis I cannot get from a Google search.':'')+
@@ -3649,27 +3711,27 @@ function renderPdfPage(pageNum) {
     hlCanvas.className = 'pdf-highlight-canvas';
     hlCanvas.width = viewport.width;
     hlCanvas.height = viewport.height;
-    hlCanvas.style.width = viewport.width + 'px';
-    hlCanvas.style.height = viewport.height + 'px';
+    // Overlay canvases must exactly match PDF canvas size
+    var w = viewport.width, h = viewport.height;
+    hlCanvas.style.width = w + 'px';
+    hlCanvas.style.height = h + 'px';
 
-    // Draw canvas (freehand pen, on top)
     var drawCanvas = document.createElement('canvas');
     drawCanvas.id = 'pdfDrawCanvas';
     drawCanvas.className = 'pdf-draw-canvas';
-    drawCanvas.width = viewport.width;
-    drawCanvas.height = viewport.height;
-    drawCanvas.style.width = viewport.width + 'px';
-    drawCanvas.style.height = viewport.height + 'px';
+    drawCanvas.width = w;
+    drawCanvas.height = h;
+    drawCanvas.style.width = w + 'px';
+    drawCanvas.style.height = h + 'px';
 
     var wrap = document.getElementById('pdfCanvasWrap');
-    wrap.style.position = 'relative';
-    wrap.innerHTML = '';
 
     var pageWrap = document.createElement('div');
-    pageWrap.style.cssText = 'position:relative;display:inline-block;box-shadow:0 4px 20px rgba(0,0,0,0.2);';
+    pageWrap.className = 'pdf-page-wrap';
     pageWrap.appendChild(canvas);
     pageWrap.appendChild(hlCanvas);
     pageWrap.appendChild(drawCanvas);
+    wrap.innerHTML = '';
     wrap.appendChild(pageWrap);
 
     var ctx = canvas.getContext('2d');
