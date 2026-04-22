@@ -1141,6 +1141,7 @@ select.input { appearance:none; cursor:pointer; }
       <div class="nav-section">Daily</div>
       <div class="nav-item active" onclick="nav('morning')" id="nav-morning"><span class="nav-icon">🌅</span>Morning</div>
       <div class="nav-item" onclick="nav('tasks')" id="nav-tasks"><span class="nav-icon">✅</span>Tasks<span class="nav-badge" id="tasksBadge" style="display:none">0</span></div>
+      <div class="nav-item" onclick="nav('calendar')" id="nav-calendar"><span class="nav-icon">📅</span>Calendar</div>
       <div class="nav-item" onclick="nav('habits')" id="nav-habits"><span class="nav-icon">💪</span>Habits</div>
 
       <div class="nav-section">Study</div>
@@ -1154,6 +1155,7 @@ select.input { appearance:none; cursor:pointer; }
       <div class="nav-item" onclick="nav('research')" id="nav-research"><span class="nav-icon">🔍</span>Deep Research</div>
 
       <div class="nav-section">Life</div>
+      <div class="nav-item" onclick="nav('gpa')" id="nav-gpa"><span class="nav-icon">🎓</span>GPA Calculator</div>
       <div class="nav-item" onclick="nav('stocks')" id="nav-stocks"><span class="nav-icon">📈</span>Stocks & Crypto</div>
       <div class="nav-item" onclick="nav('expenses')" id="nav-expenses"><span class="nav-icon">💸</span>Expenses</div>
       <div class="nav-item" onclick="nav('captures')" id="nav-captures"><span class="nav-icon">⚡</span>Quick Notes<span class="nav-badge green" id="capturesBadge" style="display:none">0</span></div>
@@ -1426,6 +1428,35 @@ select.input { appearance:none; cursor:pointer; }
       <div class="content" id="capturesContent"></div>
     </div>
 
+
+    <!-- ── GPA ── -->
+    <div class="view" id="view-gpa">
+      <div class="topbar">
+        <div class="topbar-left">
+          <div class="topbar-title">GPA Calculator 🎓</div>
+          <div class="topbar-sub">Track your grades and calculate your GPA</div>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn btn-primary btn-sm" onclick="addGradeRow()">+ Add Module</button>
+          <button class="btn btn-ghost btn-sm" onclick="clearGrades()">Clear All</button>
+        </div>
+      </div>
+      <div class="content" id="gpaContent"></div>
+    </div>
+
+    <!-- ── CALENDAR ── -->
+    <div class="view" id="view-calendar">
+      <div class="topbar">
+        <div class="topbar-left">
+          <div class="topbar-title">Calendar 📅</div>
+          <div class="topbar-sub">Schedule & events</div>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn btn-primary btn-sm" onclick="addScheduleItem()">+ Add Event</button>
+        </div>
+      </div>
+      <div class="content" id="calendarContent"></div>
+    </div>
   </main>
 </div>
 
@@ -1560,6 +1591,8 @@ function nav(view){
   if(view==='stocks') renderStocks();
   if(view==='expenses') renderExpenses();
   if(view==='captures') renderCaptures();
+  if(view==='gpa') renderGPA();
+  if(view==='calendar') renderCalendar();
 }
 
 // ═══════════════════════════════════════════════════════
@@ -1859,31 +1892,65 @@ function addHabitPrompt(){
 // ═══════════════════════════════════════════════════════
 // STUDY VAULT
 // ═══════════════════════════════════════════════════════
-const SUBJECTS=[
-  {id:'facc',name:'Financial Accounting',icon:'📒',cls:'acc',color:'var(--accent)'},
-  {id:'macc',name:'Management Accounting',icon:'📊',cls:'fin',color:'var(--gold)'},
-  {id:'fin',name:'Corporate Finance',icon:'💹',cls:'eco',color:'var(--green)'},
-  {id:'eco',name:'Economics',icon:'🌍',cls:'law',color:'var(--blue)'},
-  {id:'law',name:'Business Law',icon:'⚖️',cls:'sta',color:'var(--purple)'},
-  {id:'stat',name:'Statistics',icon:'📐',cls:'mgmt',color:'#e07050'},
+const DEFAULT_SUBJECTS=[
+  {id:'facc',name:'Financial Accounting',icon:'📒',cls:'acc'},
+  {id:'macc',name:'Management Accounting',icon:'📊',cls:'fin'},
+  {id:'fin',name:'Corporate Finance',icon:'💹',cls:'eco'},
+  {id:'eco',name:'Economics',icon:'🌍',cls:'law'},
+  {id:'law',name:'Business Law',icon:'⚖️',cls:'sta'},
+  {id:'stat',name:'Statistics',icon:'📐',cls:'mgmt'},
 ];
+
+function getSubjects(){
+  const s=getS();
+  return s.customSubjects&&s.customSubjects.length?s.customSubjects:DEFAULT_SUBJECTS;
+}
 
 function renderVault(){
   const s=getS();
+  const SUBJECTS=getSubjects();
   document.getElementById('vaultSubjectView').style.display='none';
   document.getElementById('subjectGrid').style.display='grid';
   document.getElementById('subjectGrid').innerHTML=SUBJECTS.map(sub=>{
     const notes=(s[`notes_${sub.id}`]||[]).length;
     const cards=s.flashcards.filter(f=>f.subject===sub.name).length;
     return`<div class="subject-card ${sub.cls}" onclick="openSubject('${sub.id}')">
+      <div style="position:absolute;top:12px;right:12px;cursor:pointer;font-size:14px;color:var(--text3);z-index:2" onclick="event.stopPropagation();deleteSubject('${sub.id}')" title="Remove subject">✕</div>
       <div class="subject-icon">${sub.icon}</div>
       <div class="subject-name">${sub.name}</div>
       <div class="subject-stats">${notes} notes · ${cards} flashcards</div>
     </div>`;
-  }).join('');
+  }).join('')+`<div class="subject-card" style="display:flex;flex-direction:column;align-items:center;justify-content:center;border:2px dashed var(--border2);background:transparent;box-shadow:none;cursor:pointer" onclick="addSubjectPrompt()">
+    <div style="font-size:28px;margin-bottom:8px;color:var(--text3)">+</div>
+    <div style="font-size:13px;color:var(--text3);font-weight:600">Add Subject</div>
+  </div>`;
+}
+
+function addSubjectPrompt(){
+  const name=prompt('Subject name:');
+  if(!name) return;
+  const icon=prompt('Emoji icon (e.g. 📖):') || '📖';
+  const clsOptions=['acc','fin','eco','law','sta','mgmt'];
+  const s=getS();
+  const existing=getSubjects();
+  const newSub={id:'sub'+Date.now(),name,icon,cls:clsOptions[existing.length%clsOptions.length]};
+  const customSubjects=[...existing,newSub];
+  saveS({customSubjects});
+  renderVault();
+  showToast('Subject added!','success');
+}
+
+function deleteSubject(id){
+  if(!confirm('Remove this subject?')) return;
+  const s=getS();
+  const existing=getSubjects();
+  saveS({customSubjects:existing.filter(x=>x.id!==id)});
+  renderVault();
+  showToast('Subject removed','info');
 }
 
 function openSubject(id){
+  const SUBJECTS=getSubjects();
   const sub=SUBJECTS.find(s=>s.id===id);
   const s=getS();
   const notes=s[`notes_${id}`]||[];
@@ -2048,7 +2115,7 @@ function renderFlashcards(){
 
   const subjectTabs=`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px">
     <button class="space-tab ${currentFCSubject==='all'?'active':''}" onclick="switchFCSubject('all',this)">All (${s.flashcards.length})</button>
-    ${SUBJECTS.map(sub=>{const n=s.flashcards.filter(f=>f.subject===sub.name).length;return n?`<button class="space-tab ${currentFCSubject===sub.name?'active':''}" onclick="switchFCSubject('${sub.name}',this)">${sub.name} (${n})</button>`:''}).join('')}
+    ${getSubjects().map(sub=>{const n=s.flashcards.filter(f=>f.subject===sub.name).length;return n?`<button class="space-tab ${currentFCSubject===sub.name?'active':''}" onclick="switchFCSubject('${sub.name}',this)">${sub.name} (${n})</button>`:''}).join('')}
   </div>`;
 
   if(!cards.length){
@@ -2495,6 +2562,201 @@ function initApp(){
     const habits=s.habits.map(h=>({...h,doneToday:false}));
     saveS({habits,lastHabitReset:today});
   }
+}
+
+
+// ═══════════════════════════════════════════════════════
+// GPA CALCULATOR
+// ═══════════════════════════════════════════════════════
+const GRADE_POINTS={'A+':4.0,'A':4.0,'A-':3.7,'B+':3.3,'B':3.0,'B-':2.7,'C+':2.3,'C':2.0,'C-':1.7,'D+':1.3,'D':1.0,'F':0.0};
+
+function renderGPA(){
+  const s=getS();
+  const grades=s.grades||[];
+  const totalPoints=grades.reduce((a,g)=>a+(GRADE_POINTS[g.grade]||0)*g.credits,0);
+  const totalCredits=grades.reduce((a,g)=>a+g.credits,0);
+  const gpa=totalCredits?( totalPoints/totalCredits).toFixed(2):'—';
+  const gpaNum=parseFloat(gpa);
+  const gpaClass=gpaNum>=3.7?'green':gpaNum>=3.0?'gold':gpaNum>=2.0?'accent':'red';
+
+  document.getElementById('gpaContent').innerHTML=`
+    <div class="card" style="text-align:center;margin-bottom:20px;background:linear-gradient(135deg,#fdecd8,#f5e0c8)">
+      <div style="font-family:var(--mono);font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:var(--text3);margin-bottom:8px">Current GPA</div>
+      <div style="font-family:var(--serif);font-size:64px;font-weight:900;color:var(--${gpaClass});line-height:1">${gpa}</div>
+      <div style="font-size:13px;color:var(--text2);margin-top:8px">${totalCredits} credit hours · ${grades.length} modules</div>
+      ${gpaNum>=3.7?'<div style="margin-top:8px"><span class="tag tag-green">First Class Honours Track 🏆</span></div>':gpaNum>=3.0?'<div style="margin-top:8px"><span class="tag tag-gold">Second Class Upper Track</span></div>':''}
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Modules</div>
+      </div>
+      <div style="display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:8px;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border)">
+        <div style="font-size:10px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:0.08em">Module</div>
+        <div style="font-size:10px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:0.08em">Grade</div>
+        <div style="font-size:10px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:0.08em">Credits</div>
+        <div></div>
+      </div>
+      <div id="gradeRows">
+        ${grades.map((g,i)=>`
+          <div style="display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)">
+            <div style="font-size:13px;color:var(--text);font-weight:500">${g.name}</div>
+            <div><span class="tag ${GRADE_POINTS[g.grade]>=3.7?'tag-green':GRADE_POINTS[g.grade]>=3.0?'tag-gold':GRADE_POINTS[g.grade]>=2.0?'tag-accent':'tag-muted'}">${g.grade}</span></div>
+            <div style="font-size:13px;color:var(--text2);font-family:var(--mono)">${g.credits}h</div>
+            <button class="btn btn-xs btn-ghost" onclick="deleteGrade(${i})">✕</button>
+          </div>`).join('')}
+      </div>
+      <div style="display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:8px;margin-top:12px;align-items:center" id="newGradeRow">
+        <input class="input" id="newModuleName" placeholder="Module name..." style="font-size:12px;padding:8px 10px"/>
+        <select class="input" id="newGrade" style="font-size:12px;padding:8px 10px">
+          ${Object.keys(GRADE_POINTS).map(g=>`<option>${g}</option>`).join('')}
+        </select>
+        <select class="input" id="newCredits" style="font-size:12px;padding:8px 10px">
+          ${[1,2,3,4,5,6].map(c=>`<option value="${c}">${c}h</option>`).join('')}
+        </select>
+        <button class="btn btn-primary btn-xs" onclick="saveGrade()">Add</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title" style="margin-bottom:14px">What-if Calculator</div>
+      <div style="font-size:13px;color:var(--text2);margin-bottom:12px">See what GPA you need to hit your target</div>
+      <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap">
+        <div style="flex:1;min-width:120px">
+          <div class="input-label">Target GPA</div>
+          <input class="input" type="number" id="targetGPA" placeholder="e.g. 3.7" min="0" max="4" step="0.1"/>
+        </div>
+        <div style="flex:1;min-width:120px">
+          <div class="input-label">Remaining Credits</div>
+          <input class="input" type="number" id="remainingCredits" placeholder="e.g. 60"/>
+        </div>
+        <button class="btn btn-primary" onclick="calcWhatIf()">Calculate</button>
+      </div>
+      <div id="whatIfResult" style="margin-top:14px;font-size:13px;color:var(--text2);line-height:1.7"></div>
+    </div>`;
+}
+
+function addGradeRow(){ renderGPA(); document.getElementById('newModuleName')?.focus(); }
+
+function saveGrade(){
+  const name=document.getElementById('newModuleName').value.trim();
+  if(!name){ showToast('Enter module name','error'); return; }
+  const grade=document.getElementById('newGrade').value;
+  const credits=parseInt(document.getElementById('newCredits').value);
+  const s=getS();
+  saveS({grades:[...(s.grades||[]),{name,grade,credits}]});
+  showToast('Module added!','success');
+  renderGPA();
+}
+
+function deleteGrade(idx){
+  const s=getS(); const grades=[...(s.grades||[])]; grades.splice(idx,1);
+  saveS({grades}); renderGPA();
+}
+
+function clearGrades(){
+  if(!confirm('Clear all grades?')) return;
+  saveS({grades:[]}); renderGPA();
+}
+
+function calcWhatIf(){
+  const s=getS();
+  const grades=s.grades||[];
+  const target=parseFloat(document.getElementById('targetGPA').value);
+  const remaining=parseInt(document.getElementById('remainingCredits').value);
+  if(!target||!remaining){ showToast('Fill both fields','error'); return; }
+  const totalPoints=grades.reduce((a,g)=>a+(GRADE_POINTS[g.grade]||0)*g.credits,0);
+  const totalCredits=grades.reduce((a,g)=>a+g.credits,0);
+  const neededTotal=target*(totalCredits+remaining);
+  const neededPoints=neededTotal-totalPoints;
+  const neededAvg=neededPoints/remaining;
+  let msg='';
+  if(neededAvg<=4.0&&neededAvg>=0){
+    const gradeNeeded=Object.entries(GRADE_POINTS).find(([,v])=>v>=neededAvg);
+    msg=`To reach a GPA of <strong>${target}</strong>, you need an average of <strong>${neededAvg.toFixed(2)}</strong> grade points per credit hour in your remaining ${remaining} credits. That's roughly a <strong>${gradeNeeded?gradeNeeded[0]:'A'}</strong> average. ${neededAvg<=3.0?'That's achievable — stay consistent.':neededAvg<=3.7?'Push hard this semester.':'That's a stretch — but not impossible.'}`;
+  } else if(neededAvg>4.0){
+    msg=`Unfortunately a GPA of <strong>${target}</strong> is no longer achievable with ${remaining} credits remaining. Focus on maximising your current GPA instead.`;
+  } else {
+    msg=`You've already secured a GPA above <strong>${target}</strong> — great work! Keep it up.`;
+  }
+  document.getElementById('whatIfResult').innerHTML=msg;
+}
+
+// ═══════════════════════════════════════════════════════
+// CALENDAR (Google Calendar ready — connect later)
+// ═══════════════════════════════════════════════════════
+function renderCalendar(){
+  const s=getS();
+  const events=s.calendarEvents||[];
+  const today=new Date();
+
+  // Build a simple week view
+  const days=[];
+  for(let i=0;i<7;i++){
+    const d=new Date(today);
+    d.setDate(today.getDate()+i);
+    days.push(d);
+  }
+
+  document.getElementById('calendarContent').innerHTML=`
+    <div class="card" style="background:linear-gradient(135deg,rgba(58,107,138,0.06),rgba(58,107,138,0.02));border-color:rgba(58,107,138,0.2);margin-bottom:20px">
+      <div style="display:flex;align-items:center;gap:14px">
+        <div style="font-size:28px">📅</div>
+        <div>
+          <div style="font-size:15px;font-weight:600;color:var(--text)">Google Calendar Sync</div>
+          <div style="font-size:12px;color:var(--text3);margin-top:2px">Connect your Google Calendar to see and add events from this app</div>
+        </div>
+        <button class="btn btn-secondary btn-sm" style="margin-left:auto;white-space:nowrap" onclick="showToast('Setup guide coming — connect when ready!','info')">Connect Google Calendar</button>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-bottom:20px">
+      ${days.map(d=>{
+        const isToday=d.toDateString()===today.toDateString();
+        const dayEvents=events.filter(e=>e.date===d.toISOString().slice(0,10));
+        return`<div style="background:var(--surface);border:1px solid ${isToday?'var(--accent)':'var(--border)'};border-radius:10px;padding:10px;min-height:80px;${isToday?'box-shadow:0 0 0 2px rgba(184,92,56,0.15)':''}">
+          <div style="font-family:var(--mono);font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em">${d.toLocaleDateString('en',{weekday:'short'})}</div>
+          <div style="font-family:var(--serif);font-size:20px;font-weight:700;color:${isToday?'var(--accent)':'var(--text)'};margin:2px 0">${d.getDate()}</div>
+          ${dayEvents.map(e=>`<div style="font-size:10px;background:var(--accent-soft);color:var(--accent);border-radius:4px;padding:2px 5px;margin-top:3px;font-weight:500;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${e.title}</div>`).join('')}
+        </div>`;
+      }).join('')}
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Upcoming Events</div>
+      </div>
+      ${events.length
+        ?events.sort((a,b)=>new Date(a.date)-new Date(b.date)).map((e,i)=>`
+          <div class="agenda-item">
+            <div class="agenda-time">${e.time||'All day'}</div>
+            <div class="agenda-dot" style="background:var(--accent)"></div>
+            <div class="agenda-content">
+              <div class="agenda-title">${e.title}</div>
+              <div class="agenda-meta">${e.date}${e.note?' · '+e.note:''}</div>
+            </div>
+            <button class="btn btn-xs btn-ghost" onclick="deleteEvent(${i})">✕</button>
+          </div>`).join('')
+        :`<div class="empty" style="padding:20px"><div class="empty-text">No events yet. Add one below or connect Google Calendar.</div></div>`}
+    </div>`;
+}
+
+function addScheduleItem(){
+  const title=prompt('Event title:');
+  if(!title) return;
+  const date=prompt('Date (YYYY-MM-DD):',new Date().toISOString().slice(0,10));
+  if(!date) return;
+  const time=prompt('Time (e.g. 9:00 AM) — leave blank for all day:');
+  const note=prompt('Note (optional):');
+  const s=getS();
+  saveS({calendarEvents:[...(s.calendarEvents||[]),{title,date,time:time||'',note:note||''}]});
+  renderCalendar();
+  showToast('Event added!','success');
+}
+
+function deleteEvent(idx){
+  const s=getS(); const evs=[...(s.calendarEvents||[])]; evs.splice(idx,1);
+  saveS({calendarEvents:evs}); renderCalendar();
 }
 
 // Start
