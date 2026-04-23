@@ -238,7 +238,7 @@ select.input{cursor:pointer;appearance:none;}
 .cal-cell.selected{border-color:var(--accent);box-shadow:0 0 0 2px rgba(184,92,56,0.15);}
 .cal-date{font-family:var(--mono);font-size:11px;font-weight:600;color:var(--text2);margin-bottom:3px;}
 .cal-cell.today .cal-date{color:var(--accent);}
-.cal-event{font-size:9px;padding:1px 5px;border-radius:3px;margin-bottom:2px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-weight:500;}
+.cal-event{font-size:9px;padding:1px 5px;border-radius:3px;margin-bottom:2px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-weight:500;max-width:100%;display:block;box-sizing:border-box;}
 .cal-more{font-size:9px;color:var(--text3);font-family:var(--mono);margin-top:1px;}
 
 /* Day detail panel */
@@ -344,6 +344,48 @@ select.input{cursor:pointer;appearance:none;}
 .colour-options{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;}
 .colour-swatch{width:22px;height:22px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:all 0.15s;}
 .colour-swatch.selected{border-color:var(--text);transform:scale(1.15);}
+
+/* ── FONT SIZE MODES ── */
+[data-size="small"] body{font-size:12px;}
+[data-size="small"] .btn{font-size:11px;padding:6px 12px;}
+[data-size="small"] .btn-sm{font-size:10px;padding:4px 10px;}
+[data-size="small"] .nav-item{font-size:11px;}
+[data-size="small"] .topbar-title{font-size:16px;}
+[data-size="small"] .input{font-size:12px;}
+[data-size="small"] .cal-cell{min-height:60px;}
+
+[data-size="large"] body{font-size:16px;}
+[data-size="large"] .btn{font-size:14px;padding:10px 18px;}
+[data-size="large"] .btn-sm{font-size:13px;padding:7px 14px;}
+[data-size="large"] .btn-xs{font-size:12px;padding:5px 10px;}
+[data-size="large"] .nav-item{font-size:14px;padding:10px 12px;}
+[data-size="large"] .cal-event{font-size:11px;}
+[data-size="large"] .topbar-title{font-size:22px;}
+[data-size="large"] .input{font-size:15px;padding:11px 14px;}
+[data-size="large"] .card-title{font-size:17px;}
+[data-size="large"] .modal-title{font-size:20px;}
+[data-size="large"] .task-title{font-size:15px;}
+[data-size="large"] .stat-val{font-size:22px;}
+[data-size="large"] .cal-cell{min-height:90px;}
+
+/* ── COLOUR SIDEBAR PANEL ── */
+.colour-panel{position:fixed;right:0;top:0;height:100vh;width:280px;background:var(--surface);border-left:1px solid var(--border2);z-index:180;display:flex;flex-direction:column;box-shadow:-4px 0 20px rgba(90,50,20,0.12);transform:translateX(100%);transition:transform 0.25s ease;}
+.colour-panel.open{transform:translateX(0);}
+.colour-panel-header{padding:16px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.colour-panel-title{font-family:var(--serif);font-size:15px;font-weight:700;color:var(--text);}
+.colour-panel-close{background:none;border:none;cursor:pointer;font-size:18px;color:var(--text3);padding:2px 6px;border-radius:5px;transition:all 0.15s;}
+.colour-panel-close:hover{background:var(--bg);color:var(--text);}
+.colour-panel-body{flex:1;overflow-y:auto;padding:14px 16px;}
+.colour-panel-footer{padding:12px 16px;border-top:1px solid var(--border);flex-shrink:0;}
+.label-colour-row{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg);border:1px solid var(--border);border-radius:9px;margin-bottom:8px;transition:border-color 0.15s;}
+.label-colour-row:hover{border-color:var(--border2);}
+.label-colour-name{flex:1;font-size:13px;font-weight:500;color:var(--text);}
+.label-colour-icon{font-size:14px;margin-right:2px;}
+.label-colour-input{width:32px;height:32px;border-radius:6px;border:1px solid var(--border);cursor:pointer;padding:2px;background:none;}
+.size-mode-toggle{display:flex;gap:4px;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:3px;}
+.size-btn{flex:1;padding:5px 8px;border:none;background:none;cursor:pointer;font-size:11px;font-weight:600;color:var(--text3);border-radius:7px;font-family:var(--sans);transition:all 0.15s;}
+.size-btn.active{background:var(--accent);color:#fff;}
+.size-btn:hover:not(.active){background:var(--surface2);color:var(--text);}
 
 /* ── DARK MODE ── */
 [data-theme="dark"]{
@@ -561,6 +603,14 @@ select.input{cursor:pointer;appearance:none;}
           <div class="colour-swatch" data-accent="#555" style="background:#555" onclick="setAccent('#555',this)" title="Slate"></div>
         </div>
         <input type="color" id="cfg-accent-custom" style="margin-top:8px;width:100%;height:32px;border-radius:6px;border:1px solid var(--border);cursor:pointer;padding:2px" onchange="setAccent(this.value,null)"/>
+      </div>
+      <div class="field">
+        <div class="input-label">Text Size</div>
+        <div class="size-mode-toggle" style="margin-top:4px">
+          <button class="size-btn" id="cfg-size-small" onclick="setFontSize('small')">Small</button>
+          <button class="size-btn active" id="cfg-size-medium" onclick="setFontSize('medium')">Medium</button>
+          <button class="size-btn" id="cfg-size-large" onclick="setFontSize('large')">Large</button>
+        </div>
       </div>
       <div class="field">
         <div class="input-label">Sidebar Width</div>
@@ -785,6 +835,29 @@ select.input{cursor:pointer;appearance:none;}
   </div>
 </div>
 
+<!-- COLOUR & SIZE PANEL -->
+<div class="colour-panel" id="colourPanel">
+  <div class="colour-panel-header">
+    <div class="colour-panel-title">🎨 Label Colours</div>
+    <button class="colour-panel-close" onclick="closeColourPanel()">✕</button>
+  </div>
+  <div class="colour-panel-body">
+    <div style="font-size:10px;color:var(--text3);font-family:var(--mono);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:10px;">Assign colours to labels — events auto-match</div>
+    <div id="labelColourList"></div>
+    <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
+      <div style="font-size:10px;color:var(--text3);font-family:var(--mono);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:8px;">Text Size</div>
+      <div class="size-mode-toggle">
+        <button class="size-btn" id="size-small" onclick="setFontSize('small')">Small</button>
+        <button class="size-btn active" id="size-medium" onclick="setFontSize('medium')">Medium</button>
+        <button class="size-btn" id="size-large" onclick="setFontSize('large')">Large</button>
+      </div>
+    </div>
+  </div>
+  <div class="colour-panel-footer">
+    <button class="btn btn-primary btn-sm" style="width:100%;justify-content:center" onclick="openModal('labelModal')">+ Create New Label</button>
+  </div>
+</div>
+
 <!-- MAIN APP -->
 <div class="app" id="mainApp" style="display:none">
   <aside class="sidebar">
@@ -805,6 +878,7 @@ select.input{cursor:pointer;appearance:none;}
     <nav class="nav" id="mainNav"></nav>
 
     <div class="sidebar-footer">
+      <button class="footer-btn" onclick="openColourPanel()" title="Label Colours &amp; Text Size">🎨</button>
       <button class="footer-btn" onclick="openSearch()" title="Search (Ctrl+K)">🔍</button>
       <button class="footer-btn" id="darkModeBtn" onclick="toggleDarkMode()">🌙</button>
       <button class="footer-btn" onclick="exportData()">⬇</button>
@@ -4948,6 +5022,7 @@ function applyAppConfig() {
     var sw = document.getElementById('cfg-sidebar-width');
     if (sw) sw.value = cfg.sidebarWidth;
   }
+  applyFontSize();
 }
 
 
@@ -4989,8 +5064,78 @@ async function deletePdfFromSupabase(pdfId){
   } catch(e){ console.warn('PDF Supabase delete failed'); }
 }
 
+// ═══════════════════════════════════════════════
+// COLOUR PANEL & FONT SIZE
+// ═══════════════════════════════════════════════
+function openColourPanel(){
+  renderLabelColourList();
+  document.getElementById('colourPanel').classList.add('open');
+  // reflect saved size
+  var s=getS();
+  var sz=(s.appConfig||{}).fontSize||'medium';
+  ['small','medium','large'].forEach(function(m){
+    document.getElementById('size-'+m).classList.toggle('active',m===sz);
+  });
+}
+
+function closeColourPanel(){
+  document.getElementById('colourPanel').classList.remove('open');
+}
+
+function renderLabelColourList(){
+  var s=getS();
+  var labels=s.labels||[];
+  var el=document.getElementById('labelColourList');
+  if(!el)return;
+  if(labels.length===0){
+    el.innerHTML='<div style="text-align:center;padding:20px;color:var(--text3);font-size:12px">No labels yet.<br/>Create one below to colour-code your events.</div>';
+    return;
+  }
+  el.innerHTML=labels.map(function(lbl){
+    var col=lbl.colour||'#b85c38';
+    return '<div class="label-colour-row">'+
+      '<span class="label-colour-icon">'+(lbl.icon||'🏷️')+'</span>'+
+      '<span class="label-colour-name">'+esc(lbl.name)+'</span>'+
+      '<input type="color" class="label-colour-input" value="'+col+'" title="Pick colour for '+esc(lbl.name)+'" onchange="updateLabelColour(\''+lbl.id+'\',this.value)"/>'+
+    '</div>';
+  }).join('');
+}
+
+function updateLabelColour(lblId, newColour){
+  var s=getS();
+  var labels=(s.labels||[]).map(function(l){
+    return l.id===lblId?Object.assign({},l,{colour:newColour}):l;
+  });
+  saveS({labels:labels});
+  if(currentView==='calendar')renderCalendar();
+  showToast('Colour updated!','success');
+}
+
+function setFontSize(mode){
+  ['small','medium','large'].forEach(function(m){
+    var btn=document.getElementById('size-'+m);
+    if(btn)btn.classList.toggle('active',m===mode);
+  });
+  document.documentElement.setAttribute('data-size', mode==='medium'?'':mode);
+  document.body.setAttribute('data-size', mode);
+  var s=getS();
+  var cfg=Object.assign({},s.appConfig||{},{fontSize:mode});
+  saveS({appConfig:cfg});
+}
+
+function applyFontSize(){
+  var s=getS();
+  var mode=(s.appConfig||{}).fontSize||'medium';
+  document.body.setAttribute('data-size',mode);
+  ['small','medium','large'].forEach(function(m){
+    var btn=document.getElementById('size-'+m);
+    if(btn)btn.classList.toggle('active',m===mode);
+  });
+}
+
 // Boot — always launch the app. Show setup screen as first-time welcome if no Groq key yet.
 initTheme();
+applyFontSize();
 if(!hasGroq()){
   document.getElementById('setup-screen').style.display='flex';
 } else {
