@@ -1274,10 +1274,13 @@ select.input{cursor:pointer;appearance:none;}
     <button class="pdf-tool-btn" onclick="pdfPrevPage()">← Prev</button>
     <div class="pdf-page-info" id="pdfPageInfo">1 / 1</div>
     <button class="pdf-tool-btn" onclick="pdfNextPage()">Next →</button>
-    <button class="pdf-tool-btn" onclick="pdfZoom(0.2)">＋</button>
-    <button class="pdf-tool-btn" onclick="pdfZoom(-0.2)">－</button>
+    <button class="pdf-tool-btn" onclick="pdfZoom(0.25)">＋ Zoom</button>
+    <button class="pdf-tool-btn" onclick="pdfZoom(-0.25)">－ Zoom</button>
+    <button class="pdf-tool-btn" onclick="pdfResetZoom()">Reset</button>
   </div>
-  <div class="pdf-canvas-wrap" id="pdfCanvasWrap"></div>
+  <div class="pdf-body">
+    <div class="pdf-canvas-wrap" id="pdfCanvasWrap"></div>
+  </div>
 </div>
 
 <!-- FLASHCARD OVERLAY -->
@@ -1549,6 +1552,14 @@ function renderLabelPill(labelId,small){
   if(!lbl)return '';
   const size=small?'9px':'10px';
   return '<span class="label-pill" style="background:'+lbl.colour+'22;color:'+lbl.colour+';border-color:'+lbl.colour+'44;font-size:'+size+'">'+esc(lbl.icon)+' '+esc(lbl.name)+'</span>';
+}
+
+function populateNoteSubjectSelect(){
+  const sel=document.getElementById('note-subject');
+  if(!sel)return;
+  const projects=getProjects();
+  sel.innerHTML='<option value="general">General</option>'+
+    projects.map(function(p){return '<option value="'+p.id+'">'+esc(p.icon)+' '+esc(p.name)+'</option>';}).join('');
 }
 
 function populateLabelSelect(selId){
@@ -4417,6 +4428,7 @@ function renderPdfPage(pageNum) {
 function pdfPrevPage() { if (pdfCurrentPage > 1) renderPdfPage(pdfCurrentPage - 1); }
 function pdfNextPage() { if (pdfCurrentPage < pdfTotalPages) renderPdfPage(pdfCurrentPage + 1); }
 function pdfZoom(delta) { pdfScale = Math.max(0.5, Math.min(3, pdfScale + delta)); renderPdfPage(pdfCurrentPage); }
+function pdfResetZoom() { pdfScale = 1.4; renderPdfPage(pdfCurrentPage); }
 
 function closePdfViewer() {
   document.getElementById('pdfOverlay').classList.remove('show');
