@@ -3977,7 +3977,7 @@ async function fetchGCalEvents() {
   if (!GCAL_TOKEN) return;
   try {
     var now = new Date().toISOString();
-    var end = new Date(Date.now() + 30 * 86400000).toISOString();
+    var end = new Date(Date.now() + 365 * 86400000).toISOString();
 
     // Step 1: fetch all calendars the user has access to
     var calListRes = await fetch(
@@ -4001,7 +4001,7 @@ async function fetchGCalEvents() {
           'https://www.googleapis.com/calendar/v3/calendars/' + encodeURIComponent(cal.id) +
           '/events?timeMin=' + encodeURIComponent(now) +
           '&timeMax=' + encodeURIComponent(end) +
-          '&singleEvents=true&orderBy=startTime&maxResults=50',
+          '&singleEvents=true&orderBy=startTime&maxResults=250',
           {headers: {Authorization: 'Bearer ' + GCAL_TOKEN}}
         );
         if (!res.ok) return;
