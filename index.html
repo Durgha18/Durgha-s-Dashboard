@@ -422,9 +422,8 @@ select.input{cursor:pointer;appearance:none;}
 <div id="setup-screen" style="display:none">
   <div class="setup-card">
     <div class="setup-title">Durgha's Dashboard</div>
-    <div class="setup-sub">Enter your API keys once — stored in your browser only</div>
-    <div class="field"><div class="input-label">Groq API Key</div><input class="input" id="setup-groq" type="password" placeholder="gsk_..."/><div style="font-size:10px;color:var(--text3);margin-top:3px">Free at console.groq.com</div></div>
-    <div class="field"><div class="input-label">NewsAPI Key</div><input class="input" id="setup-news" type="password" placeholder="abc123..."/><div style="font-size:10px;color:var(--text3);margin-top:3px">Free at newsapi.org</div></div>
+    <div class="setup-sub">Enter your Groq API key to enable AI features</div>
+    <div class="field"><div class="input-label">Groq API Key</div><input class="input" id="setup-groq" type="password" placeholder="gsk_..."/><div style="font-size:10px;color:var(--text3);margin-top:3px">Free at console.groq.com · used for AI study tools, concept of the day, research</div></div>
     <button class="btn btn-primary" style="width:100%;justify-content:center;padding:11px" onclick="completeSetup()">Launch Dashboard →</button>
   </div>
 </div>
@@ -918,11 +917,24 @@ select.input{cursor:pointer;appearance:none;}
       <div class="topbar">
         <div class="topbar-left">
           <div class="topbar-title">Tasks</div>
-          <div class="topbar-sub">All spaces · click any task for details</div>
+          <div class="topbar-sub">All projects · sort, filter, click for details</div>
         </div>
         <div class="topbar-actions">
+          <select class="input" id="taskSortSel" onchange="renderTasks()" style="max-width:130px;font-size:11px;padding:5px 10px">
+            <option value="created">Newest first</option>
+            <option value="due">By due date</option>
+            <option value="priority">By priority</option>
+            <option value="subject">By category</option>
+            <option value="alpha">A – Z</option>
+          </select>
+          <select class="input" id="taskPrioFilter" onchange="renderTasks()" style="max-width:110px;font-size:11px;padding:5px 10px">
+            <option value="all">All priorities</option>
+            <option value="high">🔴 High</option>
+            <option value="medium">🟡 Medium</option>
+            <option value="low">🟢 Low</option>
+          </select>
           <button class="btn btn-primary btn-sm" onclick="openModal('taskModal')">+ Task</button>
-          <button class="btn btn-ghost btn-sm" onclick="openModal('spaceModal')">+ Space</button>
+          <button class="btn btn-ghost btn-sm" onclick="openModal('spaceModal')">+ Project</button>
         </div>
       </div>
       <div class="content">
@@ -1224,17 +1236,16 @@ const CFG={
   get NEWS(){return localStorage.getItem('dd_news')||'';},
   MODEL:'llama-3.3-70b-versatile'
 };
-function configured(){return CFG.GROQ&&CFG.NEWS;}
+function configured(){return !!CFG.GROQ;}
 
 function completeSetup(){
   const g=document.getElementById('setup-groq').value.trim();
-  const n=document.getElementById('setup-news').value.trim();
-  if(!g||!n){showToast('Please enter both keys','error');return;}
+  if(!g){showToast('Please enter your Groq API key','error');return;}
   localStorage.setItem('dd_groq',g);
-  localStorage.setItem('dd_news',n);
   document.getElementById('setup-screen').style.display='none';
   document.getElementById('mainApp').style.display='grid';
   document.getElementById('fab').style.display='flex';
+  if(typeof initTheme==='function')initTheme();
   initApp();
 }
 
@@ -2876,7 +2887,7 @@ function saveArticleAsNote(tab){
 // ═══════════════════════════════════════════════
 // CONCEPT
 // ═══════════════════════════════════════════════
-var CONCEPTS=['What is DCF (Discounted Cash Flow) analysis?','What is double-entry bookkeeping?','What is WACC and how is it calculated?','How do financial statements connect to each other?','What is marginal costing vs absorption costing?','What is the time value of money?','What is capital budgeting?','What is working capital management?','What is a budget variance and how do you analyse it?','What is investment banking and what do they actually do?','How do interest rates affect business decisions?','What is the efficient market hypothesis?','What is financial leverage and its risks?','What is activity-based costing?','What is monetary policy and how does it work?','What are derivatives and why do they exist?','What is transfer pricing?','How does ratio analysis work?','What is the Black-Scholes model?','What is Basel III and why does it matter?'];
+var CONCEPTS=['How does a Leveraged Buyout (LBO) work?','What is DCF valuation and how do bankers build one?','How do comparable company analysis (comps) work?','What is EBITDA and why do deal professionals use it?','How does McKinsey structure problem solving — issue trees explained','What is MECE and how do consultants use it?','What is the difference between equity value and enterprise value?','How does an IPO work from mandate to listing?','What is a hedge fund and what are the main strategies?','How does M&A due diligence work?','What is private equity and how does a fund generate returns?','What is the carry trade and why do macro funds use it?','How do Goldman Sachs and JPMorgan actually make money?','What is the BCG Growth-Share Matrix?','How does options pricing work — delta, gamma, vega?','What is a pitch book and how do bankers structure one?','How does short selling work mechanically?','What is a credit default swap (CDS)?','What does a first-year analyst at Goldman Sachs do all day?','What is venture capital and how does the VC model work?','What is the Porter Five Forces framework?','What is yield curve inversion and why does it matter?','How does a consulting engagement run at McKinsey or BCG?','What is the 2-and-20 fee structure in hedge funds?','What is the difference between buy-side and sell-side?','What is a Special Purpose Acquisition Company (SPAC)?','How does fixed income trading work at a bank?','What is quantitative easing and how does it affect asset prices?'];
 
 async function renderConcept(){
   const s=getS();
@@ -3013,7 +3024,7 @@ function answerQuiz(chosen){
 // ═══════════════════════════════════════════════
 // RESEARCH
 // ═══════════════════════════════════════════════
-var SUGGESTIONS=['What is DCF valuation?','How does double-entry bookkeeping work?','What is WACC?','Marginal vs absorption costing','What is the efficient market hypothesis?','How do financial statements connect?','What is transfer pricing?','Explain capital structure theory','What is Basel III?','How do bonds work?'];
+var SUGGESTIONS=['How does a Leveraged Buyout work?','What is DCF valuation?','How do comps work in M&A?','What is EBITDA?','Explain MECE and issue trees','How does Goldman Sachs make money?','What is a hedge fund strategy?','How does private equity work?','What is the carry trade?','What is an IPO process?','How does short selling work?','What is a credit default swap?','Explain the BCG matrix','What is yield curve inversion?','How does a McKinsey engagement work?'];
 
 function renderResearch(){
   const btnEl=document.getElementById('suggestionBtns');
@@ -3856,13 +3867,6 @@ function updateGCalUI() {
 }
 
 
-function openPdfByIndex(subjectId, idx) {
-  var s = getS();
-  var pdfs = s.pdfFiles && s.pdfFiles[subjectId] ? s.pdfFiles[subjectId] : [];
-  if (pdfs[idx]) {
-    openPdfViewer(pdfs[idx].data, pdfs[idx].name, pdfs[idx].id);
-  }
-}
 
 // ═══════════════════════════════════════════════
 // PDF UPLOAD + VIEWER + ANNOTATIONS
@@ -4762,6 +4766,7 @@ async function deletePdfFromSupabase(pdfId){
 if(configured()){
   document.getElementById('setup-screen').style.display='none';
   document.getElementById('mainApp').style.display='grid';
+  document.getElementById('fab').style.display='flex';
   document.getElementById('fab').style.display='flex';
   initTheme();
   initApp();
