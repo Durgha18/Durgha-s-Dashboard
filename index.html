@@ -229,9 +229,9 @@ select.input{cursor:pointer;appearance:none;}
 /* ── CALENDAR ── */
 .cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
 .cal-month{font-family:var(--serif);font-size:18px;font-weight:700;color:var(--text);}
-.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;}
+.cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:2px;}
 .cal-day-header{font-family:var(--mono);font-size:9px;color:var(--text3);text-align:center;padding:6px 0;letter-spacing:0.06em;}
-.cal-cell{background:var(--surface);border:1px solid var(--border);border-radius:7px;min-height:72px;padding:6px;cursor:pointer;transition:all 0.15s;position:relative;}
+.cal-cell{background:var(--surface);border:1px solid var(--border);border-radius:7px;min-height:72px;padding:6px;cursor:pointer;transition:all 0.15s;position:relative;overflow:hidden;min-width:0;}
 .cal-cell:hover{border-color:var(--border2);box-shadow:var(--shadow);}
 .cal-cell.today{border-color:var(--accent);background:rgba(184,92,56,0.04);}
 .cal-cell.other-month{opacity:0.4;}
@@ -346,27 +346,36 @@ select.input{cursor:pointer;appearance:none;}
 .colour-swatch.selected{border-color:var(--text);transform:scale(1.15);}
 
 /* ── FONT SIZE MODES ── */
-[data-size="small"] body{font-size:12px;}
-[data-size="small"] .btn{font-size:11px;padding:6px 12px;}
-[data-size="small"] .btn-sm{font-size:10px;padding:4px 10px;}
-[data-size="small"] .nav-item{font-size:11px;}
-[data-size="small"] .topbar-title{font-size:16px;}
-[data-size="small"] .input{font-size:12px;}
-[data-size="small"] .cal-cell{min-height:60px;}
+/* small = current default (14px baseline, no overrides needed) */
+[data-size="medium"] body{font-size:15px;}
+[data-size="medium"] .btn{font-size:13px;padding:9px 16px;}
+[data-size="medium"] .btn-sm{font-size:12px;padding:6px 13px;}
+[data-size="medium"] .btn-xs{font-size:11px;padding:4px 9px;}
+[data-size="medium"] .nav-item{font-size:13px;padding:9px 11px;}
+[data-size="medium"] .cal-event{font-size:10px;}
+[data-size="medium"] .cal-date{font-size:12px;}
+[data-size="medium"] .topbar-title{font-size:20px;}
+[data-size="medium"] .input{font-size:14px;padding:10px 13px;}
+[data-size="medium"] .card-title{font-size:16px;}
+[data-size="medium"] .modal-title{font-size:19px;}
+[data-size="medium"] .task-title{font-size:14px;}
+[data-size="medium"] .cal-cell{min-height:82px;}
+[data-size="medium"] .stat-val{font-size:20px;}
 
-[data-size="large"] body{font-size:16px;}
-[data-size="large"] .btn{font-size:14px;padding:10px 18px;}
-[data-size="large"] .btn-sm{font-size:13px;padding:7px 14px;}
+[data-size="large"] body{font-size:17px;}
+[data-size="large"] .btn{font-size:15px;padding:11px 20px;}
+[data-size="large"] .btn-sm{font-size:14px;padding:8px 16px;}
 [data-size="large"] .btn-xs{font-size:12px;padding:5px 10px;}
-[data-size="large"] .nav-item{font-size:14px;padding:10px 12px;}
+[data-size="large"] .nav-item{font-size:15px;padding:11px 12px;}
 [data-size="large"] .cal-event{font-size:11px;}
+[data-size="large"] .cal-date{font-size:13px;}
 [data-size="large"] .topbar-title{font-size:22px;}
-[data-size="large"] .input{font-size:15px;padding:11px 14px;}
-[data-size="large"] .card-title{font-size:17px;}
-[data-size="large"] .modal-title{font-size:20px;}
-[data-size="large"] .task-title{font-size:15px;}
-[data-size="large"] .stat-val{font-size:22px;}
-[data-size="large"] .cal-cell{min-height:90px;}
+[data-size="large"] .input{font-size:16px;padding:12px 14px;}
+[data-size="large"] .card-title{font-size:18px;}
+[data-size="large"] .modal-title{font-size:21px;}
+[data-size="large"] .task-title{font-size:16px;}
+[data-size="large"] .cal-cell{min-height:96px;}
+[data-size="large"] .stat-val{font-size:24px;}
 
 /* ── COLOUR SIDEBAR PANEL ── */
 .colour-panel{position:fixed;right:0;top:0;height:100vh;width:280px;background:var(--surface);border-left:1px solid var(--border2);z-index:180;display:flex;flex-direction:column;box-shadow:-4px 0 20px rgba(90,50,20,0.12);transform:translateX(100%);transition:transform 0.25s ease;}
@@ -607,8 +616,8 @@ select.input{cursor:pointer;appearance:none;}
       <div class="field">
         <div class="input-label">Text Size</div>
         <div class="size-mode-toggle" style="margin-top:4px">
-          <button class="size-btn" id="cfg-size-small" onclick="setFontSize('small')">Small</button>
-          <button class="size-btn active" id="cfg-size-medium" onclick="setFontSize('medium')">Medium</button>
+          <button class="size-btn active" id="cfg-size-small" onclick="setFontSize('small')">Small</button>
+          <button class="size-btn" id="cfg-size-medium" onclick="setFontSize('medium')">Medium</button>
           <button class="size-btn" id="cfg-size-large" onclick="setFontSize('large')">Large</button>
         </div>
       </div>
@@ -707,7 +716,14 @@ select.input{cursor:pointer;appearance:none;}
     <div class="field"><div class="input-label">Title</div><input class="input" id="ev-title" placeholder="Event name..."/></div>
     <div class="grid-2">
       <div class="field"><div class="input-label">Date</div><input class="input" type="date" id="ev-date"/></div>
-      <div class="field"><div class="input-label">Label</div><select class="input" id="ev-label"></select></div>
+      <div class="field"><div class="input-label">Label</div><select class="input" id="ev-label" onchange="onEvLabelChange()"></select></div>
+    </div>
+    <div class="field">
+      <div class="input-label">Event Colour <span style="font-size:9px;color:var(--text3);font-weight:400">(override label colour, or pick freely)</span></div>
+      <div style="display:flex;align-items:center;gap:10px;margin-top:4px">
+        <div id="ev-colour-swatches" style="display:flex;gap:6px;flex-wrap:wrap;flex:1"></div>
+        <input type="color" id="ev-colour-custom" style="width:32px;height:32px;border-radius:6px;border:1px solid var(--border);cursor:pointer;padding:2px;flex-shrink:0" value="#b85c38" oninput="onEvCustomColour(this.value)"/>
+      </div>
     </div>
     <div class="grid-2">
       <div class="field"><div class="input-label">Start Time</div><input class="input" type="time" id="ev-time"/></div>
@@ -847,8 +863,8 @@ select.input{cursor:pointer;appearance:none;}
     <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
       <div style="font-size:10px;color:var(--text3);font-family:var(--mono);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:8px;">Text Size</div>
       <div class="size-mode-toggle">
-        <button class="size-btn" id="size-small" onclick="setFontSize('small')">Small</button>
-        <button class="size-btn active" id="size-medium" onclick="setFontSize('medium')">Medium</button>
+        <button class="size-btn active" id="size-small" onclick="setFontSize('small')">Small</button>
+        <button class="size-btn" id="size-medium" onclick="setFontSize('medium')">Medium</button>
         <button class="size-btn" id="size-large" onclick="setFontSize('large')">Large</button>
       </div>
     </div>
@@ -2167,12 +2183,13 @@ function renderCalendar(){
     let evHtml='';
     dayEvents.slice(0,2).forEach(function(e){
       const lbl=getLabelById(e.labelId);
-      const bg=lbl?lbl.colour+'33':'rgba(184,92,56,0.15)';
-      const col=lbl?lbl.colour:'var(--accent)';
-      evHtml+='<div class="cal-event" style="background:'+bg+';color:'+col+'">'+e.title+'</div>';
+      const evCol=e.colour||(lbl?lbl.colour:null);
+      const bg=evCol?evCol+'33':'rgba(184,92,56,0.15)';
+      const col=evCol?evCol:'var(--accent)';
+      evHtml+='<div class="cal-event" style="background:'+bg+';color:'+col+';width:100%;min-width:0">'+esc(e.title)+'</div>';
     });
     dayTasks.slice(0,2).forEach(function(t){
-      evHtml+='<div class="cal-event" style="background:rgba(192,64,64,0.12);color:var(--red)">📋 '+t.title+'</div>';
+      evHtml+='<div class="cal-event" style="background:rgba(192,64,64,0.12);color:var(--red);width:100%;min-width:0">📋 '+esc(t.title)+'</div>';
     });
     const more=dayEvents.length+dayTasks.length-2;
     if(more>0)evHtml+='<div class="cal-more">+'+more+' more</div>';
@@ -2237,12 +2254,51 @@ function renderDayPanel(dateStr){
 }
 
 function openAddEvent(){
+  initEvColourPicker();
   openModal('eventModal');
 }
 
 function openAddEventForDay(dateStr){
+  initEvColourPicker();
   openModal('eventModal');
   document.getElementById('ev-date').value=dateStr;
+}
+
+var EV_PRESET_COLOURS=['#b85c38','#3a6b8a','#3a7d5a','#7a5fa0','#c4922a','#c04040','#2a6b6b','#e07b39','#4a7ab5','#888'];
+
+function initEvColourPicker(){
+  window._evChosenColour=null;
+  var sw=document.getElementById('ev-colour-swatches');
+  if(!sw)return;
+  sw.innerHTML=EV_PRESET_COLOURS.map(function(c){
+    return '<div onclick="setEvColour(\''+c+'\',this)" style="width:22px;height:22px;border-radius:50%;background:'+c+';cursor:pointer;border:2px solid transparent;flex-shrink:0;transition:all 0.15s" title="'+c+'"></div>';
+  }).join('')+'<div onclick="setEvColour(null,this)" style="width:22px;height:22px;border-radius:50%;background:var(--border);cursor:pointer;border:2px solid transparent;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--text3)" title="Use label colour">✕</div>';
+}
+
+function setEvColour(col, el){
+  window._evChosenColour=col;
+  var sw=document.getElementById('ev-colour-swatches');
+  if(sw)sw.querySelectorAll('div').forEach(function(d){d.style.borderColor='transparent';d.style.transform='';});
+  if(el){el.style.borderColor='var(--text)';el.style.transform='scale(1.2)';}
+  if(col){var ci=document.getElementById('ev-colour-custom');if(ci)ci.value=col;}
+}
+
+function onEvCustomColour(val){
+  window._evChosenColour=val;
+  var sw=document.getElementById('ev-colour-swatches');
+  if(sw)sw.querySelectorAll('div').forEach(function(d){d.style.borderColor='transparent';d.style.transform='';});
+}
+
+function onEvLabelChange(){
+  // When label chosen, suggest label colour but don't force it
+  var sel=document.getElementById('ev-label');
+  if(!sel)return;
+  var lblId=sel.value;
+  var lbl=getLabelById(lblId);
+  if(lbl&&lbl.colour&&!window._evChosenColour){
+    var ci=document.getElementById('ev-colour-custom');
+    if(ci)ci.value=lbl.colour;
+  }
 }
 
 function saveEvent(){
@@ -2250,6 +2306,7 @@ function saveEvent(){
   if(!title){showToast('Enter a title','error');return;}
   const recurring=document.getElementById('ev-recurring').value;
   const recurringEnd=document.getElementById('ev-recurring-end').value;
+  const chosenColour=window._evChosenColour||null;
   const ev={
     id:'ev'+Date.now(),
     title:title,
@@ -2257,6 +2314,7 @@ function saveEvent(){
     time:document.getElementById('ev-time').value,
     endtime:document.getElementById('ev-endtime').value,
     labelId:document.getElementById('ev-label').value,
+    colour:chosenColour,
     location:document.getElementById('ev-location').value,
     notes:document.getElementById('ev-notes').value,
     recurring:recurring,
@@ -2268,6 +2326,7 @@ function saveEvent(){
   ['ev-title','ev-time','ev-endtime','ev-notes','ev-location'].forEach(function(id){document.getElementById(id).value='';});
   document.getElementById('ev-recurring').value='none';
   document.getElementById('ev-recurring-end-wrap').style.display='none';
+  window._evChosenColour=null;
   showToast('Event added!','success');
   if(currentView==='calendar')renderCalendar();
 }
@@ -5070,11 +5129,11 @@ async function deletePdfFromSupabase(pdfId){
 function openColourPanel(){
   renderLabelColourList();
   document.getElementById('colourPanel').classList.add('open');
-  // reflect saved size
   var s=getS();
-  var sz=(s.appConfig||{}).fontSize||'medium';
+  var sz=(s.appConfig||{}).fontSize||'small';
   ['small','medium','large'].forEach(function(m){
-    document.getElementById('size-'+m).classList.toggle('active',m===sz);
+    var btn=document.getElementById('size-'+m);
+    if(btn)btn.classList.toggle('active',m===sz);
   });
 }
 
@@ -5115,9 +5174,11 @@ function setFontSize(mode){
   ['small','medium','large'].forEach(function(m){
     var btn=document.getElementById('size-'+m);
     if(btn)btn.classList.toggle('active',m===mode);
+    var btn2=document.getElementById('cfg-size-'+m);
+    if(btn2)btn2.classList.toggle('active',m===mode);
   });
-  document.documentElement.setAttribute('data-size', mode==='medium'?'':mode);
-  document.body.setAttribute('data-size', mode);
+  // small = default (no overrides), medium/large apply CSS
+  document.body.setAttribute('data-size', mode==='small'?'':mode);
   var s=getS();
   var cfg=Object.assign({},s.appConfig||{},{fontSize:mode});
   saveS({appConfig:cfg});
@@ -5125,11 +5186,13 @@ function setFontSize(mode){
 
 function applyFontSize(){
   var s=getS();
-  var mode=(s.appConfig||{}).fontSize||'medium';
-  document.body.setAttribute('data-size',mode);
+  var mode=(s.appConfig||{}).fontSize||'small';
+  document.body.setAttribute('data-size', mode==='small'?'':mode);
   ['small','medium','large'].forEach(function(m){
     var btn=document.getElementById('size-'+m);
     if(btn)btn.classList.toggle('active',m===mode);
+    var btn2=document.getElementById('cfg-size-'+m);
+    if(btn2)btn2.classList.toggle('active',m===mode);
   });
 }
 
