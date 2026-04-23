@@ -299,7 +299,27 @@ select.input{cursor:pointer;appearance:none;}
 .setup-title{font-family:var(--serif);font-size:26px;font-weight:700;color:var(--accent);margin-bottom:4px;}
 .setup-sub{font-size:11px;color:var(--text3);margin-bottom:24px;font-family:var(--mono);letter-spacing:0.04em;}
 
-/* ── ANIMATIONS ── */
+/* ── MOBILE RESPONSIVE ── */
+@media (max-width:768px){
+  .app{grid-template-columns:1fr;}
+  .sidebar{display:none;position:fixed;inset:0;z-index:50;width:260px;box-shadow:var(--shadow-lg);}
+  .sidebar.mobile-open{display:flex;}
+  .mobile-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:49;}
+  .mobile-overlay.show{display:block;}
+  .mobile-menu-btn{display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:8px;border:1px solid var(--border);background:var(--surface);cursor:pointer;font-size:16px;flex-shrink:0;}
+  .topbar{gap:10px;}
+  .content{padding:14px 16px;}
+  .grid-2,.grid-3{grid-template-columns:1fr;}
+  .cal-cell{min-height:52px;}
+  .cal-event{display:none;}
+}
+@media (min-width:769px){
+  .mobile-menu-btn{display:none;}
+  .mobile-overlay{display:none;}
+}
+
+/* ── SYNC INDICATOR STATES ── */
+#syncIndicator.syncing{animation:spin 1s linear infinite;display:inline-block;}
 @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 .settings-tab{padding:8px 16px;border:none;background:none;cursor:pointer;font-size:12px;font-weight:500;color:var(--text3);border-bottom:2px solid transparent;transition:all 0.15s;font-family:var(--sans);}
 .settings-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
@@ -422,9 +442,13 @@ select.input{cursor:pointer;appearance:none;}
 <div id="setup-screen" style="display:none">
   <div class="setup-card">
     <div class="setup-title">Durgha's Dashboard</div>
-    <div class="setup-sub">Enter your Groq API key to enable AI features</div>
-    <div class="field"><div class="input-label">Groq API Key</div><input class="input" id="setup-groq" type="password" placeholder="gsk_..."/><div style="font-size:10px;color:var(--text3);margin-top:3px">Free at console.groq.com · used for AI study tools, concept of the day, research</div></div>
-    <button class="btn btn-primary" style="width:100%;justify-content:center;padding:11px" onclick="completeSetup()">Launch Dashboard →</button>
+    <div class="setup-sub">Add a Groq API key to enable AI features — or skip to use the dashboard without them</div>
+    <div class="field"><div class="input-label">Groq API Key <span style="color:var(--text3);font-weight:400">(optional)</span></div><input class="input" id="setup-groq" type="password" placeholder="gsk_..."/><div style="font-size:10px;color:var(--text3);margin-top:3px">Free at console.groq.com · powers Daily Brief, Concept of Day, Flashcards, Research</div></div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-primary" style="flex:1;justify-content:center;padding:11px" onclick="completeSetup()">Save Key & Launch →</button>
+      <button class="btn btn-ghost" style="padding:11px 16px" onclick="skipSetup()">Skip for now</button>
+    </div>
+    <div style="font-size:10px;color:var(--text3);margin-top:12px;text-align:center">Your key is stored only in your browser's local storage. You can add it later in ⚙️ Settings → Profile.</div>
   </div>
 </div>
 
@@ -578,7 +602,7 @@ select.input{cursor:pointer;appearance:none;}
         </select>
       </div>
     </div>
-    <div class="field"><div class="input-label">Sub-category (optional)</div><input class="input" id="t-subject" placeholder="e.g. Financial Accounting, Event Planning..."/></div>
+    <div class="field"><div class="input-label">Sub-task / Notes (optional)</div><input class="input" id="t-subject" placeholder="e.g. Chapter 3, Group B, Part 1..."/></div>
     <!-- Assignment toggle -->
     <div class="field" style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;cursor:pointer" onclick="toggleAssignmentFields()">
       <input type="checkbox" id="t-is-assignment" style="width:16px;height:16px;cursor:pointer;accent-color:var(--accent)"/>
@@ -680,11 +704,11 @@ select.input{cursor:pointer;appearance:none;}
   </div>
 </div>
 
-<!-- Add Space -->
+<!-- Add Project (legacy space modal reused) -->
 <div class="modal-overlay" id="spaceModal">
   <div class="modal" style="max-width:360px">
-    <div class="modal-title">Add Space</div>
-    <div class="field"><div class="input-label">Space Name</div><input class="input" id="sp-name" placeholder="e.g. Internship, Research, Club..."/></div>
+    <div class="modal-title">Add Project</div>
+    <div class="field"><div class="input-label">Project Name</div><input class="input" id="sp-name" placeholder="e.g. Internship, Debate Club, Research..."/></div>
     <div class="field"><div class="input-label">Icon (emoji)</div><input class="input" id="sp-icon" placeholder="📁" maxlength="2"/></div>
     <div class="modal-footer">
       <button class="btn btn-ghost btn-sm" onclick="closeModal('spaceModal')">Cancel</button>
@@ -706,11 +730,11 @@ select.input{cursor:pointer;appearance:none;}
   </div>
 </div>
 
-<!-- Add Subject -->
+<!-- New Project (vault) -->
 <div class="modal-overlay" id="subjectModal">
   <div class="modal" style="max-width:360px">
-    <div class="modal-title">Add Subject</div>
-    <div class="field"><div class="input-label">Subject Name</div><input class="input" id="sub-name" placeholder="e.g. Corporate Governance..."/></div>
+    <div class="modal-title">New Project</div>
+    <div class="field"><div class="input-label">Project Name</div><input class="input" id="sub-name" placeholder="e.g. Corporate Governance, Side Project..."/></div>
     <div class="field"><div class="input-label">Icon (emoji)</div><input class="input" id="sub-icon" placeholder="📖" maxlength="2"/></div>
     <div class="field">
       <div class="input-label">Colour</div>
@@ -791,11 +815,13 @@ select.input{cursor:pointer;appearance:none;}
   </aside>
 
   <main class="main">
+    <div class="mobile-overlay" id="mobileOverlay" onclick="closeMobileMenu()"></div>
 
     <!-- MORNING -->
     <div class="view active" id="view-morning">
       <div class="topbar">
         <div class="topbar-left">
+          <button class="mobile-menu-btn" onclick="openMobileMenu()">☰</button>
           <div class="topbar-title" id="morningTitle">Good morning</div>
           <div class="topbar-sub" id="morningSubDate"></div>
         </div>
@@ -924,6 +950,7 @@ select.input{cursor:pointer;appearance:none;}
             <option value="created">Newest first</option>
             <option value="due">By due date</option>
             <option value="priority">By priority</option>
+            <option value="project">By project</option>
             <option value="subject">By category</option>
             <option value="alpha">A – Z</option>
           </select>
@@ -962,15 +989,16 @@ select.input{cursor:pointer;appearance:none;}
     <div class="view" id="view-vault">
       <div class="topbar">
         <div class="topbar-left">
-          <div class="topbar-title">Study Vault</div>
-          <div class="topbar-sub">Notes, resources &amp; AI tools by subject</div>
+          <button class="mobile-menu-btn" onclick="openMobileMenu()">☰</button>
+          <div class="topbar-title">Projects</div>
+          <div class="topbar-sub">Tasks · notes · PDFs · assignments — all in one place</div>
         </div>
         <div class="topbar-actions">
-          <button class="btn btn-primary btn-sm" onclick="openModal('subjectModal')">+ Subject</button>
+          <button class="btn btn-primary btn-sm" onclick="openModal('subjectModal')">+ Project</button>
         </div>
       </div>
       <div class="content">
-        <div id="subjectGrid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px"></div>
+        <div id="subjectGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px"></div>
         <div id="subjectView" style="display:none"></div>
       </div>
     </div>
@@ -979,8 +1007,9 @@ select.input{cursor:pointer;appearance:none;}
     <div class="view" id="view-notes">
       <div class="topbar">
         <div class="topbar-left">
+          <button class="mobile-menu-btn" onclick="openMobileMenu()">☰</button>
           <div class="topbar-title">All Notes</div>
-          <div class="topbar-sub">Every note across subjects and tasks</div>
+          <div class="topbar-sub">Every note across all projects</div>
         </div>
         <div class="topbar-actions">
           <button class="btn btn-primary btn-sm" onclick="openModal('noteModal')">+ New Note</button>
@@ -990,7 +1019,7 @@ select.input{cursor:pointer;appearance:none;}
         <div style="display:flex;gap:8px;margin-bottom:14px">
           <input class="input" id="notesSearch" placeholder="Search notes..." oninput="renderNotes()" style="flex:1"/>
           <select class="input" id="notesFilter" onchange="renderNotes()" style="max-width:160px">
-            <option value="all">All subjects</option>
+            <option value="all">All projects</option>
           </select>
         </div>
         <div id="notesList"></div>
@@ -1236,12 +1265,23 @@ const CFG={
   get NEWS(){return localStorage.getItem('dd_news')||'';},
   MODEL:'llama-3.3-70b-versatile'
 };
-function configured(){return !!CFG.GROQ;}
+// App always launches. Groq key only needed for AI features.
+function configured(){return true;}
+function hasGroq(){return !!CFG.GROQ;}
+
+// XSS-safe HTML escaping — use esc() on all user-supplied strings inside innerHTML
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
 
 function completeSetup(){
   const g=document.getElementById('setup-groq').value.trim();
-  if(!g){showToast('Please enter your Groq API key','error');return;}
-  localStorage.setItem('dd_groq',g);
+  if(g) localStorage.setItem('dd_groq',g);
+  document.getElementById('setup-screen').style.display='none';
+  document.getElementById('mainApp').style.display='grid';
+  document.getElementById('fab').style.display='flex';
+  if(typeof initTheme==='function')initTheme();
+  initApp();
+}
+function skipSetup(){
   document.getElementById('setup-screen').style.display='none';
   document.getElementById('mainApp').style.display='grid';
   document.getElementById('fab').style.display='flex';
@@ -1269,19 +1309,25 @@ function supaHeaders(){
   };
 }
 
-// Push state to Supabase (debounced — max 1 write per 2s)
+// Per-device user ID — ensures each user/device has isolated cloud data
+var _userId = (function(){
+  var id = localStorage.getItem('dd_uid');
+  if(!id){ id = 'u' + Math.random().toString(36).slice(2,10) + Date.now().toString(36); localStorage.setItem('dd_uid', id); }
+  return id;
+})();
+
+// Push state to Supabase — upsert so first-time write creates the row
 function pushToSupabase(data){
   clearTimeout(_syncTimer);
   _syncTimer = setTimeout(function(){
     _syncStatus = 'syncing';
     updateSyncIndicator();
-    fetch(SUPA_URL + '/rest/v1/app_data?id=eq.main', {
-      method: 'PATCH',
-      headers: supaHeaders(),
-      body: JSON.stringify({data: data, updated_at: new Date().toISOString()})
+    fetch(SUPA_URL + '/rest/v1/app_data', {
+      method: 'POST',
+      headers: Object.assign({}, supaHeaders(), {'Prefer':'resolution=merge-duplicates,return=minimal'}),
+      body: JSON.stringify({id: _userId, data: data, updated_at: new Date().toISOString()})
     }).then(function(r){
-      if(r.ok){ _syncStatus='idle'; }
-      else { _syncStatus='error'; }
+      _syncStatus = r.ok ? 'idle' : 'error';
       updateSyncIndicator();
     }).catch(function(){
       _syncStatus='error';
@@ -1293,7 +1339,7 @@ function pushToSupabase(data){
 // Pull latest state from Supabase
 async function pullFromSupabase(){
   try{
-    var r = await fetch(SUPA_URL + '/rest/v1/app_data?id=eq.main&select=data', {
+    var r = await fetch(SUPA_URL + '/rest/v1/app_data?id=eq.' + encodeURIComponent(_userId) + '&select=data', {
       headers: supaHeaders()
     });
     var rows = await r.json();
@@ -1323,6 +1369,24 @@ function updateSyncIndicator(){
 var _DEFAULT_STATE = {
   streak:0,lastVisit:null,
   tasks:[],completedTasks:[],
+  projects:[
+    {id:'facc',name:'Financial Accounting',icon:'📒',colour:'#b85c38'},
+    {id:'macc',name:'Management Accounting',icon:'📊',colour:'#c4922a'},
+    {id:'fin',name:'Corporate Finance',icon:'💹',colour:'#3a7d5a'},
+    {id:'eco',name:'Economics',icon:'🌍',colour:'#3a6b8a'},
+    {id:'law',name:'Business Law',icon:'⚖️',colour:'#7a5fa0'},
+    {id:'stat',name:'Statistics',icon:'📐',colour:'#c07050'}
+  ],
+  // Keep subjects for GPA tracker (academic-only)
+  subjects:[
+    {id:'facc',name:'Financial Accounting',icon:'📒',colour:'#b85c38'},
+    {id:'macc',name:'Management Accounting',icon:'📊',colour:'#c4922a'},
+    {id:'fin',name:'Corporate Finance',icon:'💹',colour:'#3a7d5a'},
+    {id:'eco',name:'Economics',icon:'🌍',colour:'#3a6b8a'},
+    {id:'law',name:'Business Law',icon:'⚖️',colour:'#7a5fa0'},
+    {id:'stat',name:'Statistics',icon:'📐',colour:'#c07050'}
+  ],
+  // Legacy spaces kept for backwards-compat only
   spaces:[
     {id:'school',name:'School',icon:'🎓'},
     {id:'work',name:'Work',icon:'💼'},
@@ -1339,14 +1403,6 @@ var _DEFAULT_STATE = {
     {id:'h2',name:'Learn something',icon:'📚',streak:0,history:[]}
   ],
   events:[],notes:[],
-  subjects:[
-    {id:'facc',name:'Financial Accounting',icon:'📒',colour:'#b85c38'},
-    {id:'macc',name:'Management Accounting',icon:'📊',colour:'#c4922a'},
-    {id:'fin',name:'Corporate Finance',icon:'💹',colour:'#3a7d5a'},
-    {id:'eco',name:'Economics',icon:'🌍',colour:'#3a6b8a'},
-    {id:'law',name:'Business Law',icon:'⚖️',colour:'#7a5fa0'},
-    {id:'stat',name:'Statistics',icon:'📐',colour:'#c07050'}
-  ],
   gpa:{semesters:[]},expenses:[],captures:[],
   focusSessions:[],briefCache:{},conceptCache:null,
   intention:'',plannedTasks:[],quizCache:null,
@@ -1381,6 +1437,19 @@ function fmtDate(dateStr){
   return new Date(dateStr).toLocaleDateString('en-MY',{month:'short',day:'numeric'});
 }
 
+function getProjects(){
+  var s=getS();
+  // If user has projects, use them. Otherwise fall back to subjects for legacy data.
+  return (s.projects && s.projects.length>0) ? s.projects : (s.subjects||[]);
+}
+
+// Get project by ID — checks projects then subjects for backwards compat
+function getProjectById(id){
+  var s=getS();
+  return (s.projects||[]).find(function(p){return p.id===id;})||
+         (s.subjects||[]).find(function(p){return p.id===id;})||null;
+}
+
 function getLabelById(id){
   return getS().labels.find(l=>l.id===id)||null;
 }
@@ -1389,21 +1458,21 @@ function renderLabelPill(labelId,small){
   const lbl=getLabelById(labelId);
   if(!lbl)return '';
   const size=small?'9px':'10px';
-  return '<span class="label-pill" style="background:'+lbl.colour+'22;color:'+lbl.colour+';border-color:'+lbl.colour+'44;font-size:'+size+'">'+lbl.icon+' '+lbl.name+'</span>';
+  return '<span class="label-pill" style="background:'+lbl.colour+'22;color:'+lbl.colour+';border-color:'+lbl.colour+'44;font-size:'+size+'">'+esc(lbl.icon)+' '+esc(lbl.name)+'</span>';
 }
 
 function populateLabelSelect(selId){
   const sel=document.getElementById(selId);
   if(!sel)return;
   const s=getS();
-  sel.innerHTML='<option value="">No label</option>'+s.labels.map(l=>'<option value="'+l.id+'">'+l.icon+' '+l.name+'</option>').join('');
+  sel.innerHTML='<option value="">No label</option>'+s.labels.map(l=>'<option value="'+l.id+'">'+esc(l.icon)+' '+esc(l.name)+'</option>').join('');
 }
 
 function populateSpaceSelect(selId){
   const sel=document.getElementById(selId);
   if(!sel)return;
-  const s=getS();
-  sel.innerHTML=s.spaces.map(sp=>'<option value="'+sp.id+'">'+sp.icon+' '+sp.name+'</option>').join('');
+  const projects=getProjects();
+  sel.innerHTML='<option value="">No project</option>'+projects.map(p=>'<option value="'+p.id+'">'+esc(p.icon)+' '+esc(p.name)+'</option>').join('');
 }
 
 // ═══════════════════════════════════════════════
@@ -1516,19 +1585,21 @@ function saveLabel(){
 }
 
 // ═══════════════════════════════════════════════
-// SPACES
+// SPACES (legacy — now writes to projects)
 // ═══════════════════════════════════════════════
 function saveSpace(){
   const name=document.getElementById('sp-name').value.trim();
   if(!name){showToast('Enter a name','error');return;}
   const icon=document.getElementById('sp-icon').value.trim()||'📁';
   const s=getS();
-  saveS({spaces:[...s.spaces,{id:'sp'+Date.now(),name,icon}]});
+  const newP={id:'p'+Date.now(),name,icon,colour:'#b85c38'};
+  saveS({projects:[...getProjects(),newP],spaces:[...(s.spaces||[]),newP]});
   closeModal('spaceModal');
   document.getElementById('sp-name').value='';
   document.getElementById('sp-icon').value='';
-  showToast('Space added!','info');
+  showToast('Project added!','success');
   if(currentView==='tasks')renderTasks();
+  if(currentView==='vault')renderVault();
 }
 
 // ═══════════════════════════════════════════════
@@ -1555,12 +1626,12 @@ function renderMorning(){
     else if(days===1)reminders.push({type:'urgent',msg:'⏰ "'+t.title+'" is due TOMORROW'});
     else if(days<=3)reminders.push({type:'warning',msg:'📅 "'+t.title+'" is due in '+days+' days'});
   });
-  // Subject neglect check
+  // Project neglect check
   const now7=new Date(Date.now()-7*86400000).toISOString();
-  s.subjects.forEach(function(sub){
-    const subNotes=s.notes.filter(function(n){return n.subject===sub.id&&n.updated>now7;});
-    if(subNotes.length===0&&s.notes.some(function(n){return n.subject===sub.id;})){
-      reminders.push({type:'info',msg:'📚 You have not studied '+sub.name+' in over a week'});
+  getProjects().forEach(function(p){
+    const pNotes=s.notes.filter(function(n){return (n.subject===p.id||n.projectId===p.id)&&n.updated>now7;});
+    if(pNotes.length===0&&s.notes.some(function(n){return n.subject===p.id||n.projectId===p.id;})){
+      reminders.push({type:'info',msg:'📚 You haven\'t studied '+esc(p.name)+' in over a week'});
     }
   });
   remEl.innerHTML=reminders.slice(0,4).map(function(r){
@@ -1667,19 +1738,19 @@ function renderTaskItem(t,compact){
   var lbl=getLabelById(t.labelId);
   var prioColour={high:'var(--red)',medium:'var(--gold)',low:'var(--green)'}[t.priority]||'';
   var prioLabel={high:'🔴 High',medium:'🟡 Med',low:'🟢 Low'}[t.priority]||'';
-  var space=getS().spaces.find(function(sp){return sp.id===t.space;});
-  var assignBadge=t.isAssignment?'<span style="font-size:9px;background:rgba(58,107,138,0.12);color:var(--blue);border:1px solid rgba(58,107,138,0.25);border-radius:3px;padding:1px 5px;font-family:var(--mono);font-weight:600">'+(t.assignType||'ASSIGN').toUpperCase()+(t.weightage?' '+t.weightage+'%':'')+'</span>':'';
-  var gradeTag=t.actualGrade?'<span style="font-size:9px;background:rgba(58,125,90,0.12);color:var(--green);border:1px solid rgba(58,125,90,0.25);border-radius:3px;padding:1px 5px;font-family:var(--mono);font-weight:600">'+t.actualGrade+'</span>':'';
-  var html='<div class="task-item'+(t.done?' done':'')+'" onclick="openTaskDetail(\'' + t.id + '\')">';
-  html+='<div class="task-check'+(t.done?' done':'')+'" onclick="event.stopPropagation();toggleTask(\'' + t.id + '\')">'+(t.done?'✓':'')+'</div>';
-  html+='<div class="task-content">';
-  html+='<div class="task-title">'+t.title+'</div>';
-  html+='<div class="task-meta">';
-  if(lbl)html+='<span class="label-pill" style="background:'+lbl.colour+'22;color:'+lbl.colour+';border:1px solid '+lbl.colour+'44;font-size:9px;padding:1px 6px;border-radius:10px;font-family:var(--mono)">'+lbl.icon+' '+lbl.name+'</span>';
+  var proj=getProjectById(t.projectId||t.space);
+  var assignBadge=t.isAssignment?'<span style="font-size:9px;background:rgba(58,107,138,0.12);color:var(--blue);border:1px solid rgba(58,107,138,0.25);border-radius:3px;padding:1px 5px;font-family:var(--mono);font-weight:600">'+esc((t.assignType||'ASSIGN').toUpperCase())+(t.weightage?' '+esc(t.weightage)+'%':'')+'</span>':'';
+  var gradeTag=t.actualGrade?'<span style="font-size:9px;background:rgba(58,125,90,0.12);color:var(--green);border:1px solid rgba(58,125,90,0.25);border-radius:3px;padding:1px 5px;font-family:var(--mono);font-weight:600">'+esc(t.actualGrade)+'</span>':'';
+  var html='<div class="task-item'+(t.done?' done':'')+'" onclick="openTaskDetail(\''+t.id+'\')">'+
+    '<div class="task-check'+(t.done?' done':'')+'" onclick="event.stopPropagation();toggleTask(\''+t.id+'\')">'+( t.done?'✓':'')+'</div>'+
+    '<div class="task-content">'+
+      '<div class="task-title">'+esc(t.title)+'</div>'+
+      '<div class="task-meta">';
+  if(lbl)html+='<span class="label-pill" style="background:'+lbl.colour+'22;color:'+lbl.colour+';border:1px solid '+lbl.colour+'44;font-size:9px;padding:1px 6px;border-radius:10px;font-family:var(--mono)">'+esc(lbl.icon)+' '+esc(lbl.name)+'</span>';
   if(t.priority&&prioLabel)html+='<span style="font-size:9px;color:'+prioColour+';font-family:var(--mono);font-weight:600">'+prioLabel+'</span>';
   if(t.due)html+='<span class="task-due '+dueClass+'">📅 '+fmtDate(t.due)+(days===0?' · TODAY':days===1?' · tmrw':days!==null&&days<=7?' · '+days+'d':'')+'</span>';
-  if(!compact&&space)html+='<span style="font-size:9px;color:var(--text3);font-family:var(--mono)">'+space.icon+' '+space.name+'</span>';
-  if(t.subject)html+='<span style="font-size:9px;color:var(--text3);background:var(--surface2);border-radius:3px;padding:1px 5px;font-family:var(--mono)">'+t.subject+'</span>';
+  if(!compact&&proj)html+='<span style="font-size:9px;color:var(--text3);font-family:var(--mono)">'+esc(proj.icon)+' '+esc(proj.name)+'</span>';
+  if(t.subject)html+='<span style="font-size:9px;color:var(--text3);background:var(--surface2);border-radius:3px;padding:1px 5px;font-family:var(--mono)">'+esc(t.subject)+'</span>';
   html+=assignBadge+gradeTag;
   if(t.notes&&t.notes.length>0)html+='<span style="font-size:9px;color:var(--text3);font-family:var(--mono)">📝</span>';
   html+='</div></div></div>';
@@ -1688,15 +1759,17 @@ function renderTaskItem(t,compact){
 
 function _renderTasksBase(){
   const s=getS();
+  const projects=getProjects();
   const tabsEl=document.getElementById('spaceTabs');
   tabsEl.innerHTML='<button class="space-tab'+(currentSpace==='all'?' active':'')+'" onclick="switchSpace(\'all\',this)">All</button>'+
-    s.spaces.map(function(sp){
-      return '<button class="space-tab'+(currentSpace===sp.id?' active':'')+'" onclick="switchSpace(\''+sp.id+'\',this)">'+sp.icon+' '+sp.name+'</button>';
+    projects.map(function(p){
+      return '<button class="space-tab'+(currentSpace===p.id?' active':'')+'" onclick="switchSpace(\''+p.id+'\',this)">'+esc(p.icon)+' '+esc(p.name)+'</button>';
     }).join('')+
-    '<button class="space-tab" onclick="openModal(\'spaceModal\')" style="border-style:dashed;opacity:0.6">+ Project</button>';
+    '<button class="space-tab" onclick="openModal(\'subjectModal\')" style="border-style:dashed;opacity:0.6">+ Project</button>';
 
   let tasks=s.tasks.filter(function(t){return !t.done;});
-  if(currentSpace!=='all')tasks=tasks.filter(function(t){return t.space===currentSpace;});
+  // Match on projectId first, fall back to legacy space field
+  if(currentSpace!=='all')tasks=tasks.filter(function(t){return (t.projectId||t.space)===currentSpace;});
 
   const pf=document.getElementById('taskPrioFilter');
   if(pf&&pf.value&&pf.value!=='all')tasks=tasks.filter(function(t){return t.priority===pf.value;});
@@ -1707,17 +1780,35 @@ function _renderTasksBase(){
   tasks.sort(function(a,b){
     if(sortBy==='due'){if(!a.due&&!b.due)return 0;if(!a.due)return 1;if(!b.due)return -1;return new Date(a.due)-new Date(b.due);}
     if(sortBy==='priority')return (PO[a.priority]||1)-(PO[b.priority]||1);
+    if(sortBy==='project'){
+      var pa=getProjectById(a.projectId||a.space),pb=getProjectById(b.projectId||b.space);
+      return (pa?pa.name:'').localeCompare(pb?pb.name:'');
+    }
     if(sortBy==='subject')return (a.subject||'').localeCompare(b.subject||'');
     if(sortBy==='alpha')return a.title.localeCompare(b.title);
     return new Date(b.created)-new Date(a.created);
   });
 
   const listEl=document.getElementById('taskList');
-  if(sortBy==='subject'&&tasks.length>0){
+  if(sortBy==='project'&&tasks.length>0){
+    const groups={};
+    tasks.forEach(function(t){
+      const p=getProjectById(t.projectId||t.space);
+      const k=p?(p.icon+' '+p.name):'No Project';
+      if(!groups[k])groups[k]=[];
+      groups[k].push(t);
+    });
+    listEl.innerHTML=Object.entries(groups).map(function(e){
+      return '<div style="margin-bottom:16px">'+
+        '<div style="font-family:var(--mono);font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.1em;padding:4px 0;border-bottom:1px solid var(--border);margin-bottom:8px">'+esc(e[0])+'</div>'+
+        e[1].map(function(t){return renderTaskItem(t,false);}).join('')+
+      '</div>';
+    }).join('');
+  } else if(sortBy==='subject'&&tasks.length>0){
     const groups={};
     tasks.forEach(function(t){const k=t.subject||'Uncategorised';if(!groups[k])groups[k]=[];groups[k].push(t);});
     listEl.innerHTML=Object.entries(groups).map(function(e){
-      return '<div style="margin-bottom:16px"><div style="font-family:var(--mono);font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.1em;padding:4px 0;border-bottom:1px solid var(--border);margin-bottom:8px">'+e[0]+'</div>'+
+      return '<div style="margin-bottom:16px"><div style="font-family:var(--mono);font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.1em;padding:4px 0;border-bottom:1px solid var(--border);margin-bottom:8px">'+esc(e[0])+'</div>'+
         e[1].map(function(t){return renderTaskItem(t,false);}).join('')+'</div>';
     }).join('');
   } else {
@@ -1733,6 +1824,7 @@ function _renderTasksBase(){
     ?'<div style="margin-top:10px">'+completed.slice(0,20).map(function(t){return renderTaskItem(t,false);}).join('')+'</div>'
     :'');
 }
+
 
 function switchSpace(space,el){
   currentSpace=space;
@@ -1776,7 +1868,8 @@ function saveTask(){
   const task={
     id:'t'+Date.now(),
     title:title,
-    space:document.getElementById('t-space').value,
+    projectId:document.getElementById('t-space').value,
+    space:document.getElementById('t-space').value, // kept for compat
     labelId:document.getElementById('t-label').value,
     due:document.getElementById('t-due').value,
     priority:document.getElementById('t-priority').value,
@@ -1821,10 +1914,12 @@ function openTaskDetail(id){
 
   // Meta info
   const lbl=getLabelById(task.labelId);
+  const proj=getProjectById(task.projectId||task.space);
   document.getElementById('detailMeta').innerHTML=
     (lbl?renderLabelPill(task.labelId,false)+' ':'')+
     (task.due?'<span class="tag" style="color:var(--text3);border-color:var(--border2)">📅 Due '+fmtDate(task.due)+'</span> ':'')+
-    '<span class="tag" style="color:var(--text3);border-color:var(--border2)">'+task.space+'</span>';
+    (proj?'<span class="tag" style="color:'+proj.colour+';border-color:'+proj.colour+'44">'+esc(proj.icon)+' '+esc(proj.name)+'</span>':'')+
+    (task.isAssignment&&task.weightage?'<span class="tag" style="color:var(--blue);border-color:rgba(58,107,138,0.3)">'+esc(task.assignType||'Assignment')+' · '+esc(task.weightage)+'%</span>':'');
 
   // Header actions
   document.getElementById('detailHeaderActions').innerHTML=
@@ -1854,9 +1949,9 @@ function openNoteDetail(id){
   detailId=id;
   document.getElementById('detailTitle').value=note.title;
   document.getElementById('richEditor').innerHTML=note.content||'';
-  const sub=s.subjects.find(function(sub){return sub.id===note.subject;});
+  const proj=getProjectById(note.subject||note.projectId);
   document.getElementById('detailMeta').innerHTML=
-    (sub?'<span class="tag" style="color:'+sub.colour+';border-color:'+sub.colour+'44">'+sub.icon+' '+sub.name+'</span>':'');
+    (proj?'<span class="tag" style="color:'+proj.colour+';border-color:'+proj.colour+'44">'+esc(proj.icon)+' '+esc(proj.name)+'</span>':'');
   document.getElementById('detailHeaderActions').innerHTML=
     '<button class="btn btn-ghost btn-sm" onclick="generateFlashcardsFromNote()">🃏 Flashcards</button>'+
     '<button class="btn btn-ghost btn-sm" onclick="exportCurrentNote()">📤 Export</button>'+
@@ -2185,28 +2280,122 @@ function deleteHabit(id){
 }
 
 // ═══════════════════════════════════════════════
-// STUDY VAULT
+// PROJECT WORKSPACES (Vault)
 // ═══════════════════════════════════════════════
+function getTasksForProject(id,s){
+  return (s.tasks||[]).filter(function(t){return (t.projectId===id||t.space===id)&&!t.done;});
+}
+function getNotesForProject(id,s){
+  return (s.notes||[]).filter(function(n){return n.subject===id||n.projectId===id;});
+}
+function getPdfsForProject(id,s){
+  return ((s.pdfFiles&&s.pdfFiles[id])||[]);
+}
+function getAssignmentsForProject(id,s){
+  var active=(s.tasks||[]).filter(function(t){return (t.projectId===id||t.space===id)&&t.isAssignment;});
+  var done=(s.completedTasks||[]).filter(function(t){return (t.projectId===id||t.space===id)&&t.isAssignment;});
+  return active.concat(done);
+}
+
+function statPill(val,label,colour){
+  return '<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center">'+
+    '<div style="font-family:var(--serif);font-size:22px;font-weight:700;color:'+colour+'">'+val+'</div>'+
+    '<div style="font-size:9px;color:var(--text3);font-family:var(--mono);text-transform:uppercase;letter-spacing:0.06em">'+label+'</div>'+
+  '</div>';
+}
+
+function renderAssignmentTable(assignments){
+  if(assignments.length===0){
+    return '<div class="empty" style="padding:12px"><div class="empty-text">No assignments yet. Click + Assignment above.</div></div>';
+  }
+  var GRADE_GOOD={'A+':1,'A':1,'A-':1};
+  var GRADE_MID={'B+':1,'B':1,'B-':1};
+  return '<div style="overflow-x:auto">'+
+    '<table style="width:100%;border-collapse:collapse;font-size:12px">'+
+    '<thead><tr style="border-bottom:2px solid var(--border)">'+
+      '<th style="text-align:left;padding:6px 8px;font-size:9px;font-family:var(--mono);color:var(--text3);text-transform:uppercase">Task</th>'+
+      '<th style="text-align:center;padding:6px 8px;font-size:9px;font-family:var(--mono);color:var(--text3);text-transform:uppercase">Type</th>'+
+      '<th style="text-align:center;padding:6px 8px;font-size:9px;font-family:var(--mono);color:var(--text3);text-transform:uppercase">Weight</th>'+
+      '<th style="text-align:center;padding:6px 8px;font-size:9px;font-family:var(--mono);color:var(--text3);text-transform:uppercase">Due</th>'+
+      '<th style="text-align:center;padding:6px 8px;font-size:9px;font-family:var(--mono);color:var(--text3);text-transform:uppercase">Target</th>'+
+      '<th style="text-align:center;padding:6px 8px;font-size:9px;font-family:var(--mono);color:var(--text3);text-transform:uppercase">Actual</th>'+
+    '</tr></thead><tbody>'+
+    assignments.map(function(a){
+      var gradeCol=a.actualGrade?(GRADE_GOOD[a.actualGrade]?'var(--green)':GRADE_MID[a.actualGrade]?'var(--blue)':'var(--red)'):'var(--text3)';
+      var daysLeft=a.due&&!a.done?daysUntil(a.due):null;
+      var dueSt=daysLeft!==null&&daysLeft<=3&&!a.done?'color:var(--red);font-weight:600':'color:var(--text3)';
+      return '<tr onclick="openTaskDetail(\''+a.id+'\')" style="cursor:pointer;transition:background 0.1s" onmouseover="this.style.background=\'var(--bg)\'" onmouseout="this.style.background=\'\'">'+
+        '<td style="padding:8px;font-weight:500;color:var(--text)">'+esc(a.title)+(a.done?' <span style="font-size:9px;color:var(--green)">✓</span>':'')+'</td>'+
+        '<td style="text-align:center;padding:8px;color:var(--text3);font-family:var(--mono);font-size:10px">'+esc(a.assignType||'—')+'</td>'+
+        '<td style="text-align:center;padding:8px;color:var(--accent);font-weight:600;font-family:var(--mono)">'+(a.weightage?a.weightage+'%':'—')+'</td>'+
+        '<td style="text-align:center;padding:8px;font-family:var(--mono);font-size:11px;'+dueSt+'">'+(a.due?fmtDate(a.due)+(daysLeft!==null&&daysLeft<=3&&!a.done?' ('+daysLeft+'d)':''):'—')+'</td>'+
+        '<td style="text-align:center;padding:8px;color:var(--blue);font-family:var(--mono)">'+esc(a.targetGrade||'—')+'</td>'+
+        '<td style="text-align:center;padding:8px">'+
+          (a.actualGrade
+            ?'<span style="font-weight:700;font-family:var(--mono);color:'+gradeCol+'">'+esc(a.actualGrade)+'</span>'
+            :'<button class="btn btn-ghost btn-xs" onclick="event.stopPropagation();setActualGrade(\''+a.id+'\')">Enter</button>')+
+        '</td>'+
+      '</tr>';
+    }).join('')+
+    '</tbody></table></div>';
+}
+
+function renderProjectLinks(links,pid){
+  if(!links||links.length===0) return '<div style="font-size:11px;color:var(--text3);padding:6px 0">No links yet.</div>';
+  return links.map(function(l,i){
+    return '<a href="'+esc(l.url)+'" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;margin-bottom:6px;text-decoration:none;color:var(--text);font-size:12px;transition:border-color 0.15s" onmouseover="this.style.borderColor=\'var(--accent)\'" onmouseout="this.style.borderColor=\'var(--border)\'">'+
+      '<span style="flex-shrink:0">🔗</span><span style="flex:1;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(l.title)+'</span>'+
+      '<button onclick="event.preventDefault();event.stopPropagation();removeProjectLink(\''+pid+'\','+i+')" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:12px;flex-shrink:0;padding:0 2px">✕</button></a>';
+  }).join('');
+}
+
+function addProjectLink(pid){
+  var title=prompt('Link title (e.g. Lecture Slides):');
+  if(!title)return;
+  var url=prompt('URL:');
+  if(!url)return;
+  if(!url.startsWith('http'))url='https://'+url;
+  var s=getS();
+  var pl=s.projectLinks||{};
+  pl[pid]=[...(pl[pid]||[]),{title:title,url:url}];
+  saveS({projectLinks:pl});
+  var el=document.getElementById('projectLinks_'+pid);
+  if(el)el.innerHTML=renderProjectLinks(pl[pid],pid);
+  showToast('Link added!','success');
+}
+
+function removeProjectLink(pid,idx){
+  var s=getS();
+  var pl=s.projectLinks||{};
+  pl[pid]=(pl[pid]||[]).filter(function(_,i){return i!==idx;});
+  saveS({projectLinks:pl});
+  var el=document.getElementById('projectLinks_'+pid);
+  if(el)el.innerHTML=renderProjectLinks(pl[pid],pid);
+}
+
 function renderVault(){
   const s=getS();
+  const projects=getProjects();
   document.getElementById('subjectView').style.display='none';
   document.getElementById('subjectGrid').style.display='grid';
-  document.getElementById('subjectGrid').innerHTML=s.subjects.map(function(sub){
-    const notes=s.notes.filter(function(n){return n.subject===sub.id;}).length;
-    const pendingTasks=s.tasks.filter(function(t){return t.space===sub.id&&!t.done;}).length;
-    const urgentCount=s.tasks.filter(function(t){return t.space===sub.id&&!t.done&&t.due&&daysUntil(t.due)<=3;}).length;
-    const subPdfCount=((s.pdfFiles&&s.pdfFiles[sub.id])||[]).length;
-    const borderCol=urgentCount>0?'rgba(192,64,64,0.35)':'var(--border)';
-    return '<div onclick="openSubject(\''+sub.id+'\')" style="background:var(--surface);border:1px solid '+borderCol+';border-radius:var(--radius);padding:16px;cursor:pointer;transition:all 0.2s;position:relative;overflow:hidden" onmouseover="this.style.transform=\'translateY(-2px)\';this.style.boxShadow=\'var(--shadow-lg)\'" onmouseout="this.style.transform=\'\';this.style.boxShadow=\'\'">'+
-      '<div style="position:absolute;top:0;left:0;right:0;height:3px;background:'+sub.colour+'"></div>'+
-      '<div style="position:absolute;top:8px;right:8px;cursor:pointer;font-size:11px;color:var(--text3)" onclick="event.stopPropagation();deleteSubject(\''+sub.id+'\')" >✕</div>'+
-      '<div style="font-size:22px;margin-bottom:6px;margin-top:6px">'+sub.icon+'</div>'+
-      '<div style="font-family:var(--serif);font-size:14px;font-weight:700;color:var(--text);margin-bottom:8px">'+sub.name+'</div>'+
-      '<div style="display:flex;gap:6px;flex-wrap:wrap">'+
-        (pendingTasks>0?'<span style="font-size:9px;background:var(--accent-soft);color:var(--accent);border-radius:3px;padding:1px 6px;font-family:var(--mono)">'+pendingTasks+' task'+(pendingTasks>1?'s':'')+'</span>':'')+
-        (urgentCount>0?'<span style="font-size:9px;background:rgba(192,64,64,0.1);color:var(--red);border-radius:3px;padding:1px 6px;font-family:var(--mono)">⚠️ '+urgentCount+' urgent</span>':'')+
+  document.getElementById('subjectGrid').innerHTML=projects.map(function(p){
+    const notes=getNotesForProject(p.id,s).length;
+    const pending=getTasksForProject(p.id,s).length;
+    const urgent=getTasksForProject(p.id,s).filter(function(t){return t.due&&daysUntil(t.due)<=3;}).length;
+    const assigns=getAssignmentsForProject(p.id,s).length;
+    const pdfs=getPdfsForProject(p.id,s).length;
+    const borderCol=urgent>0?'rgba(192,64,64,0.35)':'var(--border)';
+    return '<div onclick="openProject(\''+p.id+'\')" style="background:var(--surface);border:1px solid '+borderCol+';border-radius:var(--radius);padding:16px;cursor:pointer;transition:all 0.2s;position:relative;overflow:hidden" onmouseover="this.style.transform=\'translateY(-2px)\';this.style.boxShadow=\'var(--shadow-lg)\'" onmouseout="this.style.transform=\'\';this.style.boxShadow=\'\'">'+
+      '<div style="position:absolute;top:0;left:0;right:0;height:3px;background:'+p.colour+'"></div>'+
+      '<div style="position:absolute;top:8px;right:8px;font-size:11px;color:var(--text3);cursor:pointer" onclick="event.stopPropagation();deleteProject(\''+p.id+'\')">✕</div>'+
+      '<div style="font-size:22px;margin:10px 0 6px">'+esc(p.icon)+'</div>'+
+      '<div style="font-family:var(--serif);font-size:14px;font-weight:700;color:var(--text);margin-bottom:8px">'+esc(p.name)+'</div>'+
+      '<div style="display:flex;gap:5px;flex-wrap:wrap">'+
+        (pending>0?'<span style="font-size:9px;background:var(--accent-soft);color:var(--accent);border-radius:3px;padding:1px 6px;font-family:var(--mono)">'+pending+' task'+(pending>1?'s':'')+'</span>':'')+
+        (urgent>0?'<span style="font-size:9px;background:rgba(192,64,64,0.1);color:var(--red);border-radius:3px;padding:1px 6px;font-family:var(--mono)">⚠️ '+urgent+' urgent</span>':'')+
+        (assigns>0?'<span style="font-size:9px;background:rgba(58,107,138,0.1);color:var(--blue);border-radius:3px;padding:1px 6px;font-family:var(--mono)">'+assigns+' asgmt</span>':'')+
         (notes>0?'<span style="font-size:9px;background:rgba(58,125,90,0.1);color:var(--green);border-radius:3px;padding:1px 6px;font-family:var(--mono)">'+notes+' note'+(notes>1?'s':'')+'</span>':'')+
-        (subPdfCount>0?'<span style="font-size:9px;background:rgba(196,146,42,0.1);color:var(--gold);border-radius:3px;padding:1px 6px;font-family:var(--mono)">'+subPdfCount+' PDF'+(subPdfCount>1?'s':'')+'</span>':'')+
+        (pdfs>0?'<span style="font-size:9px;background:rgba(196,146,42,0.1);color:var(--gold);border-radius:3px;padding:1px 6px;font-family:var(--mono)">'+pdfs+' PDF'+(pdfs>1?'s':'')+'</span>':'')+
       '</div>'+
     '</div>';
   }).join('')+
@@ -2216,154 +2405,141 @@ function renderVault(){
   '</div>';
 }
 
-function openSubject(id){
+function openProject(id){
   const s=getS();
-  const sub=s.subjects.find(function(sub){return sub.id===id;});
-  if(!sub)return;
+  const p=getProjectById(id);
+  if(!p)return;
   document.getElementById('subjectGrid').style.display='none';
   const view=document.getElementById('subjectView');
   view.style.display='block';
 
-  const subNotes=s.notes.filter(function(n){return n.subject===id;});
-  const subTasks=s.tasks.filter(function(t){return t.space===id&&!t.done;});
-  const subAssignments=s.tasks.filter(function(t){return t.space===id&&t.isAssignment;});
-  const subCompleted=(s.completedTasks||[]).filter(function(t){return t.space===id;});
-  const subPdfs=(s.pdfFiles&&s.pdfFiles[id])||[];
-
-  // Deadline urgency for header
-  const urgent=subTasks.filter(function(t){return t.due&&daysUntil(t.due)<=3;}).length;
+  const tasks=getTasksForProject(id,s);
+  const notes=getNotesForProject(id,s);
+  const assignments=getAssignmentsForProject(id,s);
+  const pdfs=getPdfsForProject(id,s);
+  const completed=(s.completedTasks||[]).filter(function(t){return t.projectId===id||t.space===id;});
+  const links=(s.projectLinks&&s.projectLinks[id])||[];
+  const urgent=tasks.filter(function(t){return t.due&&daysUntil(t.due)<=3;}).length;
+  const gradedCount=assignments.filter(function(a){return a.actualGrade;}).length;
 
   view.innerHTML=
-    // Header
-    '<div style="display:flex;align-items:center;gap:10px;margin-bottom:18px">'+
-      '<button class="btn btn-ghost btn-sm" onclick="renderVault()">← Back</button>'+
-      '<div style="width:12px;height:12px;border-radius:50%;background:'+sub.colour+';flex-shrink:0"></div>'+
-      '<div style="font-family:var(--serif);font-size:18px;font-weight:700;color:var(--text);flex:1">'+sub.icon+' '+sub.name+'</div>'+
+    '<div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;flex-wrap:wrap">'+
+      '<button class="btn btn-ghost btn-sm" onclick="renderVault()">← Projects</button>'+
+      '<div style="width:12px;height:12px;border-radius:50%;background:'+p.colour+';flex-shrink:0"></div>'+
+      '<div style="font-family:var(--serif);font-size:18px;font-weight:700;color:var(--text);flex:1">'+esc(p.icon)+' '+esc(p.name)+'</div>'+
       (urgent?'<span style="background:rgba(192,64,64,0.1);color:var(--red);border:1px solid rgba(192,64,64,0.2);border-radius:6px;padding:3px 10px;font-size:11px;font-weight:600">⚠️ '+urgent+' deadline'+(urgent>1?'s':'')+' soon</span>':'')+
     '</div>'+
 
-    // Quick stats bar
     '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px">'+
-      '<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center">'+
-        '<div style="font-family:var(--serif);font-size:22px;font-weight:700;color:var(--accent)">'+subTasks.length+'</div>'+
-        '<div style="font-size:9px;color:var(--text3);font-family:var(--mono);text-transform:uppercase;letter-spacing:0.06em">Pending</div>'+
-      '</div>'+
-      '<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center">'+
-        '<div style="font-family:var(--serif);font-size:22px;font-weight:700;color:var(--blue)">'+subAssignments.length+'</div>'+
-        '<div style="font-size:9px;color:var(--text3);font-family:var(--mono);text-transform:uppercase;letter-spacing:0.06em">Assignments</div>'+
-      '</div>'+
-      '<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center">'+
-        '<div style="font-family:var(--serif);font-size:22px;font-weight:700;color:var(--green)">'+subNotes.length+'</div>'+
-        '<div style="font-size:9px;color:var(--text3);font-family:var(--mono);text-transform:uppercase;letter-spacing:0.06em">Notes</div>'+
-      '</div>'+
-      '<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center">'+
-        '<div style="font-family:var(--serif);font-size:22px;font-weight:700;color:var(--gold)">'+subPdfs.length+'</div>'+
-        '<div style="font-size:9px;color:var(--text3);font-family:var(--mono);text-transform:uppercase;letter-spacing:0.06em">Files</div>'+
-      '</div>'+
+      statPill(tasks.length,'Tasks','var(--accent)')+
+      statPill(assignments.length,'Assignments','var(--blue)')+
+      statPill(notes.length,'Notes','var(--green)')+
+      statPill(pdfs.length,'PDFs','var(--gold)')+
     '</div>'+
 
-    // Action buttons
-    '<div style="display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap">'+
+    '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px">'+
       '<button class="btn btn-primary btn-sm" onclick="openTaskModalForProject(\''+id+'\')">+ Task</button>'+
-      '<button class="btn btn-secondary btn-sm" onclick="openAssignmentModalForProject(\''+id+'\')">📋 Assignment</button>'+
-      '<button class="btn btn-secondary btn-sm" onclick="createNoteForSubject(\''+id+'\')">📝 Note</button>'+
-      '<button class="btn btn-secondary btn-sm" onclick="document.getElementById(\'pdfUpload_'+id+'\').click()">📎 PDF</button>'+
-      '<button class="btn btn-ghost btn-sm" onclick="toggleAIPanel(\''+id+'\')">🤖 AI Tools</button>'+
-      '<input type="file" id="pdfUpload_'+id+'" accept=".pdf" style="display:none" onchange="uploadPdfForSubject(\''+id+'\',this)"/>'+
+      '<button class="btn btn-secondary btn-sm" onclick="openAssignmentModalForProject(\''+id+'\')">+ Assignment</button>'+
+      '<button class="btn btn-secondary btn-sm" onclick="createNoteForSubject(\''+id+'\')">+ Note</button>'+
+      '<button class="btn btn-ghost btn-sm" onclick="addProjectLink(\''+id+'\')">+ Link</button>'+
+      (hasGroq()?'<button class="btn btn-ghost btn-sm" onclick="toggleAIPanel(\'ai_'+id+'\')">🤖 AI Tools</button>':'')+
     '</div>'+
 
-    // AI Panel
-    '<div id="aiPanel_'+id+'" style="display:none;margin-bottom:16px">'+
-      '<div style="background:linear-gradient(135deg,#fef3e8,#fdeadb);border:1px solid #e8cdb0;border-radius:var(--radius);padding:16px">'+
-        '<div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:8px">🤖 AI Study Assistant</div>'+
-        '<textarea class="input" id="aiNotes_'+id+'" placeholder="Paste your notes here..." style="min-height:90px;margin-bottom:10px"></textarea>'+
-        '<div style="display:flex;gap:8px;margin-bottom:10px">'+
-          '<div style="flex:1"><div class="input-label">Depth</div><select class="input" id="aiDepth_'+id+'"><option value="1">Light</option><option value="2" selected>Medium</option><option value="3">Deep</option></select></div>'+
-          '<div style="flex:1"><div class="input-label">Difficulty</div><select class="input" id="aiDiff_'+id+'"><option value="1">Easy</option><option value="2" selected>Medium</option><option value="3">Hard</option></select></div>'+
-        '</div>'+
-        '<div style="display:flex;gap:6px;flex-wrap:wrap">'+
-          '<button class="btn btn-primary btn-sm" onclick="aiStudy(\'guide\',\''+id+'\',\''+sub.name+'\')">📋 Study Guide</button>'+
-          '<button class="btn btn-secondary btn-sm" onclick="aiStudy(\'questions\',\''+id+'\',\''+sub.name+'\')">❓ Practice Qs</button>'+
-          '<button class="btn btn-secondary btn-sm" onclick="aiStudy(\'summary\',\''+id+'\',\''+sub.name+'\')">⚡ Summary</button>'+
-        '</div>'+
-        '<div id="aiOutput_'+id+'" style="display:none;margin-top:12px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px;font-size:13px;line-height:1.8;color:var(--text2);max-height:280px;overflow-y:auto"></div>'+
+    '<div class="card" style="margin-bottom:14px">'+
+      '<div class="card-header"><div class="card-title">Open Tasks</div>'+
+        '<span style="font-size:11px;color:var(--text3);font-family:var(--mono)">'+completed.length+' completed</span>'+
       '</div>'+
+      (tasks.length>0
+        ?tasks.map(function(t){return renderTaskItem(t,true);}).join('')
+        :'<div class="empty" style="padding:12px"><div class="empty-text">No open tasks. Click + Task above.</div></div>')+
     '</div>'+
 
-    // Tasks section
     '<div class="card" style="margin-bottom:14px">'+
       '<div class="card-header">'+
-        '<div class="card-title" style="font-size:15px">Tasks & Assignments</div>'+
-        '<div style="display:flex;gap:6px">'+
-          '<button class="btn btn-primary btn-xs" onclick="openTaskModalForProject(\''+id+'\')">+ Task</button>'+
-        '</div>'+
+        '<div class="card-title">Assignments &amp; Grade Tracker</div>'+
+        (assignments.length>0?'<span style="font-size:11px;color:var(--text3);font-family:var(--mono)">'+gradedCount+'/'+assignments.length+' graded</span>':'')+
       '</div>'+
-      (subTasks.length>0
-        ?subTasks.map(function(t){return renderTaskItem(t,true);}).join('')
-        :'<div class="empty" style="padding:16px"><div class="empty-text">No pending tasks</div></div>')+
-      (subCompleted.length>0
-        ?'<div style="margin-top:10px"><button class="btn btn-ghost btn-xs" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display===\'none\'?\'block\':\'none\'">Show '+subCompleted.length+' completed</button>'+
-          '<div style="display:none;margin-top:8px">'+subCompleted.map(function(t){return renderTaskItem(t,true);}).join('')+'</div></div>'
-        :'')+
+      renderAssignmentTable(assignments)+
     '</div>'+
 
-    // Assignments table (graded work)
-    (subAssignments.length>0||subCompleted.filter(function(t){return t.isAssignment;}).length>0
-      ?'<div class="card" style="margin-bottom:14px">'+
-          '<div class="card-title" style="font-size:15px;margin-bottom:12px">Grade Tracker</div>'+
-          '<table style="width:100%;border-collapse:collapse;font-size:12px">'+
-            '<thead><tr>'+
-              '<th style="text-align:left;padding:6px 8px;border-bottom:1px solid var(--border);font-family:var(--mono);font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em">Assignment</th>'+
-              '<th style="text-align:left;padding:6px 8px;border-bottom:1px solid var(--border);font-family:var(--mono);font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em">Type</th>'+
-              '<th style="text-align:center;padding:6px 8px;border-bottom:1px solid var(--border);font-family:var(--mono);font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em">Weight</th>'+
-              '<th style="text-align:center;padding:6px 8px;border-bottom:1px solid var(--border);font-family:var(--mono);font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em">Target</th>'+
-              '<th style="text-align:center;padding:6px 8px;border-bottom:1px solid var(--border);font-family:var(--mono);font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em">Grade</th>'+
-              '<th style="text-align:left;padding:6px 8px;border-bottom:1px solid var(--border);font-family:var(--mono);font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em">Due</th>'+
-            '</tr></thead>'+
-            '<tbody>'+
-            [...subAssignments,...subCompleted.filter(function(t){return t.isAssignment;})].map(function(t){
-              const gradeColour=t.actualGrade?'var(--green)':t.done?'var(--text3)':'var(--text)';
-              return '<tr onclick="openTaskDetail(\''+t.id+'\')" style="cursor:pointer" onmouseover="this.style.background=\'var(--bg)\'" onmouseout="this.style.background=\'\'">'+
-                '<td style="padding:8px;border-bottom:1px solid var(--border);color:var(--text);font-weight:500">'+(t.done?'<s>':'')+t.title+(t.done?'</s>':'')+'</td>'+
-                '<td style="padding:8px;border-bottom:1px solid var(--border);color:var(--text3);font-family:var(--mono);font-size:10px">'+(t.assignType||'–')+'</td>'+
-                '<td style="padding:8px;border-bottom:1px solid var(--border);text-align:center;font-family:var(--mono);color:var(--blue)">'+(t.weightage?t.weightage+'%':'–')+'</td>'+
-                '<td style="padding:8px;border-bottom:1px solid var(--border);text-align:center;font-family:var(--mono);color:var(--gold)">'+(t.targetGrade||'–')+'</td>'+
-                '<td style="padding:8px;border-bottom:1px solid var(--border);text-align:center;font-family:var(--mono);font-weight:600;color:'+gradeColour+'">'+(t.actualGrade||'–')+'</td>'+
-                '<td style="padding:8px;border-bottom:1px solid var(--border);font-family:var(--mono);font-size:10px;color:'+(t.due&&daysUntil(t.due)<=3?'var(--red)':'var(--text3)')+'">'+( t.due?fmtDate(t.due):'–')+'</td>'+
-              '</tr>';
-            }).join('')+
-            '</tbody>'+
-          '</table>'+
-        '</div>'
-      :'')+
+    '<div class="card" style="margin-bottom:14px">'+
+      '<div class="card-header"><div class="card-title">Notes</div>'+
+        '<button class="btn btn-primary btn-xs" onclick="createNoteForSubject(\''+id+'\')">+ Note</button>'+
+      '</div>'+
+      (notes.length>0
+        ?notes.map(function(n){
+          return '<div class="note-card" onclick="openNoteDetail(\''+n.id+'\')">'+
+            '<div class="note-card-title">'+esc(n.title)+'</div>'+
+            '<div class="note-card-preview">'+esc(stripHtml(n.content||'').slice(0,80))+'</div>'+
+            '<div class="note-card-meta"><span class="note-card-date">'+new Date(n.updated||n.created).toLocaleDateString()+'</span></div>'+
+          '</div>';
+        }).join('')
+        :'<div class="empty" style="padding:12px"><div class="empty-text">No notes yet.</div></div>')+
+    '</div>'+
 
-    // PDFs
     '<div class="card" style="margin-bottom:14px">'+
       '<div class="card-header">'+
-        '<div class="card-title" style="font-size:15px">Files & PDFs</div>'+
-        '<button class="btn btn-secondary btn-xs" onclick="document.getElementById(\'pdfUpload_'+id+'\').click()">+ Attach PDF</button>'+
+        '<div class="card-title">PDFs &amp; Files</div>'+
+        '<label class="btn btn-primary btn-xs" style="cursor:pointer">+ Upload<input type="file" accept=".pdf" style="display:none" onchange="uploadPdfForSubject(\''+id+'\',this)"/></label>'+
       '</div>'+
       '<div id="pdfList_'+id+'"></div>'+
     '</div>'+
 
-    // Notes
-    '<div class="card">'+
-      '<div class="card-header">'+
-        '<div class="card-title" style="font-size:15px">Notes</div>'+
-        '<button class="btn btn-primary btn-xs" onclick="createNoteForSubject(\''+id+'\')">+ Note</button>'+
+    '<div class="card" style="margin-bottom:14px">'+
+      '<div class="card-header"><div class="card-title">Links &amp; Resources</div>'+
+        '<button class="btn btn-ghost btn-xs" onclick="addProjectLink(\''+id+'\')">+ Add</button>'+
       '</div>'+
-      (subNotes.length>0
-        ?subNotes.map(function(n){
-          return '<div class="note-card" onclick="openNoteDetail(\''+n.id+'\')">'+
-            '<div class="note-card-title">'+n.title+'</div>'+
-            '<div class="note-card-preview">'+stripHtml(n.content||'').slice(0,80)+'</div>'+
-            '<div class="note-card-meta"><span class="note-card-date">'+new Date(n.updated||n.created).toLocaleDateString()+'</span></div>'+
-          '</div>';
-        }).join('')
-        :'<div class="empty" style="padding:16px"><div class="empty-text">No notes yet. Click + Note to start.</div></div>')+
-    '</div>';
+      '<div id="projectLinks_'+id+'">'+renderProjectLinks(links,id)+'</div>'+
+    '</div>'+
+
+    (hasGroq()?
+    '<div class="card" id="aiPanel_ai_'+id+'" style="display:none">'+
+      '<div class="card-header"><div class="card-title">🤖 AI Study Tools</div></div>'+
+      '<textarea class="input" id="aiNotes_'+id+'" placeholder="Paste your notes here to generate study materials…" style="min-height:80px;margin-bottom:8px"></textarea>'+
+      '<div style="display:flex;gap:8px;margin-bottom:10px">'+
+        '<div style="flex:1"><div class="input-label">Depth</div><select class="input" id="aiDepth_'+id+'"><option value="1">Light</option><option value="2" selected>Medium</option><option value="3">Deep</option></select></div>'+
+        '<div style="flex:1"><div class="input-label">Level</div><select class="input" id="aiDiff_'+id+'"><option value="1">Basic</option><option value="2" selected>Intermediate</option><option value="3">Advanced</option></select></div>'+
+      '</div>'+
+      '<div class="btn-group">'+
+        '<button class="btn btn-primary btn-sm" onclick="aiStudy(\'guide\',\''+id+'\',\''+esc(p.name)+'\')">📋 Study Guide</button>'+
+        '<button class="btn btn-secondary btn-sm" onclick="aiStudy(\'questions\',\''+id+'\',\''+esc(p.name)+'\')">❓ Practice Qs</button>'+
+        '<button class="btn btn-secondary btn-sm" onclick="aiStudy(\'summary\',\''+id+'\',\''+esc(p.name)+'\')">⚡ Summary</button>'+
+      '</div>'+
+      '<div id="aiOutput_'+id+'" style="display:none;margin-top:12px"></div>'+
+    '</div>':'');
 
   renderPdfList(id);
+}
+
+// Legacy aliases
+function openSubject(id){ openProject(id); }
+
+// AI Study (called from project workspace)
+async function aiStudy(mode,subId,subName){
+  const notesEl=document.getElementById('aiNotes_'+subId);
+  const notes=notesEl?notesEl.value.trim():'';
+  if(!notes){showToast('Paste your notes first','error');return;}
+  const depthMap={'1':'light','2':'moderate','3':'comprehensive'};
+  const diffMap={'1':'basic','2':'intermediate','3':'advanced'};
+  const depthSel=document.getElementById('aiDepth_'+subId);
+  const diffSel=document.getElementById('aiDiff_'+subId);
+  const depth=depthMap[depthSel?depthSel.value:'2']||'moderate';
+  const diff=diffMap[diffSel?diffSel.value:'2']||'intermediate';
+  const out=document.getElementById('aiOutput_'+subId);
+  if(!out)return;
+  out.style.display='block';
+  out.innerHTML='<div class="loading" style="padding:16px"><div class="spinner"></div><div class="loading-text">Generating…</div></div>';
+  const prompts={
+    guide:'Create a '+depth+' study guide from these '+subName+' notes for a Year 2 Sunway A&F student. Difficulty: '+diff+'. Use HTML with <h3> headings, <p>, <ul>. Focus on exam-relevant content.\n\nNotes:\n'+notes,
+    questions:'Generate '+diff+'-level practice questions from these '+subName+' notes for a Year 2 A&F student. Mix MCQ and short answer. Include model answers. Use HTML.\n\nNotes:\n'+notes,
+    summary:'Give a '+depth+' summary of these '+subName+' notes for a Year 2 student preparing for exams. Be direct. Use HTML.\n\nNotes:\n'+notes
+  };
+  try{
+    const result=await askGroq(prompts[mode],'You are an expert '+subName+' tutor for Sunway University Year 2 Accounting & Finance. Be precise and use Malaysian business context where relevant.');
+    out.innerHTML='<div style="font-size:13px;line-height:1.8;color:var(--text2)">'+result+'</div>';
+  } catch(e){
+    out.innerHTML=e.message==='__NO_KEY__'?noKeyHtml():'<p style="color:var(--red)">Error: '+esc(e.message)+'</p>';
+  }
 }
 
 function toggleAIPanel(id){
@@ -2376,7 +2552,8 @@ function stripHtml(html){
 }
 
 function createNoteForSubject(subjectId){
-  document.getElementById('note-subject').value=subjectId;
+  populateNoteSubjectSelect();
+  setTimeout(function(){ document.getElementById('note-subject').value=subjectId; },20);
   openModal('noteModal');
 }
 
@@ -2384,51 +2561,26 @@ function saveSubject(){
   const name=document.getElementById('sub-name').value.trim();
   if(!name){showToast('Enter a name','error');return;}
   const s=getS();
-  saveS({subjects:[...s.subjects,{id:'sub'+Date.now(),name:name,icon:document.getElementById('sub-icon').value.trim()||'📖',colour:document.getElementById('sub-colour').value}]});
+  const np={id:'p'+Date.now(),name:name,icon:document.getElementById('sub-icon').value.trim()||'📁',colour:document.getElementById('sub-colour').value};
+  const existing=getProjects();
+  saveS({projects:[...existing,np],subjects:[...(s.subjects||[]),np]});
   closeModal('subjectModal');
   document.getElementById('sub-name').value='';
   showToast('Project added!','success');
   if(currentView==='vault')renderVault();
 }
 
-function deleteSubject(id){
-  if(!confirm('Remove this subject?'))return;
-  const s=getS();
-  saveS({subjects:s.subjects.filter(function(sub){return sub.id!==id;})});
+function deleteProject(id){
+  if(!confirm('Remove this project? Tasks and notes will not be deleted.'))return;
+  var s=getS();
+  saveS({
+    projects:(s.projects||[]).filter(function(p){return p.id!==id;}),
+    subjects:(s.subjects||[]).filter(function(p){return p.id!==id;})
+  });
   renderVault();
 }
+function deleteSubject(id){ deleteProject(id); }
 
-// AI Study
-async function aiStudy(mode,subId,subName){
-  const notes=document.getElementById('aiNotes_'+subId).value.trim();
-  if(!notes){showToast('Paste your notes first','error');return;}
-  const depth=['','light','moderate','comprehensive'][parseInt(document.getElementById('aiDepth_'+subId).value)];
-  const diff=['','basic','intermediate','advanced'][parseInt(document.getElementById('aiDiff_'+subId).value)];
-  const out=document.getElementById('aiOutput_'+subId);
-  out.style.display='block';
-  out.innerHTML='<div class="loading" style="padding:16px"><div class="spinner"></div><div class="loading-text">Generating...</div></div>';
-  const prompts={
-    guide:'Create a '+depth+' study guide from these '+subName+' notes for a Year 2 Sunway A&F student. Difficulty: '+diff+'. Use HTML with <h3> headings, <p>, <ul>. Focus on exam-relevant content. Notes:\n\n'+notes,
-    questions:'Generate '+diff+'-level practice questions from these '+subName+' notes for a Year 2 A&F student. Mix MCQ and short answer. Include model answers. Use HTML. Notes:\n\n'+notes,
-    summary:'Give a '+depth+' summary of these '+subName+' notes. Focus on what a Year 2 student needs for exams. Be direct. Use HTML. Notes:\n\n'+notes
-  };
-  try{
-    const result=await askGroq(prompts[mode],'You are an expert '+subName+' tutor for Sunway University Year 2 Accounting & Finance. Be precise and use Malaysian business context where relevant.');
-    out.innerHTML=result;
-  } catch(e){
-    out.innerHTML='<p style="color:var(--red)">Error: '+e.message+'</p>';
-  }
-}
-
-// ═══════════════════════════════════════════════
-// NOTES
-// ═══════════════════════════════════════════════
-function populateNoteSubjectSelect(){
-  const s=getS();
-  const sel=document.getElementById('note-subject');
-  if(!sel)return;
-  sel.innerHTML='<option value="general">General</option>'+s.subjects.map(function(sub){return '<option value="'+sub.id+'">'+sub.icon+' '+sub.name+'</option>';}).join('');
-}
 
 function createNote(){
   const title=document.getElementById('note-title').value.trim()||'Untitled Note';
@@ -2453,28 +2605,26 @@ function renderNotes(){
   const s=getS();
   const search=(document.getElementById('notesSearch').value||'').toLowerCase();
   const filter=document.getElementById('notesFilter').value;
+  const projects=getProjects();
 
-  // Populate filter
+  // Rebuild filter dropdown from projects (always fresh)
   const filterSel=document.getElementById('notesFilter');
-  if(filterSel.options.length<=1){
-    s.subjects.forEach(function(sub){
-      const opt=document.createElement('option');
-      opt.value=sub.id;opt.textContent=sub.icon+' '+sub.name;
-      filterSel.appendChild(opt);
-    });
-  }
+  var savedFilter=filterSel.value;
+  filterSel.innerHTML='<option value="all">All Projects</option>'+
+    projects.map(function(p){return '<option value="'+p.id+'">'+esc(p.icon)+' '+esc(p.name)+'</option>';}).join('')+
+    '<option value="general">General</option>';
+  filterSel.value=savedFilter||'all';
 
   let notes=[...s.notes];
-  // Also include task notes
   const taskNotes=s.tasks.filter(function(t){return t.content&&t.content.length>20;}).map(function(t){
-    return {id:t.id,title:t.title+' (Task)',subject:'task',content:t.content,updated:t.created,isTask:true};
+    return {id:t.id,title:t.title+' (Task)',subject:t.projectId||t.space||'',content:t.content,updated:t.created,isTask:true};
   });
   const completedNotes=(s.completedTasks||[]).filter(function(t){return t.content&&t.content.length>20;}).map(function(t){
-    return {id:t.id,title:t.title+' (Completed Task)',subject:'task',content:t.content,updated:t.created,isTask:true};
+    return {id:t.id,title:t.title+' (Done)',subject:t.projectId||t.space||'',content:t.content,updated:t.created,isTask:true};
   });
   notes=[...notes,...taskNotes,...completedNotes];
 
-  if(filter&&filter!=='all')notes=notes.filter(function(n){return n.subject===filter;});
+  if(filter&&filter!=='all')notes=notes.filter(function(n){return n.subject===filter||n.projectId===filter;});
   if(search)notes=notes.filter(function(n){return n.title.toLowerCase().includes(search)||stripHtml(n.content||'').toLowerCase().includes(search);});
 
   notes.sort(function(a,b){return new Date(b.updated||b.created)-new Date(a.updated||a.created);});
@@ -2482,12 +2632,12 @@ function renderNotes(){
   const listEl=document.getElementById('notesList');
   listEl.innerHTML=notes.length>0
     ?notes.map(function(n){
-      const sub=s.subjects.find(function(sub){return sub.id===n.subject;});
+      const proj=getProjectById(n.subject||n.projectId);
       return '<div class="note-card" onclick="'+(n.isTask?'openTaskDetail':'openNoteDetail')+'(\''+n.id+'\')">'+
-        '<div class="note-card-title">'+n.title+'</div>'+
-        '<div class="note-card-preview">'+stripHtml(n.content||'No content').slice(0,100)+'</div>'+
+        '<div class="note-card-title">'+esc(n.title)+'</div>'+
+        '<div class="note-card-preview">'+esc(stripHtml(n.content||'No content').slice(0,100))+'</div>'+
         '<div class="note-card-meta">'+
-          (sub?'<span class="tag" style="color:'+sub.colour+';border-color:'+sub.colour+'44;font-size:9px">'+sub.icon+' '+sub.name+'</span>':'')+
+          (proj&&proj.colour?'<span class="tag" style="color:'+proj.colour+';border-color:'+proj.colour+'44;font-size:9px">'+esc(proj.icon)+' '+esc(proj.name)+'</span>':'')+
           '<span class="note-card-date">'+new Date(n.updated||n.created).toLocaleDateString()+'</span>'+
         '</div>'+
       '</div>';
@@ -2746,7 +2896,18 @@ function calcWhatIf(){
 // ═══════════════════════════════════════════════
 // GROQ + NEWS
 // ═══════════════════════════════════════════════
+// No-key error message shown inside AI feature containers
+function noKeyHtml(){
+  return '<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px 24px;text-align:center">'+
+    '<div style="font-size:22px;margin-bottom:8px">🔑</div>'+
+    '<div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px">Groq API key required</div>'+
+    '<div style="font-size:12px;color:var(--text3);margin-bottom:12px;line-height:1.6">Add your free Groq key to unlock AI features — Daily Brief, Concept of Day, Flashcards, Research, and Quiz.</div>'+
+    '<button class="btn btn-primary btn-sm" onclick="openSettings();switchSettingsTab(\'profile\',document.getElementById(\'stab-profile\'))">Add Key in Settings →</button>'+
+    '</div>';
+}
+
 async function askGroq(prompt,system){
+  if(!hasGroq()) throw new Error('__NO_KEY__');
   const msgs=[{role:'user',content:prompt}];
   const body={model:CFG.MODEL,max_tokens:2000,messages:system?[{role:'system',content:system},...msgs]:msgs};
   const res=await fetch('https://api.groq.com/openai/v1/chat/completions',{method:'POST',headers:{'Authorization':'Bearer '+CFG.GROQ,'Content-Type':'application/json'},body:JSON.stringify(body)});
@@ -2844,6 +3005,7 @@ async function loadBriefTab(tab,el){
   if(briefTabData[tab]){document.getElementById('briefContent').innerHTML=briefTabData[tab];return;}
   document.getElementById('briefContent').innerHTML='<div class="loading"><div class="spinner"></div><div class="loading-text">Fetching '+BRIEF_CFG[tab].label+'...</div></div>';
   try{
+    if(!hasGroq()){document.getElementById('briefContent').innerHTML=noKeyHtml();return;}
     const news=await fetchNews(tab,6);
     const today=new Date().toLocaleDateString('en-MY',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
     const prompt='Today is '+today+'.\n\nHere are today\'s headlines:\n'+news+'\n\n'+
@@ -2898,6 +3060,7 @@ async function renderConcept(){
   }
   document.getElementById('conceptContent').innerHTML='<div class="loading"><div class="spinner"></div><div class="loading-text">Selecting today\'s concept...</div></div>';
   try{
+    if(!hasGroq()){document.getElementById('conceptContent').innerHTML=noKeyHtml();return;}
     const learned=s.learnedTopics||[];
     const pool=CONCEPTS.filter(function(c){return !learned.includes(c);});
     const topic=(pool.length>0?pool:CONCEPTS)[Math.floor(Math.random()*(pool.length>0?pool.length:CONCEPTS.length))];
@@ -3045,8 +3208,8 @@ async function quickResearch(q){
   res.innerHTML='<div class="loading"><div class="spinner"></div><div class="loading-text">Researching "'+q+'"...</div></div>';
   if(currentView!=='research')nav('research');
   try{
+    if(!hasGroq()){res.innerHTML=noKeyHtml();if(sug)sug.style.display='block';return;}
     const s=getS();
-    const context=s.learnedTopics&&s.learnedTopics.length?'The student has studied: '+s.learnedTopics.slice(-5).join(', ')+'. Build on that where relevant.':'';
     const content=await askGroq(
       context+'\n\nGive a comprehensive deep-dive on: "'+q+'" for a Year 2 Accounting & Finance student at Sunway University Malaysia.\n\nHTML structure:\n<h3>What it is</h3><p>Clear definition. Simple analogy first.</p>\n<h3>The full picture</h3><p>Complete explanation — history, mechanics, key players. Go deep. This should be better than anything they would find on Google.</p>\n<h3>Malaysian and ASEAN context</h3><p>How this applies locally. Specific examples.</p>\n<h3>Degree relevance</h3><p>Which modules, how it appears in exams, how it connects to other concepts.</p>\n<h3>What experts actually debate</h3><p>The non-obvious disagreements or nuances that show real understanding.</p>\n<h3>Key terms to know</h3><p>5-7 essential terms defined precisely.</p>',
       'You are a world-class A&F educator. Be genuinely comprehensive. Never be superficial. Use Malaysian examples. Make this the best explanation available anywhere.'
@@ -3254,9 +3417,47 @@ function importData(e){
 }
 
 // ═══════════════════════════════════════════════
-// INIT
+// MOBILE MENU
 // ═══════════════════════════════════════════════
+function openMobileMenu(){
+  document.querySelector('.sidebar').classList.add('mobile-open');
+  document.getElementById('mobileOverlay').classList.add('show');
+}
+function closeMobileMenu(){
+  document.querySelector('.sidebar').classList.remove('mobile-open');
+  document.getElementById('mobileOverlay').classList.remove('show');
+}
+// Close sidebar on nav click on mobile
+document.addEventListener('click',function(e){
+  if(e.target.closest('.nav-item')&&window.innerWidth<=768) closeMobileMenu();
+});
+
+// ═══════════════════════════════════════════════
+// DATA MIGRATION — runs once on init
+// ═══════════════════════════════════════════════
+function migrateData(){
+  var s=getS();
+  var changed=false;
+  // 1. If no projects array, seed from subjects
+  if(!s.projects||s.projects.length===0){
+    if(s.subjects&&s.subjects.length>0){
+      saveS({projects:[...s.subjects]});
+      changed=true;
+    }
+  }
+  // 2. For tasks that have space but no projectId, copy space → projectId
+  var needsPatch=s.tasks.some(function(t){return !t.projectId&&t.space;});
+  if(needsPatch){
+    var migrated=s.tasks.map(function(t){
+      return t.projectId?t:Object.assign({},t,{projectId:t.space||''});
+    });
+    saveS({tasks:migrated});
+    changed=true;
+  }
+  return changed;
+}
 function initApp(){
+  migrateData();
   handleGCalRedirect();
   renderNav();
   applyAppConfig();
@@ -4097,7 +4298,7 @@ function runSearch(q) {
 
   s.notes.forEach(function(n) {
     if (n.title.toLowerCase().includes(q) || stripHtml(n.content || '').toLowerCase().includes(q)) {
-      results.push({ icon: '📝', title: n.title, meta: 'Note · ' + (s.subjects.find(function(sub) { return sub.id === n.subject; }) || { name: 'General' }).name, action: function() { closeSearch(); openNoteDetail(n.id); } });
+      results.push({ icon: '📝', title: n.title, meta: 'Note · ' + (getProjectById(n.subject||n.projectId)||{name:'General'}).name, action: function() { closeSearch(); openNoteDetail(n.id); } });
     }
   });
 
@@ -4468,7 +4669,7 @@ function renderTasks() {
   var s = getS();
   var items = document.querySelectorAll('#taskList .task-item');
   var tasks = s.tasks.filter(function(t) { return !t.done; });
-  if (currentSpace !== 'all') tasks = tasks.filter(function(t) { return t.space === currentSpace; });
+  if (currentSpace !== 'all') tasks = tasks.filter(function(t) { return (t.projectId||t.space) === currentSpace; });
   items.forEach(function(el, i) {
     if (tasks[i]) el.dataset.taskId = tasks[i].id;
   });
@@ -4511,9 +4712,15 @@ function setActualGrade(taskId){
   var tasks=s.tasks.map(function(t){return t.id===taskId?Object.assign({},t,{actualGrade:grade}):t;});
   var completed=(s.completedTasks||[]).map(function(t){return t.id===taskId?Object.assign({},t,{actualGrade:grade}):t;});
   saveS({tasks:tasks,completedTasks:completed});
-  showToast('Grade saved: '+grade,'success');
-  // Refresh if in vault
-  if(currentView==='vault'){var sv=document.getElementById('subjectView');if(sv&&sv.style.display!=='none'){var s2=getS();var t=tasks.find(function(x){return x.id===taskId;})||(completed.find(function(x){return x.id===taskId;}));if(t)openSubject(t.space);}}
+  showToast('Grade saved: '+esc(grade),'success');
+  // Refresh project workspace if open
+  if(currentView==='vault'){
+    var sv=document.getElementById('subjectView');
+    if(sv&&sv.style.display!=='none'){
+      var found=tasks.find(function(x){return x.id===taskId;})||(completed.find(function(x){return x.id===taskId;}));
+      if(found)openProject(found.projectId||found.space);
+    }
+  }
 }
 
 
@@ -4528,7 +4735,7 @@ var DEFAULT_NAV_ITEMS = [
   {id:'calendar', icon:'📅', label:'Calendar',    section:'Daily',   visible:true,  special:null},
   {id:'tasks',    icon:'✅', label:'Tasks',       section:'Daily',   visible:true,  special:'tasksBadge'},
   {id:'habits',   icon:'💪', label:'Habits',      section:'Daily',   visible:true,  special:null},
-  {id:'vault',    icon:'📚', label:'Vault',       section:'Study',   visible:true,  special:null},
+  {id:'vault',    icon:'📚', label:'Projects',    section:'Study',   visible:true,  special:null},
   {id:'notes',    icon:'📝', label:'All Notes',   section:'Study',   visible:true,  special:null},
   {id:'focus',    icon:'⏱️', label:'Focus Mode',  section:'Study',   visible:true,  special:null},
   {id:'gpa',      icon:'🎓', label:'GPA',         section:'Study',   visible:true,  special:null},
@@ -4567,7 +4774,7 @@ function renderNav() {
       html += '<div class="nav-section">' + currentSection + '</div>';
     }
     if (item.isModal) {
-      html += '<div class="nav-item" onclick="openModal(\"' + item.isModal + '\")" id="nav-' + item.id + '"><span class="nav-icon">' + item.icon + '</span>' + item.label + '</div>';
+      html += '<div class="nav-item" onclick="openModal(\'' + item.isModal + '\')" id="nav-' + item.id + '"><span class="nav-icon">' + item.icon + '</span>' + item.label + '</div>';
     } else {
       var badge = '';
       if (item.special === 'tasksBadge') {
@@ -4577,7 +4784,7 @@ function renderNav() {
         var caps = (s.captures||[]).length;
         badge = '<span class="nav-badge" id="capsBadge" style="' + (caps>0?'':'display:none') + '">' + caps + '</span>';
       }
-      html += '<div class="nav-item" onclick="nav(\"' + item.id + '\")" id="nav-' + item.id + '"><span class="nav-icon">' + item.icon + '</span>' + item.label + badge + '</div>';
+      html += '<div class="nav-item" onclick="nav(\'' + item.id + '\')" id="nav-' + item.id + '"><span class="nav-icon">' + item.icon + '</span>' + item.label + badge + '</div>';
     }
   });
   document.getElementById('mainNav').innerHTML = html;
@@ -4762,17 +4969,15 @@ async function deletePdfFromSupabase(pdfId){
   } catch(e){ console.warn('PDF Supabase delete failed'); }
 }
 
-// Boot
-if(configured()){
+// Boot — always launch the app. Show setup screen as first-time welcome if no Groq key yet.
+initTheme();
+if(!hasGroq()){
+  document.getElementById('setup-screen').style.display='flex';
+} else {
   document.getElementById('setup-screen').style.display='none';
   document.getElementById('mainApp').style.display='grid';
   document.getElementById('fab').style.display='flex';
-  document.getElementById('fab').style.display='flex';
-  initTheme();
   initApp();
-} else {
-  document.getElementById('setup-screen').style.display='flex';
-  initTheme();
 }
 </script>
 </body>
