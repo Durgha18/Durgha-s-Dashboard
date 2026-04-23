@@ -3978,40 +3978,60 @@ async function fetchGCalEvents() {
   try {
     var now = new Date().toISOString();
     var end = new Date(Date.now() + 30 * 86400000).toISOString();
-    var res = await fetch(
-      'https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=' + encodeURIComponent(now) +
-      '&timeMax=' + encodeURIComponent(end) + '&singleEvents=true&orderBy=startTime&maxResults=50',
+
+    // Step 1: fetch all calendars the user has access to
+    var calListRes = await fetch(
+      'https://www.googleapis.com/calendar/v3/users/me/calendarList?minAccessRole=reader',
       {headers: {Authorization: 'Bearer ' + GCAL_TOKEN}}
     );
-    if (res.status === 401) {
+    if (calListRes.status === 401) {
       localStorage.removeItem('dd_gcal_token');
       GCAL_TOKEN = '';
       showToast('Google Calendar session expired. Please reconnect.', 'error');
       return;
     }
-    var data = await res.json();
-    var gcalEvents = (data.items || []).map(function(item) {
-      var start = item.start.dateTime || item.start.date;
-      var end = item.end && (item.end.dateTime || item.end.date);
-      var startDate = start ? start.slice(0, 10) : '';
-      var startTime = item.start.dateTime ? item.start.dateTime.slice(11, 16) : '';
-      var endTime = item.end && item.end.dateTime ? item.end.dateTime.slice(11, 16) : '';
-      return {
-        id: 'gcal_' + item.id,
-        title: item.summary || '(No title)',
-        date: startDate,
-        time: startTime,
-        endtime: endTime,
-        location: item.location || '',
-        notes: item.description || '',
-        labelId: '',
-        fromGCal: true
-      };
-    });
+    var calListData = await calListRes.json();
+    var calendars = calListData.items || [];
+
+    // Step 2: fetch events from every calendar in parallel
+    var allGcalEvents = [];
+    await Promise.all(calendars.map(async function(cal) {
+      try {
+        var res = await fetch(
+          'https://www.googleapis.com/calendar/v3/calendars/' + encodeURIComponent(cal.id) +
+          '/events?timeMin=' + encodeURIComponent(now) +
+          '&timeMax=' + encodeURIComponent(end) +
+          '&singleEvents=true&orderBy=startTime&maxResults=50',
+          {headers: {Authorization: 'Bearer ' + GCAL_TOKEN}}
+        );
+        if (!res.ok) return;
+        var data = await res.json();
+        (data.items || []).forEach(function(item) {
+          var start = item.start.dateTime || item.start.date;
+          var startDate = start ? start.slice(0, 10) : '';
+          var startTime = item.start.dateTime ? item.start.dateTime.slice(11, 16) : '';
+          var endTime = item.end && item.end.dateTime ? item.end.dateTime.slice(11, 16) : '';
+          allGcalEvents.push({
+            id: 'gcal_' + item.id,
+            title: item.summary || '(No title)',
+            date: startDate,
+            time: startTime,
+            endtime: endTime,
+            location: item.location || '',
+            notes: item.description || '',
+            calendarName: cal.summary || '',
+            color: cal.backgroundColor || '',
+            labelId: '',
+            fromGCal: true
+          });
+        });
+      } catch(e) { /* skip calendars that fail */ }
+    }));
+
     var s = getS();
     var existing = (s.events || []).filter(function(e) { return !e.fromGCal; });
-    saveS({events: [...existing, ...gcalEvents]});
-    showToast('Synced ' + gcalEvents.length + ' events from Google Calendar', 'success');
+    saveS({events: [...existing, ...allGcalEvents]});
+    showToast('Synced ' + allGcalEvents.length + ' events from ' + calendars.length + ' calendars', 'success');
     if (currentView === 'calendar') renderCalendar();
   } catch(e) {
     showToast('Could not fetch Google Calendar events', 'error');
