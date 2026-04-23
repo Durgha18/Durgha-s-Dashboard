@@ -301,6 +301,18 @@ select.input{cursor:pointer;appearance:none;}
 
 /* ── ANIMATIONS ── */
 @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.settings-tab{padding:8px 16px;border:none;background:none;cursor:pointer;font-size:12px;font-weight:500;color:var(--text3);border-bottom:2px solid transparent;transition:all 0.15s;font-family:var(--sans);}
+.settings-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+.settings-tab:hover{color:var(--text);}
+.nav-custom-item{display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--surface);border:1px solid var(--border);border-radius:8px;margin-bottom:6px;cursor:grab;}
+.nav-custom-item:active{cursor:grabbing;}
+.nav-custom-item.hidden-item{opacity:0.45;}
+.nav-custom-item .drag-handle{color:var(--text3);font-size:14px;cursor:grab;flex-shrink:0;}
+.nav-custom-item .item-icon{font-size:15px;flex-shrink:0;}
+.nav-custom-item .item-label{flex:1;font-size:12px;font-weight:500;color:var(--text);outline:none;background:transparent;border:none;font-family:var(--sans);}
+.nav-custom-item .item-label:focus{color:var(--accent);}
+.nav-custom-item .visibility-btn{background:none;border:none;cursor:pointer;font-size:14px;padding:2px 4px;color:var(--text3);border-radius:4px;transition:all 0.15s;}
+.nav-custom-item .visibility-btn:hover{background:var(--bg);}
 /* Progress Ring */
 .progress-ring-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;}
 .progress-ring-label{font-family:var(--mono);font-size:10px;color:var(--text3);letter-spacing:0.06em;text-transform:uppercase;text-align:center;}
@@ -491,6 +503,55 @@ select.input{cursor:pointer;appearance:none;}
   </div>
 </div>
 
+<!-- SETTINGS MODAL -->
+<div class="modal-overlay" id="settingsModal">
+  <div class="modal" style="max-width:560px;max-height:88vh">
+    <div class="modal-title">⚙️ App Settings</div>
+    <div style="display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:16px">
+      <button class="settings-tab active" id="stab-nav" onclick="switchSettingsTab('nav',this)">Sidebar</button>
+      <button class="settings-tab" id="stab-profile" onclick="switchSettingsTab('profile',this)">Profile</button>
+      <button class="settings-tab" id="stab-appearance" onclick="switchSettingsTab('appearance',this)">Appearance</button>
+    </div>
+    <div id="settings-nav" class="settings-pane">
+      <div style="font-size:12px;color:var(--text3);margin-bottom:12px">Drag to reorder · toggle eye to show/hide · click name to rename</div>
+      <div id="navCustomList"></div>
+      <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
+        <button class="btn btn-ghost btn-sm" onclick="resetNavOrder()">Reset to default</button>
+      </div>
+    </div>
+    <div id="settings-profile" class="settings-pane" style="display:none">
+      <div class="field"><div class="input-label">Your Name</div><input class="input" id="cfg-name" placeholder="Durgha"/></div>
+      <div class="field"><div class="input-label">Subtitle (shown under name)</div><input class="input" id="cfg-sub" placeholder="Year 2 · Sunway A&F"/></div>
+      <div class="field"><div class="input-label">Groq API Key</div><input class="input" type="password" id="cfg-groq" placeholder="gsk_..."/><div style="font-size:10px;color:var(--text3);margin-top:3px">Used for AI features · free at console.groq.com</div></div>
+    </div>
+    <div id="settings-appearance" class="settings-pane" style="display:none">
+      <div class="field">
+        <div class="input-label">Accent Colour</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px" id="accentSwatches">
+          <div class="colour-swatch" data-accent="#b85c38" style="background:#b85c38" onclick="setAccent('#b85c38',this)" title="Terracotta (default)"></div>
+          <div class="colour-swatch" data-accent="#3a6b8a" style="background:#3a6b8a" onclick="setAccent('#3a6b8a',this)" title="Ocean"></div>
+          <div class="colour-swatch" data-accent="#3a7d5a" style="background:#3a7d5a" onclick="setAccent('#3a7d5a',this)" title="Forest"></div>
+          <div class="colour-swatch" data-accent="#7a5fa0" style="background:#7a5fa0" onclick="setAccent('#7a5fa0',this)" title="Purple"></div>
+          <div class="colour-swatch" data-accent="#c4922a" style="background:#c4922a" onclick="setAccent('#c4922a',this)" title="Gold"></div>
+          <div class="colour-swatch" data-accent="#c04040" style="background:#c04040" onclick="setAccent('#c04040',this)" title="Red"></div>
+          <div class="colour-swatch" data-accent="#2a6b6b" style="background:#2a6b6b" onclick="setAccent('#2a6b6b',this)" title="Teal"></div>
+          <div class="colour-swatch" data-accent="#555" style="background:#555" onclick="setAccent('#555',this)" title="Slate"></div>
+        </div>
+        <input type="color" id="cfg-accent-custom" style="margin-top:8px;width:100%;height:32px;border-radius:6px;border:1px solid var(--border);cursor:pointer;padding:2px" onchange="setAccent(this.value,null)"/>
+      </div>
+      <div class="field">
+        <div class="input-label">Sidebar Width</div>
+        <input type="range" id="cfg-sidebar-width" min="180" max="280" value="220" oninput="setSidebarWidth(this.value)" style="width:100%"/>
+        <div style="font-size:10px;color:var(--text3);margin-top:2px" id="sidebarWidthLabel">220px</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('settingsModal')">Close</button>
+      <button class="btn btn-primary btn-sm" onclick="saveSettings()">Save Settings</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODALS -->
 <!-- Add Task -->
 <div class="modal-overlay" id="taskModal">
@@ -499,7 +560,7 @@ select.input{cursor:pointer;appearance:none;}
     <div class="field"><div class="input-label">Title</div><input class="input" id="t-title" placeholder="What needs to be done?"/></div>
     <div class="grid-2">
       <div class="field">
-        <div class="input-label">Space</div>
+        <div class="input-label">Project</div>
         <select class="input" id="t-space"></select>
       </div>
       <div class="field">
@@ -518,8 +579,47 @@ select.input{cursor:pointer;appearance:none;}
         </select>
       </div>
     </div>
-    <div class="field"><div class="input-label">Sub-category (optional)</div><input class="input" id="t-subject" placeholder="e.g. Financial Accounting, Internship, CFA..."/></div>
-    <div class="field"><div class="input-label">Notes (optional)</div><textarea class="input" id="t-notes" style="min-height:60px" placeholder="Add context..."></textarea></div>
+    <div class="field"><div class="input-label">Sub-category (optional)</div><input class="input" id="t-subject" placeholder="e.g. Financial Accounting, Event Planning..."/></div>
+    <!-- Assignment toggle -->
+    <div class="field" style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;cursor:pointer" onclick="toggleAssignmentFields()">
+      <input type="checkbox" id="t-is-assignment" style="width:16px;height:16px;cursor:pointer;accent-color:var(--accent)"/>
+      <label style="font-size:13px;font-weight:500;color:var(--text);cursor:pointer">This is an assignment / graded task</label>
+    </div>
+    <div id="assignmentFields" style="display:none">
+      <div class="grid-2" style="margin-top:10px">
+        <div class="field">
+          <div class="input-label">Assignment Type</div>
+          <select class="input" id="t-assign-type">
+            <option value="assignment">Assignment</option>
+            <option value="exam">Exam / Test</option>
+            <option value="quiz">Quiz</option>
+            <option value="presentation">Presentation</option>
+            <option value="project">Group Project</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <div class="field">
+          <div class="input-label">Weightage (%)</div>
+          <input class="input" type="number" id="t-weightage" placeholder="e.g. 20" min="0" max="100"/>
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="field">
+          <div class="input-label">Target Grade</div>
+          <select class="input" id="t-target-grade">
+            <option value="">No target</option>
+            <option>A+</option><option>A</option><option>A-</option>
+            <option>B+</option><option>B</option><option>B-</option>
+            <option>C+</option><option>C</option>
+          </select>
+        </div>
+        <div class="field">
+          <div class="input-label">Actual Grade (after)</div>
+          <input class="input" id="t-actual-grade" placeholder="Leave blank until graded"/>
+        </div>
+      </div>
+    </div>
+    <div class="field"><div class="input-label">Notes (optional)</div><textarea class="input" id="t-notes" style="min-height:50px" placeholder="Add context..."></textarea></div>
     <div class="modal-footer">
       <button class="btn btn-ghost btn-sm" onclick="closeModal('taskModal')">Cancel</button>
       <button class="btn btn-primary btn-sm" onclick="saveTask()">Add Task</button>
@@ -666,7 +766,10 @@ select.input{cursor:pointer;appearance:none;}
 <div class="app" id="mainApp" style="display:none">
   <aside class="sidebar">
     <div class="brand">
-      <div class="brand-name">Durgha's Dashboard</div>
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div class="brand-name">Durgha's Dashboard</div>
+        <span id="syncIndicator" title="Synced to cloud" style="font-size:14px;cursor:default;color:var(--green)">☁️</span>
+      </div>
       <div class="brand-sub">Year 2 · Sunway A&amp;F</div>
     </div>
 
@@ -676,36 +779,14 @@ select.input{cursor:pointer;appearance:none;}
       <div class="stat-pill"><div class="stat-val green" id="s-pending">0</div><div class="stat-label">📋 Due</div></div>
     </div>
 
-    <nav class="nav">
-      <div class="nav-section">Daily</div>
-      <div class="nav-item active" onclick="nav('morning')" id="nav-morning"><span class="nav-icon">🌅</span>Morning</div>
-      <div class="nav-item" onclick="nav('planning')" id="nav-planning"><span class="nav-icon">🗓️</span>Planning</div>
-      <div class="nav-item" onclick="nav('calendar')" id="nav-calendar"><span class="nav-icon">📅</span>Calendar</div>
-      <div class="nav-item" onclick="nav('tasks')" id="nav-tasks"><span class="nav-icon">✅</span>Tasks<span class="nav-badge red" id="tasksBadge" style="display:none">0</span></div>
-      <div class="nav-item" onclick="nav('habits')" id="nav-habits"><span class="nav-icon">💪</span>Habits</div>
-
-      <div class="nav-section">Study</div>
-      <div class="nav-item" onclick="nav('vault')" id="nav-vault"><span class="nav-icon">📚</span>Study Vault</div>
-      <div class="nav-item" onclick="nav('notes')" id="nav-notes"><span class="nav-icon">📝</span>All Notes</div>
-      <div class="nav-item" onclick="nav('focus')" id="nav-focus"><span class="nav-icon">⏱️</span>Focus Mode</div>
-      <div class="nav-item" onclick="nav('gpa')" id="nav-gpa"><span class="nav-icon">🎓</span>GPA</div>
-
-      <div class="nav-section">Learn</div>
-      <div class="nav-item" onclick="nav('brief')" id="nav-brief"><span class="nav-icon">📰</span>Daily Brief</div>
-      <div class="nav-item" onclick="nav('concept')" id="nav-concept"><span class="nav-icon">🧠</span>Concept</div>
-      <div class="nav-item" onclick="nav('research')" id="nav-research"><span class="nav-icon">🔍</span>Research</div>
-
-      <div class="nav-section">More</div>
-      <div class="nav-item" onclick="nav('expenses')" id="nav-expenses"><span class="nav-icon">💸</span>Expenses</div>
-      <div class="nav-item" onclick="nav('captures')" id="nav-captures"><span class="nav-icon">⚡</span>Quick Notes<span class="nav-badge" id="capsBadge" style="display:none">0</span></div>
-      <div class="nav-item" onclick="openModal('labelModal')" id="nav-labels"><span class="nav-icon">🏷️</span>Manage Labels</div>
-    </nav>
+    <nav class="nav" id="mainNav"></nav>
 
     <div class="sidebar-footer">
-      <button class="footer-btn" onclick="openSearch()" title="Search (Ctrl+K)">🔍 Search</button>
-      <button class="footer-btn" id="darkModeBtn" onclick="toggleDarkMode()">🌙 Dark</button>
-      <button class="footer-btn" onclick="exportData()">⬇ Backup</button>
-      <button class="footer-btn" onclick="document.getElementById('importFile').click()">⬆ Restore</button>
+      <button class="footer-btn" onclick="openSearch()" title="Search (Ctrl+K)">🔍</button>
+      <button class="footer-btn" id="darkModeBtn" onclick="toggleDarkMode()">🌙</button>
+      <button class="footer-btn" onclick="exportData()">⬇</button>
+      <button class="footer-btn" onclick="document.getElementById('importFile').click()">⬆</button>
+      <button class="footer-btn" onclick="openSettings()" style="color:var(--accent);font-weight:600">⚙️ Settings</button>
       <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)"/>
     </div>
   </aside>
@@ -1160,55 +1241,118 @@ function completeSetup(){
 // ═══════════════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════════════
-function getS(){
-  const d={
-    streak:0,lastVisit:null,
-    tasks:[],
-    completedTasks:[],
-    spaces:[
-      {id:'school',name:'School',icon:'🎓'},
-      {id:'work',name:'Work',icon:'💼'},
-      {id:'personal',name:'Personal',icon:'🧘'}
-    ],
-    labels:[
-      {id:'l1',name:'School',colour:'#3a6b8a',icon:'🎓'},
-      {id:'l2',name:'Work',colour:'#c4922a',icon:'💼'},
-      {id:'l3',name:'Personal',colour:'#3a7d5a',icon:'🧘'},
-      {id:'l4',name:'Urgent',colour:'#c04040',icon:'🔴'}
-    ],
-    habits:[
-      {id:'h1',name:'Exercise',icon:'🏃',streak:0,history:[]},
-      {id:'h2',name:'Learn something',icon:'📚',streak:0,history:[]}
-    ],
-    events:[],
-    notes:[],
-    subjects:[
-      {id:'facc',name:'Financial Accounting',icon:'📒',colour:'#b85c38'},
-      {id:'macc',name:'Management Accounting',icon:'📊',colour:'#c4922a'},
-      {id:'fin',name:'Corporate Finance',icon:'💹',colour:'#3a7d5a'},
-      {id:'eco',name:'Economics',icon:'🌍',colour:'#3a6b8a'},
-      {id:'law',name:'Business Law',icon:'⚖️',colour:'#7a5fa0'},
-      {id:'stat',name:'Statistics',icon:'📐',colour:'#c07050'}
-    ],
-    gpa:{semesters:[]},
-    expenses:[],
-    captures:[],
-    focusSessions:[],
-    briefCache:{},
-    conceptCache:null,
-    intention:'',
-    plannedTasks:[],
-    quizCache:null,
-    lastQuizDate:null,
-    articlesRead:0
+// ═══════════════════════════════════════════════
+// SUPABASE CONFIG
+// ═══════════════════════════════════════════════
+var SUPA_URL = 'https://gctpgclvhungaknktjye.supabase.co';
+var SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdjdHBnY2x2aHVuZ2Frbmt0anllIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4OTc0NTMsImV4cCI6MjA5MjQ3MzQ1M30.i59tJQpc1YBwgKKH8uXHQ5kiD-Z6Xd2DFqTWDxES5CQ';
+var _syncTimer = null;
+var _syncStatus = 'idle'; // idle | syncing | error
+
+function supaHeaders(){
+  return {
+    'apikey': SUPA_KEY,
+    'Authorization': 'Bearer ' + SUPA_KEY,
+    'Content-Type': 'application/json',
+    'Prefer': 'return=minimal'
   };
-  try{return Object.assign({},d,JSON.parse(localStorage.getItem('dd_v2')||'{}'));}
-  catch{return d;}
 }
 
+// Push state to Supabase (debounced — max 1 write per 2s)
+function pushToSupabase(data){
+  clearTimeout(_syncTimer);
+  _syncTimer = setTimeout(function(){
+    _syncStatus = 'syncing';
+    updateSyncIndicator();
+    fetch(SUPA_URL + '/rest/v1/app_data?id=eq.main', {
+      method: 'PATCH',
+      headers: supaHeaders(),
+      body: JSON.stringify({data: data, updated_at: new Date().toISOString()})
+    }).then(function(r){
+      if(r.ok){ _syncStatus='idle'; }
+      else { _syncStatus='error'; }
+      updateSyncIndicator();
+    }).catch(function(){
+      _syncStatus='error';
+      updateSyncIndicator();
+    });
+  }, 2000);
+}
+
+// Pull latest state from Supabase
+async function pullFromSupabase(){
+  try{
+    var r = await fetch(SUPA_URL + '/rest/v1/app_data?id=eq.main&select=data', {
+      headers: supaHeaders()
+    });
+    var rows = await r.json();
+    if(rows && rows[0] && rows[0].data && Object.keys(rows[0].data).length > 0){
+      // Merge: Supabase wins over local for conflicts
+      var remote = rows[0].data;
+      localStorage.setItem('dd_v2', JSON.stringify(remote));
+      return remote;
+    }
+  } catch(e){
+    console.warn('Supabase pull failed, using local cache:', e.message);
+  }
+  return null;
+}
+
+function updateSyncIndicator(){
+  var el = document.getElementById('syncIndicator');
+  if(!el) return;
+  var icons = {idle:'☁️', syncing:'⟳', error:'⚠️'};
+  var tips = {idle:'Synced to cloud', syncing:'Syncing...', error:'Sync error — data saved locally'};
+  el.textContent = icons[_syncStatus];
+  el.title = tips[_syncStatus];
+  el.style.color = _syncStatus==='error'?'var(--red)':_syncStatus==='syncing'?'var(--gold)':'var(--green)';
+}
+
+// ── DATA LAYER ──────────────────────────────────
+var _DEFAULT_STATE = {
+  streak:0,lastVisit:null,
+  tasks:[],completedTasks:[],
+  spaces:[
+    {id:'school',name:'School',icon:'🎓'},
+    {id:'work',name:'Work',icon:'💼'},
+    {id:'personal',name:'Personal',icon:'🧘'}
+  ],
+  labels:[
+    {id:'l1',name:'School',colour:'#3a6b8a',icon:'🎓'},
+    {id:'l2',name:'Work',colour:'#c4922a',icon:'💼'},
+    {id:'l3',name:'Personal',colour:'#3a7d5a',icon:'🧘'},
+    {id:'l4',name:'Urgent',colour:'#c04040',icon:'🔴'}
+  ],
+  habits:[
+    {id:'h1',name:'Exercise',icon:'🏃',streak:0,history:[]},
+    {id:'h2',name:'Learn something',icon:'📚',streak:0,history:[]}
+  ],
+  events:[],notes:[],
+  subjects:[
+    {id:'facc',name:'Financial Accounting',icon:'📒',colour:'#b85c38'},
+    {id:'macc',name:'Management Accounting',icon:'📊',colour:'#c4922a'},
+    {id:'fin',name:'Corporate Finance',icon:'💹',colour:'#3a7d5a'},
+    {id:'eco',name:'Economics',icon:'🌍',colour:'#3a6b8a'},
+    {id:'law',name:'Business Law',icon:'⚖️',colour:'#7a5fa0'},
+    {id:'stat',name:'Statistics',icon:'📐',colour:'#c07050'}
+  ],
+  gpa:{semesters:[]},expenses:[],captures:[],
+  focusSessions:[],briefCache:{},conceptCache:null,
+  intention:'',plannedTasks:[],quizCache:null,
+  lastQuizDate:null,articlesRead:0
+};
+
+// getS — reads from localStorage (always fast, no await needed)
+function getS(){
+  try{return Object.assign({},_DEFAULT_STATE,JSON.parse(localStorage.getItem('dd_v2')||'{}'));}
+  catch(e){return Object.assign({},_DEFAULT_STATE);}
+}
+
+// saveS — writes to localStorage immediately, pushes to Supabase async
 function saveS(patch){
   const s=Object.assign({},getS(),patch);
   localStorage.setItem('dd_v2',JSON.stringify(s));
+  pushToSupabase(s);
   return s;
 }
 
@@ -1265,6 +1409,7 @@ function checkStreak(){
 }
 
 function updateSidebarStats(){
+  renderNav();
   const s=getS();
   const today=new Date().toDateString();
   const done=s.tasks.filter(t=>t.done&&t.doneDate===today).length;
@@ -1506,26 +1651,28 @@ let currentSpace='all';
 let showCompleted=false;
 
 function renderTaskItem(t,compact){
-  const days=t.due?daysUntil(t.due):null;
-  const dueClass=days!==null&&days===0?'urgent':days!==null&&days<=3?'soon':'';
-  const lbl=getLabelById(t.labelId);
-  const prioColour={high:'var(--red)',medium:'var(--gold)',low:'var(--green)'}[t.priority]||'';
-  const prioLabel={high:'🔴 High',medium:'🟡 Med',low:'🟢 Low'}[t.priority]||'';
-  const space=getS().spaces.find(function(sp){return sp.id===t.space;});
-  return '<div class="task-item'+(t.done?' done':'')+'" onclick="openTaskDetail(\''+t.id+'\')">'+
-    '<div class="task-check'+(t.done?' done':'')+'" onclick="event.stopPropagation();toggleTask(\''+t.id+'\')">'+( t.done?'✓':'')+'</div>'+
-    '<div class="task-content">'+
-      '<div class="task-title">'+t.title+'</div>'+
-      '<div class="task-meta">'+
-        (lbl?'<span class="label-pill" style="background:'+lbl.colour+'22;color:'+lbl.colour+';border-color:'+lbl.colour+'44;font-size:9px">'+lbl.icon+' '+lbl.name+'</span>':'')+
-        (t.priority&&prioLabel?'<span style="font-size:9px;color:'+prioColour+';font-family:var(--mono);font-weight:600">'+prioLabel+'</span>':'')+
-        (t.due?'<span class="task-due '+dueClass+'">📅 '+fmtDate(t.due)+(days===0?' · TODAY':days===1?' · tmrw':days!==null&&days<=7?' · '+days+'d':'')+'</span>':'')+
-        (!compact&&space?'<span style="font-size:9px;color:var(--text3);font-family:var(--mono)">'+space.icon+' '+space.name+'</span>':'')+
-        (t.subject?'<span style="font-size:9px;color:var(--text3);background:var(--surface2);border-radius:3px;padding:1px 5px;font-family:var(--mono)">'+t.subject+'</span>':'')+
-        (t.notes&&t.notes.length>0?'<span style="font-size:9px;color:var(--text3);font-family:var(--mono)">📝</span>':'')+
-      '</div>'+
-    '</div>'+
-  '</div>';
+  var days=t.due?daysUntil(t.due):null;
+  var dueClass=days!==null&&days===0?'urgent':days!==null&&days<=3?'soon':'';
+  var lbl=getLabelById(t.labelId);
+  var prioColour={high:'var(--red)',medium:'var(--gold)',low:'var(--green)'}[t.priority]||'';
+  var prioLabel={high:'🔴 High',medium:'🟡 Med',low:'🟢 Low'}[t.priority]||'';
+  var space=getS().spaces.find(function(sp){return sp.id===t.space;});
+  var assignBadge=t.isAssignment?'<span style="font-size:9px;background:rgba(58,107,138,0.12);color:var(--blue);border:1px solid rgba(58,107,138,0.25);border-radius:3px;padding:1px 5px;font-family:var(--mono);font-weight:600">'+(t.assignType||'ASSIGN').toUpperCase()+(t.weightage?' '+t.weightage+'%':'')+'</span>':'';
+  var gradeTag=t.actualGrade?'<span style="font-size:9px;background:rgba(58,125,90,0.12);color:var(--green);border:1px solid rgba(58,125,90,0.25);border-radius:3px;padding:1px 5px;font-family:var(--mono);font-weight:600">'+t.actualGrade+'</span>':'';
+  var html='<div class="task-item'+(t.done?' done':'')+'" onclick="openTaskDetail(\'' + t.id + '\')">';
+  html+='<div class="task-check'+(t.done?' done':'')+'" onclick="event.stopPropagation();toggleTask(\'' + t.id + '\')">'+(t.done?'✓':'')+'</div>';
+  html+='<div class="task-content">';
+  html+='<div class="task-title">'+t.title+'</div>';
+  html+='<div class="task-meta">';
+  if(lbl)html+='<span class="label-pill" style="background:'+lbl.colour+'22;color:'+lbl.colour+';border:1px solid '+lbl.colour+'44;font-size:9px;padding:1px 6px;border-radius:10px;font-family:var(--mono)">'+lbl.icon+' '+lbl.name+'</span>';
+  if(t.priority&&prioLabel)html+='<span style="font-size:9px;color:'+prioColour+';font-family:var(--mono);font-weight:600">'+prioLabel+'</span>';
+  if(t.due)html+='<span class="task-due '+dueClass+'">📅 '+fmtDate(t.due)+(days===0?' · TODAY':days===1?' · tmrw':days!==null&&days<=7?' · '+days+'d':'')+'</span>';
+  if(!compact&&space)html+='<span style="font-size:9px;color:var(--text3);font-family:var(--mono)">'+space.icon+' '+space.name+'</span>';
+  if(t.subject)html+='<span style="font-size:9px;color:var(--text3);background:var(--surface2);border-radius:3px;padding:1px 5px;font-family:var(--mono)">'+t.subject+'</span>';
+  html+=assignBadge+gradeTag;
+  if(t.notes&&t.notes.length>0)html+='<span style="font-size:9px;color:var(--text3);font-family:var(--mono)">📝</span>';
+  html+='</div></div></div>';
+  return html;
 }
 
 function _renderTasksBase(){
@@ -1614,6 +1761,7 @@ function toggleTask(id){
 function saveTask(){
   const title=document.getElementById('t-title').value.trim();
   if(!title){showToast('Enter a title','error');return;}
+  const isAssignment=document.getElementById('t-is-assignment')&&document.getElementById('t-is-assignment').checked;
   const task={
     id:'t'+Date.now(),
     title:title,
@@ -1621,20 +1769,27 @@ function saveTask(){
     labelId:document.getElementById('t-label').value,
     due:document.getElementById('t-due').value,
     priority:document.getElementById('t-priority').value,
+    subject:document.getElementById('t-subject')?document.getElementById('t-subject').value.trim():'',
     notes:document.getElementById('t-notes').value,
-    content:'',
-    links:[],
-    done:false,
+    isAssignment:isAssignment,
+    assignType:isAssignment&&document.getElementById('t-assign-type')?document.getElementById('t-assign-type').value:'',
+    weightage:isAssignment&&document.getElementById('t-weightage')?document.getElementById('t-weightage').value:'',
+    targetGrade:isAssignment&&document.getElementById('t-target-grade')?document.getElementById('t-target-grade').value:'',
+    actualGrade:'',
+    content:'',links:[],done:false,
     created:new Date().toISOString()
   };
   const s=getS();
   saveS({tasks:[task,...s.tasks]});
   closeModal('taskModal');
-  ['t-title','t-notes'].forEach(function(id){document.getElementById(id).value='';});
+  ['t-title','t-notes','t-subject'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
   document.getElementById('t-due').value='';
+  var cb=document.getElementById('t-is-assignment');if(cb)cb.checked=false;
+  var af=document.getElementById('assignmentFields');if(af)af.style.display='none';
   showToast('Task added!','success');
   if(currentView==='tasks')renderTasks();
   if(currentView==='morning')renderMorning();
+  if(currentView==='vault')renderVault();
   updateSidebarStats();
 }
 
@@ -2027,17 +2182,26 @@ function renderVault(){
   document.getElementById('subjectGrid').style.display='grid';
   document.getElementById('subjectGrid').innerHTML=s.subjects.map(function(sub){
     const notes=s.notes.filter(function(n){return n.subject===sub.id;}).length;
-    return '<div onclick="openSubject(\''+sub.id+'\')" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;cursor:pointer;transition:all 0.2s;position:relative;overflow:hidden" onmouseover="this.style.transform=\'translateY(-2px)\';this.style.boxShadow=\'var(--shadow-lg)\'" onmouseout="this.style.transform=\'\';this.style.boxShadow=\'\'">'+
+    const pendingTasks=s.tasks.filter(function(t){return t.space===sub.id&&!t.done;}).length;
+    const urgentCount=s.tasks.filter(function(t){return t.space===sub.id&&!t.done&&t.due&&daysUntil(t.due)<=3;}).length;
+    const subPdfCount=((s.pdfFiles&&s.pdfFiles[sub.id])||[]).length;
+    const borderCol=urgentCount>0?'rgba(192,64,64,0.35)':'var(--border)';
+    return '<div onclick="openSubject(\''+sub.id+'\')" style="background:var(--surface);border:1px solid '+borderCol+';border-radius:var(--radius);padding:16px;cursor:pointer;transition:all 0.2s;position:relative;overflow:hidden" onmouseover="this.style.transform=\'translateY(-2px)\';this.style.boxShadow=\'var(--shadow-lg)\'" onmouseout="this.style.transform=\'\';this.style.boxShadow=\'\'">'+
       '<div style="position:absolute;top:0;left:0;right:0;height:3px;background:'+sub.colour+'"></div>'+
-      '<div style="position:absolute;top:8px;right:8px;cursor:pointer;font-size:11px;color:var(--text3)" onclick="event.stopPropagation();deleteSubject(\''+sub.id+'\')">✕</div>'+
-      '<div style="font-size:24px;margin-bottom:8px;margin-top:6px">'+sub.icon+'</div>'+
-      '<div style="font-family:var(--serif);font-size:14px;font-weight:700;color:var(--text);margin-bottom:3px">'+sub.name+'</div>'+
-      '<div style="font-size:10px;color:var(--text3);font-family:var(--mono)">'+notes+' note'+(notes!==1?'s':'')+'</div>'+
+      '<div style="position:absolute;top:8px;right:8px;cursor:pointer;font-size:11px;color:var(--text3)" onclick="event.stopPropagation();deleteSubject(\''+sub.id+'\')" >✕</div>'+
+      '<div style="font-size:22px;margin-bottom:6px;margin-top:6px">'+sub.icon+'</div>'+
+      '<div style="font-family:var(--serif);font-size:14px;font-weight:700;color:var(--text);margin-bottom:8px">'+sub.name+'</div>'+
+      '<div style="display:flex;gap:6px;flex-wrap:wrap">'+
+        (pendingTasks>0?'<span style="font-size:9px;background:var(--accent-soft);color:var(--accent);border-radius:3px;padding:1px 6px;font-family:var(--mono)">'+pendingTasks+' task'+(pendingTasks>1?'s':'')+'</span>':'')+
+        (urgentCount>0?'<span style="font-size:9px;background:rgba(192,64,64,0.1);color:var(--red);border-radius:3px;padding:1px 6px;font-family:var(--mono)">⚠️ '+urgentCount+' urgent</span>':'')+
+        (notes>0?'<span style="font-size:9px;background:rgba(58,125,90,0.1);color:var(--green);border-radius:3px;padding:1px 6px;font-family:var(--mono)">'+notes+' note'+(notes>1?'s':'')+'</span>':'')+
+        (subPdfCount>0?'<span style="font-size:9px;background:rgba(196,146,42,0.1);color:var(--gold);border-radius:3px;padding:1px 6px;font-family:var(--mono)">'+subPdfCount+' PDF'+(subPdfCount>1?'s':'')+'</span>':'')+
+      '</div>'+
     '</div>';
   }).join('')+
   '<div onclick="openModal(\'subjectModal\')" style="background:var(--surface);border:2px dashed var(--border2);border-radius:var(--radius);padding:16px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100px;transition:all 0.15s" onmouseover="this.style.borderColor=\'var(--accent)\'" onmouseout="this.style.borderColor=\'var(--border2)\'">'+
     '<div style="font-size:22px;color:var(--text3);margin-bottom:4px">+</div>'+
-    '<div style="font-size:12px;color:var(--text3);font-weight:500">Add Subject</div>'+
+    '<div style="font-size:12px;color:var(--text3);font-weight:500">New Project</div>'+
   '</div>';
 }
 
@@ -2050,25 +2214,58 @@ function openSubject(id){
   view.style.display='block';
 
   const subNotes=s.notes.filter(function(n){return n.subject===id;});
+  const subTasks=s.tasks.filter(function(t){return t.space===id&&!t.done;});
+  const subAssignments=s.tasks.filter(function(t){return t.space===id&&t.isAssignment;});
+  const subCompleted=(s.completedTasks||[]).filter(function(t){return t.space===id;});
+  const subPdfs=(s.pdfFiles&&s.pdfFiles[id])||[];
+
+  // Deadline urgency for header
+  const urgent=subTasks.filter(function(t){return t.due&&daysUntil(t.due)<=3;}).length;
 
   view.innerHTML=
-    '<div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">'+
+    // Header
+    '<div style="display:flex;align-items:center;gap:10px;margin-bottom:18px">'+
       '<button class="btn btn-ghost btn-sm" onclick="renderVault()">← Back</button>'+
-      '<div style="width:10px;height:10px;border-radius:50%;background:'+sub.colour+'"></div>'+
-      '<div style="font-family:var(--serif);font-size:17px;font-weight:700;color:var(--text)">'+sub.icon+' '+sub.name+'</div>'+
+      '<div style="width:12px;height:12px;border-radius:50%;background:'+sub.colour+';flex-shrink:0"></div>'+
+      '<div style="font-family:var(--serif);font-size:18px;font-weight:700;color:var(--text);flex:1">'+sub.icon+' '+sub.name+'</div>'+
+      (urgent?'<span style="background:rgba(192,64,64,0.1);color:var(--red);border:1px solid rgba(192,64,64,0.2);border-radius:6px;padding:3px 10px;font-size:11px;font-weight:600">⚠️ '+urgent+' deadline'+(urgent>1?'s':'')+' soon</span>':'')+
     '</div>'+
 
-    '<div style="display:flex;gap:8px;margin-bottom:16px">'+
-      '<button class="btn btn-primary btn-sm" onclick="createNoteForSubject(\''+id+'\')">+ New Note</button>'+
-      '<button class="btn btn-ghost btn-sm" onclick="toggleAIPanel(\''+id+'\')">🤖 AI Study Tools</button>'+
-      '<button class="btn btn-secondary btn-sm" onclick="document.getElementById(\'pdfUpload_'+id+'\').click()">📎 Attach PDF</button>'+
+    // Quick stats bar
+    '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px">'+
+      '<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center">'+
+        '<div style="font-family:var(--serif);font-size:22px;font-weight:700;color:var(--accent)">'+subTasks.length+'</div>'+
+        '<div style="font-size:9px;color:var(--text3);font-family:var(--mono);text-transform:uppercase;letter-spacing:0.06em">Pending</div>'+
+      '</div>'+
+      '<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center">'+
+        '<div style="font-family:var(--serif);font-size:22px;font-weight:700;color:var(--blue)">'+subAssignments.length+'</div>'+
+        '<div style="font-size:9px;color:var(--text3);font-family:var(--mono);text-transform:uppercase;letter-spacing:0.06em">Assignments</div>'+
+      '</div>'+
+      '<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center">'+
+        '<div style="font-family:var(--serif);font-size:22px;font-weight:700;color:var(--green)">'+subNotes.length+'</div>'+
+        '<div style="font-size:9px;color:var(--text3);font-family:var(--mono);text-transform:uppercase;letter-spacing:0.06em">Notes</div>'+
+      '</div>'+
+      '<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center">'+
+        '<div style="font-family:var(--serif);font-size:22px;font-weight:700;color:var(--gold)">'+subPdfs.length+'</div>'+
+        '<div style="font-size:9px;color:var(--text3);font-family:var(--mono);text-transform:uppercase;letter-spacing:0.06em">Files</div>'+
+      '</div>'+
+    '</div>'+
+
+    // Action buttons
+    '<div style="display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap">'+
+      '<button class="btn btn-primary btn-sm" onclick="openTaskModalForProject(\''+id+'\')">+ Task</button>'+
+      '<button class="btn btn-secondary btn-sm" onclick="openAssignmentModalForProject(\''+id+'\')">📋 Assignment</button>'+
+      '<button class="btn btn-secondary btn-sm" onclick="createNoteForSubject(\''+id+'\')">📝 Note</button>'+
+      '<button class="btn btn-secondary btn-sm" onclick="document.getElementById(\'pdfUpload_'+id+'\').click()">📎 PDF</button>'+
+      '<button class="btn btn-ghost btn-sm" onclick="toggleAIPanel(\''+id+'\')">🤖 AI Tools</button>'+
       '<input type="file" id="pdfUpload_'+id+'" accept=".pdf" style="display:none" onchange="uploadPdfForSubject(\''+id+'\',this)"/>'+
     '</div>'+
 
-    '<div id="aiPanel_'+id+'" style="display:none;margin-bottom:14px">'+
+    // AI Panel
+    '<div id="aiPanel_'+id+'" style="display:none;margin-bottom:16px">'+
       '<div style="background:linear-gradient(135deg,#fef3e8,#fdeadb);border:1px solid #e8cdb0;border-radius:var(--radius);padding:16px">'+
         '<div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:8px">🤖 AI Study Assistant</div>'+
-        '<textarea class="input" id="aiNotes_'+id+'" placeholder="Paste your lecture notes here..." style="min-height:100px;margin-bottom:10px"></textarea>'+
+        '<textarea class="input" id="aiNotes_'+id+'" placeholder="Paste your notes here..." style="min-height:90px;margin-bottom:10px"></textarea>'+
         '<div style="display:flex;gap:8px;margin-bottom:10px">'+
           '<div style="flex:1"><div class="input-label">Depth</div><select class="input" id="aiDepth_'+id+'"><option value="1">Light</option><option value="2" selected>Medium</option><option value="3">Deep</option></select></div>'+
           '<div style="flex:1"><div class="input-label">Difficulty</div><select class="input" id="aiDiff_'+id+'"><option value="1">Easy</option><option value="2" selected>Medium</option><option value="3">Hard</option></select></div>'+
@@ -2082,19 +2279,79 @@ function openSubject(id){
       '</div>'+
     '</div>'+
 
-    '<div class="card-label" style="margin-bottom:8px">PDFs &amp; Resources</div>'+
-    '<div id="pdfList_'+id+'"></div>'+
+    // Tasks section
+    '<div class="card" style="margin-bottom:14px">'+
+      '<div class="card-header">'+
+        '<div class="card-title" style="font-size:15px">Tasks & Assignments</div>'+
+        '<div style="display:flex;gap:6px">'+
+          '<button class="btn btn-primary btn-xs" onclick="openTaskModalForProject(\''+id+'\')">+ Task</button>'+
+        '</div>'+
+      '</div>'+
+      (subTasks.length>0
+        ?subTasks.map(function(t){return renderTaskItem(t,true);}).join('')
+        :'<div class="empty" style="padding:16px"><div class="empty-text">No pending tasks</div></div>')+
+      (subCompleted.length>0
+        ?'<div style="margin-top:10px"><button class="btn btn-ghost btn-xs" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display===\'none\'?\'block\':\'none\'">Show '+subCompleted.length+' completed</button>'+
+          '<div style="display:none;margin-top:8px">'+subCompleted.map(function(t){return renderTaskItem(t,true);}).join('')+'</div></div>'
+        :'')+
+    '</div>'+
 
-    '<div class="card-label" style="margin-bottom:8px">Notes ('+subNotes.length+')</div>'+
-    (subNotes.length>0
-      ?subNotes.map(function(n){
-        return '<div class="note-card" onclick="openNoteDetail(\''+n.id+'\')">'+
-          '<div class="note-card-title">'+n.title+'</div>'+
-          '<div class="note-card-preview">'+stripHtml(n.content||'').slice(0,80)+'</div>'+
-          '<div class="note-card-meta"><span class="note-card-date">'+new Date(n.updated||n.created).toLocaleDateString()+'</span></div>'+
-        '</div>';
-      }).join('')
-      :'<div class="empty" style="padding:20px"><div class="empty-text">No notes yet for '+sub.name+'.<br/>Click New Note to start.</div></div>');
+    // Assignments table (graded work)
+    (subAssignments.length>0||subCompleted.filter(function(t){return t.isAssignment;}).length>0
+      ?'<div class="card" style="margin-bottom:14px">'+
+          '<div class="card-title" style="font-size:15px;margin-bottom:12px">Grade Tracker</div>'+
+          '<table style="width:100%;border-collapse:collapse;font-size:12px">'+
+            '<thead><tr>'+
+              '<th style="text-align:left;padding:6px 8px;border-bottom:1px solid var(--border);font-family:var(--mono);font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em">Assignment</th>'+
+              '<th style="text-align:left;padding:6px 8px;border-bottom:1px solid var(--border);font-family:var(--mono);font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em">Type</th>'+
+              '<th style="text-align:center;padding:6px 8px;border-bottom:1px solid var(--border);font-family:var(--mono);font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em">Weight</th>'+
+              '<th style="text-align:center;padding:6px 8px;border-bottom:1px solid var(--border);font-family:var(--mono);font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em">Target</th>'+
+              '<th style="text-align:center;padding:6px 8px;border-bottom:1px solid var(--border);font-family:var(--mono);font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em">Grade</th>'+
+              '<th style="text-align:left;padding:6px 8px;border-bottom:1px solid var(--border);font-family:var(--mono);font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em">Due</th>'+
+            '</tr></thead>'+
+            '<tbody>'+
+            [...subAssignments,...subCompleted.filter(function(t){return t.isAssignment;})].map(function(t){
+              const gradeColour=t.actualGrade?'var(--green)':t.done?'var(--text3)':'var(--text)';
+              return '<tr onclick="openTaskDetail(\''+t.id+'\')" style="cursor:pointer" onmouseover="this.style.background=\'var(--bg)\'" onmouseout="this.style.background=\'\'">'+
+                '<td style="padding:8px;border-bottom:1px solid var(--border);color:var(--text);font-weight:500">'+(t.done?'<s>':'')+t.title+(t.done?'</s>':'')+'</td>'+
+                '<td style="padding:8px;border-bottom:1px solid var(--border);color:var(--text3);font-family:var(--mono);font-size:10px">'+(t.assignType||'–')+'</td>'+
+                '<td style="padding:8px;border-bottom:1px solid var(--border);text-align:center;font-family:var(--mono);color:var(--blue)">'+(t.weightage?t.weightage+'%':'–')+'</td>'+
+                '<td style="padding:8px;border-bottom:1px solid var(--border);text-align:center;font-family:var(--mono);color:var(--gold)">'+(t.targetGrade||'–')+'</td>'+
+                '<td style="padding:8px;border-bottom:1px solid var(--border);text-align:center;font-family:var(--mono);font-weight:600;color:'+gradeColour+'">'+(t.actualGrade||'–')+'</td>'+
+                '<td style="padding:8px;border-bottom:1px solid var(--border);font-family:var(--mono);font-size:10px;color:'+(t.due&&daysUntil(t.due)<=3?'var(--red)':'var(--text3)')+'">'+( t.due?fmtDate(t.due):'–')+'</td>'+
+              '</tr>';
+            }).join('')+
+            '</tbody>'+
+          '</table>'+
+        '</div>'
+      :'')+
+
+    // PDFs
+    '<div class="card" style="margin-bottom:14px">'+
+      '<div class="card-header">'+
+        '<div class="card-title" style="font-size:15px">Files & PDFs</div>'+
+        '<button class="btn btn-secondary btn-xs" onclick="document.getElementById(\'pdfUpload_'+id+'\').click()">+ Attach PDF</button>'+
+      '</div>'+
+      '<div id="pdfList_'+id+'"></div>'+
+    '</div>'+
+
+    // Notes
+    '<div class="card">'+
+      '<div class="card-header">'+
+        '<div class="card-title" style="font-size:15px">Notes</div>'+
+        '<button class="btn btn-primary btn-xs" onclick="createNoteForSubject(\''+id+'\')">+ Note</button>'+
+      '</div>'+
+      (subNotes.length>0
+        ?subNotes.map(function(n){
+          return '<div class="note-card" onclick="openNoteDetail(\''+n.id+'\')">'+
+            '<div class="note-card-title">'+n.title+'</div>'+
+            '<div class="note-card-preview">'+stripHtml(n.content||'').slice(0,80)+'</div>'+
+            '<div class="note-card-meta"><span class="note-card-date">'+new Date(n.updated||n.created).toLocaleDateString()+'</span></div>'+
+          '</div>';
+        }).join('')
+        :'<div class="empty" style="padding:16px"><div class="empty-text">No notes yet. Click + Note to start.</div></div>')+
+    '</div>';
+
   renderPdfList(id);
 }
 
@@ -2119,7 +2376,7 @@ function saveSubject(){
   saveS({subjects:[...s.subjects,{id:'sub'+Date.now(),name:name,icon:document.getElementById('sub-icon').value.trim()||'📖',colour:document.getElementById('sub-colour').value}]});
   closeModal('subjectModal');
   document.getElementById('sub-name').value='';
-  showToast('Subject added!','success');
+  showToast('Project added!','success');
   if(currentView==='vault')renderVault();
 }
 
@@ -2584,12 +2841,17 @@ async function loadBriefTab(tab,el){
       (tab==='geo'?'Write a geopolitics briefing. Cover 2-3 major developments. For each: the situation, historical context, the competing interests at play, what each side wants and why, what it means for Southeast Asia. Use <h3> for each topic.':'')+
       (tab==='learn'?'Choose the most interesting concept from today\'s news or from A&F studies. Teach it properly: what it is (simple analogy first), how it actually works (mechanics), why it matters for a student in Malaysia, a real-world example, and one counterintuitive insight. Use <h3> for sections. Make it genuinely educational — the kind of thing someone would tell a friend about.':'');
     const content=await askGroq(prompt,BRIEF_CFG[tab].sys);
+    var sources = [];
+    news.split('\n').forEach(function(line) { var m = line.match(/\(([^,)]+),/); if (m && !sources.includes(m[1].trim())) sources.push(m[1].trim()); });
+    var sourceStr = sources.length ? sources.slice(0,4).join(' · ') : 'RSS';
     const html='<div class="card">'+
       '<div class="card-label" style="margin-bottom:4px">'+BRIEF_CFG[tab].label+' · '+today+'</div>'+
       '<div style="font-size:13px;line-height:1.85;color:var(--text2)">'+content+'</div>'+
-      '<div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border);display:flex;gap:8px">'+
-        '<button class="btn btn-ghost btn-sm" onclick="openReading(\''+BRIEF_CFG[tab].label+' · '+today+'\',\''+content.replace(/'/g,"\\'")+'\')">Reading Mode</button>'+
-      '<button class="btn btn-ghost btn-sm" onclick="saveArticleAsNote(\''+tab+'\')">Save to Notes</button>'+
+      '<div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border)">'+
+        '<div style="font-size:10px;color:var(--text3);font-family:var(--mono);margin-bottom:10px">📰 Sources: '+sourceStr+'</div>'+
+        '<div style="display:flex;gap:8px">'+
+          '<button class="btn btn-ghost btn-sm" onclick="saveArticleAsNote(\''+tab+'\')" >Save to Notes</button>'+
+        '</div>'+
       '</div>'+
     '</div>';
     briefTabData[tab]=html;
@@ -2972,7 +3234,8 @@ function importData(e){
     try{
       const data=JSON.parse(ev.target.result);
       localStorage.setItem('dd_v2',JSON.stringify(data));
-      showToast('Data restored! Refreshing...','success');
+      pushToSupabase(data);
+      showToast('Data restored and synced to cloud! Refreshing...','success');
       setTimeout(function(){location.reload();},1500);
     } catch(err){showToast('Invalid backup file','error');}
   };
@@ -2984,18 +3247,35 @@ function importData(e){
 // ═══════════════════════════════════════════════
 function initApp(){
   handleGCalRedirect();
+  renderNav();
+  applyAppConfig();
+  updateSyncIndicator();
+
+  // Render immediately from local cache (fast)
   checkStreak();
   setTimeout(checkDeadlineCountdown, 2000);
   updateSidebarStats();
-
-  // Reset habit done-today check
   const s=getS();
   const today=new Date().toDateString();
   if(s.lastHabitReset!==today){
     saveS({lastHabitReset:today,plannedTasks:[]});
   }
-
   renderMorning();
+
+  // Then pull from Supabase in background and refresh if newer data found
+  _syncStatus = 'syncing';
+  updateSyncIndicator();
+  pullFromSupabase().then(function(remote){
+    if(remote){
+      renderNav();
+      applyAppConfig();
+      updateSidebarStats();
+      if(currentView==='morning')renderMorning();
+      showToast('☁️ Synced from cloud', 'success');
+    }
+    _syncStatus = 'idle';
+    updateSyncIndicator();
+  });
 }
 
 
@@ -3593,21 +3873,68 @@ var pdfTotalPages = 0;
 var pdfCurrentId = null;
 var pdfScale = 1.4;
 
+// IndexedDB for PDF storage (localStorage has 5MB limit, PDFs are larger)
+var pdfDB = null;
+
+function initPdfDB(callback) {
+  if (pdfDB) { callback(pdfDB); return; }
+  var req = indexedDB.open('DurghaPDFs', 1);
+  req.onupgradeneeded = function(e) {
+    e.target.result.createObjectStore('pdfs', { keyPath: 'id' });
+  };
+  req.onsuccess = function(e) {
+    pdfDB = e.target.result;
+    callback(pdfDB);
+  };
+  req.onerror = function() {
+    showToast('Could not open PDF storage', 'error');
+  };
+}
+
+function storePdfData(pdfId, dataUrl, callback) {
+  initPdfDB(function(db) {
+    var tx = db.transaction('pdfs', 'readwrite');
+    tx.objectStore('pdfs').put({ id: pdfId, data: dataUrl });
+    tx.oncomplete = callback;
+  });
+}
+
+function loadPdfData(pdfId, callback) {
+  initPdfDB(function(db) {
+    var tx = db.transaction('pdfs', 'readonly');
+    var req = tx.objectStore('pdfs').get(pdfId);
+    req.onsuccess = function() { callback(req.result ? req.result.data : null); };
+    req.onerror = function() { callback(null); };
+  });
+}
+
+function deletePdfData(pdfId) {
+  initPdfDB(function(db) {
+    var tx = db.transaction('pdfs', 'readwrite');
+    tx.objectStore('pdfs').delete(pdfId);
+  });
+}
+
 function uploadPdfForSubject(subjectId, input) {
   var file = input.files[0];
   if (!file) return;
-  if (file.size > 15 * 1024 * 1024) { showToast('PDF too large (max 15MB)', 'error'); return; }
+  if (file.size > 50 * 1024 * 1024) { showToast('PDF too large (max 50MB)', 'error'); return; }
+  showToast('Uploading ' + file.name + '...', 'info');
   var reader = new FileReader();
   reader.onload = function(e) {
-    var s = getS();
-    var pdfFiles = s.pdfFiles || {};
-    pdfFiles[subjectId] = pdfFiles[subjectId] || [];
     var pdfId = 'pdf' + Date.now();
-    pdfFiles[subjectId].push({ id: pdfId, name: file.name, data: e.target.result, uploaded: new Date().toISOString() });
-    saveS({ pdfFiles: pdfFiles });
-    showToast('PDF uploaded: ' + file.name, 'success');
-    renderPdfList(subjectId);
-    input.value = '';
+    storePdfData(pdfId, e.target.result, function() {
+      var s = getS();
+      var pdfFiles = s.pdfFiles || {};
+      pdfFiles[subjectId] = pdfFiles[subjectId] || [];
+      pdfFiles[subjectId].push({ id: pdfId, name: file.name, uploaded: new Date().toISOString() });
+      saveS({ pdfFiles: pdfFiles });
+      // Also push PDF to Supabase for cross-device access
+      pushPdfToSupabase(pdfId, subjectId, file.name, e.target.result).catch(function(){});
+      showToast('PDF uploaded: ' + file.name, 'success');
+      renderPdfList(subjectId);
+      input.value = '';
+    });
   };
   reader.readAsDataURL(file);
 }
@@ -3641,7 +3968,12 @@ function deletePdf(subjectId, idx) {
   if (!confirm('Remove this PDF?')) return;
   var s = getS();
   var pdfFiles = s.pdfFiles || {};
-  pdfFiles[subjectId] = (pdfFiles[subjectId] || []).filter(function(_, i) { return i !== idx; });
+  var pdfs = pdfFiles[subjectId] || [];
+  if (pdfs[idx]) {
+    deletePdfData(pdfs[idx].id);
+    deletePdfFromSupabase(pdfs[idx].id).catch(function(){});
+  }
+  pdfFiles[subjectId] = pdfs.filter(function(_, i) { return i !== idx; });
   saveS({ pdfFiles: pdfFiles });
   renderPdfList(subjectId);
   showToast('PDF removed', 'info');
@@ -3650,7 +3982,26 @@ function deletePdf(subjectId, idx) {
 function openPdfByIndex(subjectId, idx) {
   var s = getS();
   var pdfs = (s.pdfFiles && s.pdfFiles[subjectId]) || [];
-  if (pdfs[idx]) openPdfViewer(pdfs[idx].data, pdfs[idx].name, pdfs[idx].id);
+  if (!pdfs[idx]) return;
+  var pdf = pdfs[idx];
+  showToast('Opening ' + pdf.name + '...', 'info');
+  // Try IndexedDB first (fastest), then fall back to Supabase
+  loadPdfData(pdf.id, function(dataUrl) {
+    if (dataUrl) {
+      openPdfViewer(dataUrl, pdf.name, pdf.id);
+    } else {
+      showToast('Loading from cloud...', 'info');
+      loadPdfFromSupabase(pdf.id).then(function(remoteData) {
+        if (remoteData) {
+          // Cache locally for next time
+          storePdfData(pdf.id, remoteData, function(){});
+          openPdfViewer(remoteData, pdf.name, pdf.id);
+        } else {
+          showToast('PDF not found. Please re-upload.', 'error');
+        }
+      });
+    }
+  });
 }
 
 function openPdfViewer(dataUrl, name, pdfId) {
@@ -4118,6 +4469,293 @@ function renderTasks() {
     if (tasks[i]) el.dataset.taskId = tasks[i].id;
   });
   setTimeout(enableTaskDragDrop, 50);
+}
+
+
+// ═══════════════════════════════════════════════
+// PROJECT / ASSIGNMENT HELPERS
+// ═══════════════════════════════════════════════
+function toggleAssignmentFields(){
+  var cb=document.getElementById('t-is-assignment');
+  var af=document.getElementById('assignmentFields');
+  if(cb&&af) af.style.display=cb.checked?'block':'none';
+}
+
+function openTaskModalForProject(projectId){
+  openModal('taskModal');
+  setTimeout(function(){
+    var sel=document.getElementById('t-space');
+    if(sel)sel.value=projectId;
+  },50);
+}
+
+function openAssignmentModalForProject(projectId){
+  openModal('taskModal');
+  setTimeout(function(){
+    var sel=document.getElementById('t-space');
+    if(sel)sel.value=projectId;
+    var cb=document.getElementById('t-is-assignment');
+    if(cb){cb.checked=true;toggleAssignmentFields();}
+  },50);
+}
+
+// Allow setting actual grade from task detail page
+function setActualGrade(taskId){
+  var grade=prompt('Enter actual grade received (e.g. A, B+, 85%):');
+  if(!grade)return;
+  var s=getS();
+  var tasks=s.tasks.map(function(t){return t.id===taskId?Object.assign({},t,{actualGrade:grade}):t;});
+  var completed=(s.completedTasks||[]).map(function(t){return t.id===taskId?Object.assign({},t,{actualGrade:grade}):t;});
+  saveS({tasks:tasks,completedTasks:completed});
+  showToast('Grade saved: '+grade,'success');
+  // Refresh if in vault
+  if(currentView==='vault'){var sv=document.getElementById('subjectView');if(sv&&sv.style.display!=='none'){var s2=getS();var t=tasks.find(function(x){return x.id===taskId;})||(completed.find(function(x){return x.id===taskId;}));if(t)openSubject(t.space);}}
+}
+
+
+// ═══════════════════════════════════════════════
+// SETTINGS & IN-APP CUSTOMISATION
+// ═══════════════════════════════════════════════
+
+// Default nav items — order, label, icon, view key, visible
+var DEFAULT_NAV_ITEMS = [
+  {id:'morning',  icon:'🌅', label:'Morning',     section:'Daily',   visible:true,  special:null},
+  {id:'planning', icon:'🗓️', label:'Planning',    section:'Daily',   visible:true,  special:null},
+  {id:'calendar', icon:'📅', label:'Calendar',    section:'Daily',   visible:true,  special:null},
+  {id:'tasks',    icon:'✅', label:'Tasks',       section:'Daily',   visible:true,  special:'tasksBadge'},
+  {id:'habits',   icon:'💪', label:'Habits',      section:'Daily',   visible:true,  special:null},
+  {id:'vault',    icon:'📚', label:'Vault',       section:'Study',   visible:true,  special:null},
+  {id:'notes',    icon:'📝', label:'All Notes',   section:'Study',   visible:true,  special:null},
+  {id:'focus',    icon:'⏱️', label:'Focus Mode',  section:'Study',   visible:true,  special:null},
+  {id:'gpa',      icon:'🎓', label:'GPA',         section:'Study',   visible:true,  special:null},
+  {id:'brief',    icon:'📰', label:'Daily Brief', section:'Learn',   visible:true,  special:null},
+  {id:'concept',  icon:'🧠', label:'Concept',     section:'Learn',   visible:true,  special:null},
+  {id:'research', icon:'🔍', label:'Research',    section:'Learn',   visible:true,  special:null},
+  {id:'expenses', icon:'💸', label:'Expenses',    section:'More',    visible:true,  special:null},
+  {id:'captures', icon:'⚡', label:'Quick Notes', section:'More',    visible:true,  special:'capsBadge'},
+  {id:'labels',   icon:'🏷️', label:'Labels',      section:'More',    visible:true,  special:null, isModal:'labelModal'}
+];
+
+function getNavItems() {
+  var s = getS();
+  if (s.navItems && s.navItems.length > 0) {
+    // Merge: add any new default items not yet in saved list
+    var saved = s.navItems;
+    DEFAULT_NAV_ITEMS.forEach(function(def) {
+      if (!saved.find(function(x) { return x.id === def.id; })) {
+        saved.push(def);
+      }
+    });
+    return saved;
+  }
+  return DEFAULT_NAV_ITEMS.map(function(x) { return Object.assign({}, x); });
+}
+
+function renderNav() {
+  var items = getNavItems();
+  var s = getS();
+  var currentSection = '';
+  var html = '';
+  items.forEach(function(item) {
+    if (!item.visible) return;
+    if (item.section !== currentSection) {
+      currentSection = item.section;
+      html += '<div class="nav-section">' + currentSection + '</div>';
+    }
+    if (item.isModal) {
+      html += '<div class="nav-item" onclick="openModal(\"' + item.isModal + '\")" id="nav-' + item.id + '"><span class="nav-icon">' + item.icon + '</span>' + item.label + '</div>';
+    } else {
+      var badge = '';
+      if (item.special === 'tasksBadge') {
+        var pending = s.tasks.filter(function(t){return !t.done;}).length;
+        badge = '<span class="nav-badge red" id="tasksBadge" style="' + (pending>0?'':'display:none') + '">' + pending + '</span>';
+      } else if (item.special === 'capsBadge') {
+        var caps = (s.captures||[]).length;
+        badge = '<span class="nav-badge" id="capsBadge" style="' + (caps>0?'':'display:none') + '">' + caps + '</span>';
+      }
+      html += '<div class="nav-item" onclick="nav(\"' + item.id + '\")" id="nav-' + item.id + '"><span class="nav-icon">' + item.icon + '</span>' + item.label + badge + '</div>';
+    }
+  });
+  document.getElementById('mainNav').innerHTML = html;
+}
+
+function openSettings() {
+  // Populate fields from saved settings
+  var s = getS();
+  var cfg = s.appConfig || {};
+  if (document.getElementById('cfg-name')) document.getElementById('cfg-name').value = cfg.name || '';
+  if (document.getElementById('cfg-sub')) document.getElementById('cfg-sub').value = cfg.subtitle || '';
+  if (document.getElementById('cfg-groq')) document.getElementById('cfg-groq').value = localStorage.getItem('dd_groq') || '';
+  var sidebarW = cfg.sidebarWidth || 220;
+  var sW = document.getElementById('cfg-sidebar-width');
+  if (sW) { sW.value = sidebarW; document.getElementById('sidebarWidthLabel').textContent = sidebarW + 'px'; }
+  // Mark active accent
+  var accent = cfg.accent || '#b85c38';
+  document.querySelectorAll('#accentSwatches .colour-swatch').forEach(function(sw) {
+    sw.classList.toggle('selected', sw.dataset.accent === accent);
+  });
+  renderNavCustomList();
+  openModal('settingsModal');
+}
+
+function switchSettingsTab(tab, el) {
+  document.querySelectorAll('.settings-tab').forEach(function(t){t.classList.remove('active');});
+  document.querySelectorAll('.settings-pane').forEach(function(p){p.style.display='none';});
+  if (el) el.classList.add('active');
+  var pane = document.getElementById('settings-' + tab);
+  if (pane) pane.style.display = 'block';
+}
+
+function renderNavCustomList() {
+  var items = getNavItems();
+  var el = document.getElementById('navCustomList');
+  if (!el) return;
+  el.innerHTML = items.map(function(item, idx) {
+    return '<div class="nav-custom-item' + (item.visible?'':' hidden-item') + '" data-idx="' + idx + '" draggable="true">' +
+      '<span class="drag-handle">⠿</span>' +
+      '<span class="item-icon">' + item.icon + '</span>' +
+      '<input class="item-label" value="' + item.label + '" onchange="updateNavLabel(' + idx + ',this.value)" />' +
+      '<button class="visibility-btn" onclick="toggleNavVisible(' + idx + ')" title="' + (item.visible?'Hide':'Show') + '">' + (item.visible?'👁️':'🙈') + '</button>' +
+    '</div>';
+  }).join('');
+
+  // Drag and drop reorder
+  var dragSrc = null;
+  el.querySelectorAll('.nav-custom-item').forEach(function(row) {
+    row.addEventListener('dragstart', function() { dragSrc = this; this.style.opacity='0.4'; });
+    row.addEventListener('dragend', function() { this.style.opacity='1'; });
+    row.addEventListener('dragover', function(e) { e.preventDefault(); this.style.borderColor='var(--accent)'; });
+    row.addEventListener('dragleave', function() { this.style.borderColor='var(--border)'; });
+    row.addEventListener('drop', function(e) {
+      e.preventDefault();
+      this.style.borderColor = 'var(--border)';
+      if (dragSrc === this) return;
+      var fromIdx = parseInt(dragSrc.dataset.idx);
+      var toIdx = parseInt(this.dataset.idx);
+      var items2 = getNavItems();
+      var moved = items2.splice(fromIdx, 1)[0];
+      items2.splice(toIdx, 0, moved);
+      saveS({navItems: items2});
+      renderNavCustomList();
+      renderNav();
+    });
+  });
+}
+
+function toggleNavVisible(idx) {
+  var items = getNavItems();
+  if (items[idx]) items[idx].visible = !items[idx].visible;
+  saveS({navItems: items});
+  renderNavCustomList();
+  renderNav();
+}
+
+function updateNavLabel(idx, val) {
+  var items = getNavItems();
+  if (items[idx]) items[idx].label = val;
+  saveS({navItems: items});
+  renderNav();
+}
+
+function resetNavOrder() {
+  if (!confirm('Reset sidebar to default order and labels?')) return;
+  saveS({navItems: DEFAULT_NAV_ITEMS.map(function(x){return Object.assign({},x);})});
+  renderNavCustomList();
+  renderNav();
+  showToast('Sidebar reset to default', 'info');
+}
+
+function setAccent(colour, el) {
+  document.querySelectorAll('#accentSwatches .colour-swatch').forEach(function(sw){sw.classList.remove('selected');});
+  if (el) el.classList.add('selected');
+  document.documentElement.style.setProperty('--accent', colour);
+  // Derive accent2 (lighter)
+  document.documentElement.style.setProperty('--accent2', colour);
+  document.documentElement.style.setProperty('--accent-soft', colour + '18');
+}
+
+function setSidebarWidth(val) {
+  document.documentElement.style.setProperty('--sidebar-width', val + 'px');
+  document.querySelector('.app').style.gridTemplateColumns = val + 'px 1fr';
+  document.getElementById('sidebarWidthLabel').textContent = val + 'px';
+}
+
+function saveSettings() {
+  var name = document.getElementById('cfg-name').value.trim();
+  var subtitle = document.getElementById('cfg-sub').value.trim();
+  var groq = document.getElementById('cfg-groq').value.trim();
+  var accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#b85c38';
+  var sidebarWidth = document.getElementById('cfg-sidebar-width').value;
+
+  if (groq) localStorage.setItem('dd_groq', groq);
+
+  var s = getS();
+  var cfg = Object.assign({}, s.appConfig || {}, {
+    name: name, subtitle: subtitle, accent: accent, sidebarWidth: parseInt(sidebarWidth)
+  });
+  saveS({appConfig: cfg});
+
+  // Apply name/subtitle
+  if (name) { var bn = document.querySelector('.brand-name'); if(bn) bn.textContent = name + "'s Dashboard"; }
+  if (subtitle) { var bs = document.querySelector('.brand-sub'); if(bs) bs.textContent = subtitle; }
+
+  closeModal('settingsModal');
+  showToast('Settings saved!', 'success');
+}
+
+function applyAppConfig() {
+  var s = getS();
+  var cfg = s.appConfig || {};
+  if (cfg.name) { var bn = document.querySelector('.brand-name'); if(bn) bn.textContent = cfg.name + "'s Dashboard"; }
+  if (cfg.subtitle) { var bs = document.querySelector('.brand-sub'); if(bs) bs.textContent = cfg.subtitle; }
+  if (cfg.accent) {
+    document.documentElement.style.setProperty('--accent', cfg.accent);
+    document.documentElement.style.setProperty('--accent-soft', cfg.accent + '18');
+  }
+  if (cfg.sidebarWidth) {
+    document.querySelector('.app').style.gridTemplateColumns = cfg.sidebarWidth + 'px 1fr';
+    var sw = document.getElementById('cfg-sidebar-width');
+    if (sw) sw.value = cfg.sidebarWidth;
+  }
+}
+
+
+// ═══════════════════════════════════════════════
+// SUPABASE PDF STORAGE (supplements IndexedDB)
+// ═══════════════════════════════════════════════
+async function pushPdfToSupabase(pdfId, projectId, name, dataUrl){
+  try{
+    await fetch(SUPA_URL + '/rest/v1/pdf_files', {
+      method: 'POST',
+      headers: Object.assign({}, supaHeaders(), {'Prefer':'return=minimal'}),
+      body: JSON.stringify({
+        id: pdfId,
+        project_id: projectId,
+        name: name,
+        data: dataUrl,
+        uploaded_at: new Date().toISOString()
+      })
+    });
+  } catch(e){ console.warn('PDF Supabase upload failed:', e.message); }
+}
+
+async function loadPdfFromSupabase(pdfId){
+  try{
+    var r = await fetch(SUPA_URL + '/rest/v1/pdf_files?id=eq.' + pdfId + '&select=data', {
+      headers: supaHeaders()
+    });
+    var rows = await r.json();
+    return rows && rows[0] ? rows[0].data : null;
+  } catch(e){ return null; }
+}
+
+async function deletePdfFromSupabase(pdfId){
+  try{
+    await fetch(SUPA_URL + '/rest/v1/pdf_files?id=eq.' + pdfId, {
+      method: 'DELETE',
+      headers: supaHeaders()
+    });
+  } catch(e){ console.warn('PDF Supabase delete failed'); }
 }
 
 // Boot
