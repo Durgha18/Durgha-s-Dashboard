@@ -1978,7 +1978,7 @@ select.input{cursor:pointer;appearance:none;}
 // CONFIG
 // ═══════════════════════════════════════════════
 const CFG={
-  get GROQ(){return localStorage.getItem('dd_groq')||'';},
+  get GROQ(){return localStorage.getItem('dd_groq')||'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';},
   get NEWS(){return localStorage.getItem('dd_news')||'';},
   MODEL:'llama-3.3-70b-versatile'
 };
@@ -2032,7 +2032,7 @@ function skipSetup(){ completeSetup(); }
 // SUPABASE CONFIG + AUTH
 // ═══════════════════════════════════════════════
 var SUPA_URL = 'https://gctpgclvhungaknktjye.supabase.co';
-var SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdjdHBnY2x2aHVuZ2Frbmt0anllIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4OTc0NTMsImV4cCI6MjA5MjQ3MzQ1M30.i59tJQpc1YBwgKKH8uXHQ5kiD-Z6Xd2DFqTWDxES5CQ';
+var SUPA_KEY = 'sb_publishable_9VzNAFsWtEQXd-hc3t7oLg_QWXoK0XR';
 var _syncTimer = null;
 var _syncStatus = 'idle';
 var _authSession = null; // Supabase session {access_token, user}
@@ -5671,7 +5671,7 @@ function switchToDayPlanner(dateStr) {
 // Create OAuth 2.0 credentials (Web application type).
 // Add your app URL to "Authorised JavaScript origins".
 // Paste your Client ID below.
-var GCAL_CLIENT_ID = localStorage.getItem('dd_gcal_client_id') || '';
+var GCAL_CLIENT_ID = localStorage.getItem('dd_gcal_client_id') || '220987797612-jqvo0potl87a91jmfj00rq93325mjvkt.apps.googleusercontent.com';
 var GCAL_TOKEN = localStorage.getItem('dd_gcal_token') || '';
 var GCAL_TOKEN_EXPIRY = parseInt(localStorage.getItem('dd_gcal_token_expiry')||'0');
 var _gcalTokenClient = null;
