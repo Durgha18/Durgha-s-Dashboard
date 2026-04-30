@@ -276,6 +276,15 @@ select.input{cursor:pointer;appearance:none;}
 /* ── TASK COMPONENTS ── */
 .task-item{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:var(--surface);border:1px solid var(--border);border-radius:9px;margin-bottom:7px;cursor:pointer;transition:all 0.15s;}
 .task-item:hover{border-color:var(--border2);box-shadow:var(--shadow);}
+/* Task action buttons — appear on hover */
+.task-actions{display:flex;gap:2px;opacity:0;transition:opacity 0.15s;flex-shrink:0;align-items:center;margin-left:auto;}
+.task-item:hover .task-actions{opacity:1;}
+.task-action-btn{background:none;border:none;cursor:pointer;font-size:13px;padding:4px 6px;border-radius:5px;color:var(--text3);transition:all 0.15s;line-height:1;}
+.task-action-btn:hover{background:var(--bg);color:var(--text);}
+/* Undo toast */
+.undo-toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--text);color:var(--bg);border-radius:12px;padding:10px 16px;font-size:12px;font-weight:500;z-index:9999;display:flex;align-items:center;gap:12px;box-shadow:0 4px 20px rgba(0,0,0,0.25);animation:slideUp 0.2s ease;}
+.undo-toast button{background:var(--accent);color:#fff;border:none;border-radius:6px;padding:4px 10px;font-size:11px;font-weight:600;cursor:pointer;font-family:var(--sans);}
+@keyframes slideUp{from{transform:translateX(-50%) translateY(20px);opacity:0}to{transform:translateX(-50%) translateY(0);opacity:1}}
 .task-item.done{opacity:0.5;}
 .task-check{width:18px;height:18px;border-radius:5px;border:2px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:9px;flex-shrink:0;margin-top:1px;cursor:pointer;transition:all 0.15s;}
 .task-check.done{background:var(--green);border-color:var(--green);color:#fff;}
@@ -973,8 +982,78 @@ select.input{cursor:pointer;appearance:none;}
   </div>
 </div>
 
-<!-- MODALS -->
-<!-- Add Task -->
+<!-- Edit Task Modal -->
+<div class="modal-overlay" id="editTaskModal">
+  <div class="modal">
+    <div class="modal-title">✏️ Edit Task</div>
+    <input type="hidden" id="edit-t-id"/>
+    <div class="field"><div class="input-label">Title</div><input class="input" id="edit-t-title" placeholder="What needs to be done?"/></div>
+    <div class="grid-2">
+      <div class="field"><div class="input-label">Project</div><select class="input" id="edit-t-space"></select></div>
+      <div class="field"><div class="input-label">Label</div><select class="input" id="edit-t-label"></select></div>
+    </div>
+    <div class="grid-2">
+      <div class="field"><div class="input-label">Due Date</div><input class="input" type="date" id="edit-t-due"/></div>
+      <div class="field">
+        <div class="input-label">Priority</div>
+        <select class="input" id="edit-t-priority">
+          <option value="high">🔴 High</option>
+          <option value="medium">🟡 Medium</option>
+          <option value="low">🟢 Low</option>
+        </select>
+      </div>
+    </div>
+    <div class="field"><div class="input-label">Sub-task / Notes</div><input class="input" id="edit-t-subject" placeholder="e.g. Chapter 3, Group B..."/></div>
+    <div class="field" style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;cursor:pointer" onclick="document.getElementById('edit-t-is-assignment').click()">
+      <input type="checkbox" id="edit-t-is-assignment" style="width:16px;height:16px;cursor:pointer;accent-color:var(--accent)" onchange="toggleEditAssignmentFields()"/>
+      <label style="font-size:13px;font-weight:500;color:var(--text);cursor:pointer">This is an assignment / graded task</label>
+    </div>
+    <div id="editAssignmentFields" style="display:none;margin-top:10px">
+      <div class="grid-2">
+        <div class="field">
+          <div class="input-label">Assignment Type</div>
+          <select class="input" id="edit-t-assign-type">
+            <option value="assignment">Assignment</option>
+            <option value="exam">Exam / Test</option>
+            <option value="quiz">Quiz</option>
+            <option value="presentation">Presentation</option>
+            <option value="project">Group Project</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <div class="field"><div class="input-label">Weightage (%)</div><input class="input" type="number" id="edit-t-weightage" placeholder="e.g. 20" min="0" max="100"/></div>
+      </div>
+      <div class="grid-2">
+        <div class="field">
+          <div class="input-label">Target Grade</div>
+          <select class="input" id="edit-t-target-grade">
+            <option value="">No target</option>
+            <option>A+</option><option>A</option><option>A-</option>
+            <option>B+</option><option>B</option><option>B-</option>
+            <option>C+</option><option>C</option>
+          </select>
+        </div>
+        <div class="field">
+          <div class="input-label">Actual Grade (after)</div>
+          <select class="input" id="edit-t-actual-grade">
+            <option value="">—</option>
+            <option>A+</option><option>A</option><option>A-</option>
+            <option>B+</option><option>B</option><option>B-</option>
+            <option>C+</option><option>C</option><option>C-</option>
+            <option>D+</option><option>D</option><option>F</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer" style="justify-content:space-between">
+      <button class="btn btn-danger btn-sm" onclick="deleteTaskFromModal()">🗑 Delete</button>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-ghost btn-sm" onclick="closeModal('editTaskModal')">Cancel</button>
+        <button class="btn btn-primary btn-sm" onclick="saveEditTask()">Save Changes</button>
+      </div>
+    </div>
+  </div>
+</div>
 <div class="modal-overlay" id="taskModal">
   <div class="modal">
     <div class="modal-title">Add Task</div>
@@ -2721,7 +2800,12 @@ function renderTaskItem(t,compact){
   if(t.subject)html+='<span style="font-size:9px;color:var(--text3);background:var(--surface2);border-radius:3px;padding:1px 5px;font-family:var(--mono)">'+esc(t.subject)+'</span>';
   html+=assignBadge+gradeTag;
   if(t.notes&&t.notes.length>0)html+='<span style="font-size:9px;color:var(--text3);font-family:var(--mono)">📝</span>';
-  html+='</div></div></div>';
+  html+='</div></div>'+
+    '<div class="task-actions" onclick="event.stopPropagation()">'+
+      '<button class="task-action-btn" onclick="openEditTask(\''+t.id+'\')" title="Edit">✏️</button>'+
+      '<button class="task-action-btn" onclick="deleteTask(\''+t.id+'\')" title="Delete">🗑</button>'+
+    '</div>'+
+  '</div>';
   return html;
 }
 
@@ -2893,10 +2977,11 @@ function openTaskDetail(id){
     (proj?'<span class="tag" style="color:'+proj.colour+';border-color:'+proj.colour+'44">'+esc(proj.icon)+' '+esc(proj.name)+'</span>':'')+
     (task.isAssignment&&task.weightage?'<span class="tag" style="color:var(--blue);border-color:rgba(58,107,138,0.3)">'+esc(task.assignType||'Assignment')+' · '+esc(task.weightage)+'%</span>':'');
 
-  // Header actions
+  // Header actions — edit, delete, focus
   document.getElementById('detailHeaderActions').innerHTML=
-    '<button class="btn btn-ghost btn-sm" onclick="addLinkToTask()">+ Link</button>'+
-    '<button class="btn btn-primary btn-sm" onclick="startFocusOnTask(\''+id+'\')">🎯 Focus</button>';
+    '<button class="btn btn-ghost btn-sm" onclick="openEditTask(\''+id+'\')">✏️ Edit</button>'+
+    '<button class="btn btn-ghost btn-sm" onclick="startFocusOnTask(\''+id+'\')">🎯 Focus</button>'+
+    '<button class="btn btn-danger btn-sm" onclick="deleteTask(\''+id+'\');closeDetail()">🗑 Delete</button>';
 
   // Links
   const links=task.links||[];
@@ -3825,6 +3910,135 @@ function calcStreak(history){
     else break;
   }
   return streak;
+}
+
+// ═══════════════════════════════════════════════
+// TASK EDIT & DELETE
+// ═══════════════════════════════════════════════
+var _deletedTask = null;
+var _undoTimer = null;
+
+function deleteTask(id){
+  var s=getS();
+  var task=s.tasks.find(function(t){return t.id===id;});
+  if(!task)return;
+  _deletedTask=task;
+  // Remove from list
+  saveS({tasks:s.tasks.filter(function(t){return t.id!==id;})});
+  if(detailId===id)closeDetail();
+  if(currentView==='tasks')renderTasks();
+  if(currentView==='morning')renderMorning();
+  updateSidebarStats();
+  // Show undo toast
+  showUndoToast('Task deleted',function(){
+    if(!_deletedTask)return;
+    var s2=getS();
+    saveS({tasks:[_deletedTask,...s2.tasks]});
+    _deletedTask=null;
+    if(currentView==='tasks')renderTasks();
+    updateSidebarStats();
+    showToast('Task restored','success');
+  });
+}
+
+function deleteTaskFromModal(){
+  var id=document.getElementById('edit-t-id').value;
+  closeModal('editTaskModal');
+  deleteTask(id);
+}
+
+function showUndoToast(msg, undoFn){
+  // Remove any existing undo toast
+  var existing=document.getElementById('undoToast');
+  if(existing)existing.remove();
+  clearTimeout(_undoTimer);
+  var el=document.createElement('div');
+  el.id='undoToast';
+  el.className='undo-toast';
+  el.innerHTML=msg+' <button onclick="undoDelete()">Undo</button>';
+  document.body.appendChild(el);
+  window._undoFn=undoFn;
+  _undoTimer=setTimeout(function(){
+    el.remove();
+    _deletedTask=null;
+    window._undoFn=null;
+  },5000);
+}
+
+function undoDelete(){
+  var existing=document.getElementById('undoToast');
+  if(existing)existing.remove();
+  clearTimeout(_undoTimer);
+  if(window._undoFn)window._undoFn();
+  window._undoFn=null;
+}
+
+function openEditTask(id){
+  var s=getS();
+  var task=s.tasks.find(function(t){return t.id===id;})||(s.completedTasks||[]).find(function(t){return t.id===id;});
+  if(!task)return;
+  document.getElementById('edit-t-id').value=id;
+  document.getElementById('edit-t-title').value=task.title||'';
+  document.getElementById('edit-t-due').value=task.due||'';
+  document.getElementById('edit-t-subject').value=task.subject||'';
+  // Populate selects
+  populateSpaceSelect('edit-t-space');
+  populateLabelSelect('edit-t-label');
+  setTimeout(function(){
+    document.getElementById('edit-t-space').value=task.projectId||task.space||'';
+    document.getElementById('edit-t-label').value=task.labelId||'';
+    document.getElementById('edit-t-priority').value=task.priority||'medium';
+  },30);
+  // Assignment fields
+  var isAssign=!!task.isAssignment;
+  document.getElementById('edit-t-is-assignment').checked=isAssign;
+  document.getElementById('editAssignmentFields').style.display=isAssign?'block':'none';
+  if(isAssign){
+    setTimeout(function(){
+      document.getElementById('edit-t-assign-type').value=task.assignType||'assignment';
+      document.getElementById('edit-t-weightage').value=task.weightage||'';
+      document.getElementById('edit-t-target-grade').value=task.targetGrade||'';
+      document.getElementById('edit-t-actual-grade').value=task.actualGrade||'';
+    },30);
+  }
+  openModal('editTaskModal');
+}
+
+function toggleEditAssignmentFields(){
+  var checked=document.getElementById('edit-t-is-assignment').checked;
+  document.getElementById('editAssignmentFields').style.display=checked?'block':'none';
+}
+
+function saveEditTask(){
+  var id=document.getElementById('edit-t-id').value;
+  var title=document.getElementById('edit-t-title').value.trim();
+  if(!title){showToast('Enter a title','error');return;}
+  var isAssign=document.getElementById('edit-t-is-assignment').checked;
+  var s=getS();
+  var tasks=s.tasks.map(function(t){
+    if(t.id!==id)return t;
+    return Object.assign({},t,{
+      title:title,
+      due:document.getElementById('edit-t-due').value,
+      subject:document.getElementById('edit-t-subject').value,
+      projectId:document.getElementById('edit-t-space').value,
+      labelId:document.getElementById('edit-t-label').value,
+      priority:document.getElementById('edit-t-priority').value,
+      isAssignment:isAssign,
+      assignType:isAssign?document.getElementById('edit-t-assign-type').value:'',
+      weightage:isAssign?document.getElementById('edit-t-weightage').value:'',
+      targetGrade:isAssign?document.getElementById('edit-t-target-grade').value:'',
+      actualGrade:isAssign?document.getElementById('edit-t-actual-grade').value:''
+    });
+  });
+  saveS({tasks:tasks});
+  closeModal('editTaskModal');
+  showToast('Task updated!','success');
+  if(currentView==='tasks')renderTasks();
+  if(currentView==='morning')renderMorning();
+  // If detail page is open for this task, refresh it
+  if(detailId===id&&detailType==='task')openTaskDetail(id);
+  updateSidebarStats();
 }
 
 function toggleHabit(id){
@@ -6177,14 +6391,55 @@ function handleSearchKey(e) {
 }
 
 document.addEventListener('keydown', function(e) {
-  if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-    e.preventDefault();
-    openSearch();
+  var active=document.activeElement;
+  var isTyping=active&&(active.tagName==='INPUT'||active.tagName==='TEXTAREA'||active.getAttribute('contenteditable'));
+
+  // Ctrl/Cmd + K — search
+  if((e.ctrlKey||e.metaKey)&&e.key==='k'){e.preventDefault();openSearch();return;}
+  // Ctrl/Cmd + N — new task
+  if((e.ctrlKey||e.metaKey)&&!e.shiftKey&&e.key==='n'){e.preventDefault();openModal('taskModal');return;}
+  // Ctrl/Cmd + Shift + N — new note
+  if((e.ctrlKey||e.metaKey)&&e.shiftKey&&(e.key==='n'||e.key==='N')){e.preventDefault();openModal('noteModal');return;}
+  // Ctrl/Cmd + Enter — submit open modal
+  if((e.ctrlKey||e.metaKey)&&e.key==='Enter'){
+    var openMod=document.querySelector('.modal-overlay.show');
+    if(!openMod)return;
+    var submitMap={taskModal:saveTask,editTaskModal:saveEditTask,eventModal:saveEvent,editEventModal:saveEditEvent,noteModal:createNote,timetableModal:saveTimetableModal,semesterModal:saveSemesterModal,moduleModal:saveModuleModal,examModal:saveExam,readingModal:saveReadingItem};
+    var fn=submitMap[openMod.id];
+    if(fn){e.preventDefault();fn();}
+    return;
   }
-  if (e.key === 'Escape' && document.getElementById('searchOverlay').classList.contains('show')) {
-    closeSearch();
+  // Escape — close things
+  if(e.key==='Escape'){
+    if(document.getElementById('lectureModeOverlay').classList.contains('active')){exitLectureMode();return;}
+    if(document.getElementById('searchOverlay').classList.contains('show')){closeSearch();return;}
+    if(document.getElementById('detailPage').classList.contains('show')){closeDetail();return;}
+    var openMod=document.querySelector('.modal-overlay.show');
+    if(openMod){openMod.classList.remove('show');return;}
+    if(document.getElementById('colourPanel').classList.contains('open')){closeColourPanel();return;}
+    return;
   }
+  // Single-key shortcuts — only when not typing
+  if(isTyping)return;
+  if(e.key==='t'){openModal('taskModal');return;}
+  if(e.key==='e'){openAddEvent();return;}
+  if(e.key==='n'){openModal('noteModal');return;}
+  if(e.key==='m'){nav('morning');return;}
+  if(e.key==='c'){nav('calendar');return;}
+  if(e.key==='f'){nav('focus');return;}
 });
+
+// Auto-focus first input when modal opens
+var _origOpenModal=openModal;
+function openModal(id){
+  _origOpenModal(id);
+  setTimeout(function(){
+    var modal=document.getElementById(id);
+    if(!modal)return;
+    var first=modal.querySelector('input:not([type=hidden]):not([type=checkbox]):not([type=color])');
+    if(first)first.focus();
+  },80);
+}
 
 // ═══════════════════════════════════════════════
 // DARK MODE
