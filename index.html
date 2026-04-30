@@ -156,27 +156,96 @@ select.input{cursor:pointer;appearance:none;}
 .detail-body{flex:1;overflow-y:auto;padding:24px 40px;max-width:860px;width:100%;margin:0 auto;}
 
 /* Rich Text Editor */
-.rich-editor{min-height:400px;outline:none;font-size:14px;line-height:1.8;color:var(--text2);}
+.rich-editor{min-height:400px;outline:none;font-size:15px;line-height:1.9;color:var(--text2);caret-color:var(--accent);}
+.rich-editor:focus{border-left:2px solid var(--accent);padding-left:10px;margin-left:-12px;transition:border-color 0.2s;}
 .rich-editor:empty::before{content:attr(data-placeholder);color:var(--text3);}
-.rich-editor h1{font-family:var(--serif);font-size:24px;font-weight:700;color:var(--text);margin:16px 0 8px;}
-.rich-editor h2{font-family:var(--serif);font-size:18px;font-weight:700;color:var(--text);margin:14px 0 6px;}
-.rich-editor h3{font-size:15px;font-weight:600;color:var(--text);margin:12px 0 4px;}
-.rich-editor p{margin-bottom:8px;}
-.rich-editor ul,.rich-editor ol{padding-left:20px;margin-bottom:10px;}
-.rich-editor li{margin-bottom:4px;}
-.rich-editor table{width:100%;border-collapse:collapse;margin:12px 0;}
-.rich-editor td,.rich-editor th{border:1px solid var(--border);padding:8px 10px;font-size:13px;}
-.rich-editor th{background:var(--surface2);font-weight:600;}
-.rich-editor blockquote{border-left:3px solid var(--accent);padding-left:12px;margin:10px 0;color:var(--text3);font-style:italic;}
+.rich-editor h1{font-family:var(--serif);font-size:26px;font-weight:700;color:var(--text);margin:20px 0 8px;border-bottom:2px solid var(--border);padding-bottom:6px;}
+.rich-editor h2{font-family:var(--serif);font-size:20px;font-weight:700;color:var(--text);margin:18px 0 6px;}
+.rich-editor h3{font-size:16px;font-weight:600;color:var(--text);margin:14px 0 4px;}
+.rich-editor p{margin-bottom:10px;}
+.rich-editor ul,.rich-editor ol{padding-left:22px;margin-bottom:12px;}
+.rich-editor li{margin-bottom:5px;}
+.rich-editor table{width:100%;border-collapse:collapse;margin:14px 0;border-radius:8px;overflow:hidden;}
+.rich-editor td,.rich-editor th{border:1px solid var(--border);padding:9px 12px;font-size:13px;}
+.rich-editor th{background:var(--surface2);font-weight:600;font-family:var(--mono);font-size:11px;}
+.rich-editor blockquote{border-left:3px solid var(--accent);padding:8px 14px;margin:12px 0;color:var(--text3);font-style:italic;background:var(--accent-soft);border-radius:0 6px 6px 0;}
 .rich-editor strong{font-weight:700;color:var(--text);}
 .rich-editor em{font-style:italic;}
-.rich-editor code{background:var(--surface2);padding:1px 5px;border-radius:3px;font-family:var(--mono);font-size:12px;}
+.rich-editor code{background:var(--surface2);padding:2px 6px;border-radius:4px;font-family:var(--mono);font-size:12px;color:var(--accent);}
+.rich-editor pre{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;font-family:var(--mono);font-size:12px;overflow-x:auto;margin:12px 0;line-height:1.6;}
+.rich-editor mark{background:#fff176;color:var(--text);border-radius:2px;padding:0 2px;}
+.rich-editor mark.green{background:#b9f6ca;}
+.rich-editor mark.pink{background:#fce4ec;}
+.rich-editor mark.blue{background:#e3f2fd;}
+.rich-editor .checklist-item{display:flex;align-items:flex-start;gap:8px;margin-bottom:6px;list-style:none;}
+.rich-editor .checklist-item input[type=checkbox]{margin-top:3px;accent-color:var(--accent);cursor:pointer;width:15px;height:15px;flex-shrink:0;}
+.rich-editor .checklist-item.checked span{text-decoration:line-through;color:var(--text3);}
+.rich-editor hr{border:none;border-top:2px solid var(--border);margin:16px 0;}
 
 .editor-toolbar{display:flex;gap:2px;padding:8px 12px;background:var(--surface);border-bottom:1px solid var(--border);flex-wrap:wrap;align-items:center;}
-.toolbar-btn{padding:4px 8px;border-radius:5px;border:none;background:none;cursor:pointer;font-size:12px;color:var(--text2);transition:all 0.15s;font-family:var(--sans);}
+.toolbar-btn{padding:4px 8px;border-radius:5px;border:none;background:none;cursor:pointer;font-size:12px;color:var(--text2);transition:all 0.15s;font-family:var(--sans);position:relative;}
 .toolbar-btn:hover{background:var(--bg);color:var(--accent);}
 .toolbar-btn.active{background:var(--accent-soft);color:var(--accent);}
 .toolbar-sep{width:1px;height:16px;background:var(--border);margin:0 4px;}
+.autosave-indicator{font-size:9px;font-family:var(--mono);color:var(--text3);padding:2px 8px;margin-left:auto;opacity:0;transition:opacity 0.3s;}
+.autosave-indicator.show{opacity:1;}
+.autosave-indicator.saved{color:var(--green);}
+
+/* Table grid picker popup */
+.table-picker-popup{position:absolute;z-index:300;background:var(--surface);border:1px solid var(--border2);border-radius:10px;padding:10px;box-shadow:var(--shadow-lg);display:none;}
+.table-picker-popup.show{display:block;}
+.table-picker-grid{display:grid;grid-template-columns:repeat(6,22px);gap:3px;margin-bottom:6px;}
+.table-picker-cell{width:22px;height:22px;border:1px solid var(--border);border-radius:3px;cursor:pointer;transition:all 0.1s;}
+.table-picker-cell:hover,.table-picker-cell.highlighted{background:var(--accent-soft);border-color:var(--accent);}
+.table-picker-label{font-size:10px;color:var(--text3);font-family:var(--mono);text-align:center;}
+
+/* Highlight picker popup */
+.highlight-picker{position:absolute;z-index:300;background:var(--surface);border:1px solid var(--border2);border-radius:8px;padding:8px;box-shadow:var(--shadow-lg);display:none;gap:6px;}
+.highlight-picker.show{display:flex;}
+.hl-swatch{width:22px;height:22px;border-radius:4px;cursor:pointer;border:1px solid transparent;transition:transform 0.1s;}
+.hl-swatch:hover{transform:scale(1.15);}
+
+/* Backlink picker popup */
+.backlink-popup{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:400;background:var(--surface);border:1px solid var(--border2);border-radius:12px;padding:14px;box-shadow:var(--shadow-lg);width:320px;display:none;}
+.backlink-popup.show{display:block;}
+.backlink-popup input{width:100%;margin-bottom:8px;}
+.backlink-result{padding:8px 10px;border-radius:6px;cursor:pointer;font-size:12px;color:var(--text);}
+.backlink-result:hover{background:var(--bg);}
+.backlink-result-title{font-weight:500;}
+.backlink-result-preview{font-size:10px;color:var(--text3);}
+
+/* Timetable modal */
+.tt-day-btn{padding:5px 10px;border-radius:6px;border:1px solid var(--border2);background:none;cursor:pointer;font-size:11px;font-weight:600;color:var(--text2);font-family:var(--sans);transition:all 0.15s;}
+.tt-day-btn.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+
+/* ── WHAT'S NEXT WIDGET ── */
+.whats-next-item{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg);border:1px solid var(--border);border-radius:9px;margin-bottom:7px;transition:all 0.15s;}
+.whats-next-item:hover{border-color:var(--border2);}
+.whats-next-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.whats-next-info{flex:1;min-width:0;}
+.whats-next-title{font-size:13px;font-weight:500;color:var(--text);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
+.whats-next-meta{font-size:10px;color:var(--text3);font-family:var(--mono);margin-top:2px;}
+.whats-next-countdown{font-size:11px;font-weight:600;font-family:var(--mono);color:var(--accent);white-space:nowrap;}
+
+/* ── CAL VIEW TOGGLE ── */
+.cal-view-toggle{display:flex;gap:4px;background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:3px;}
+.cal-view-btn{padding:4px 12px;border-radius:6px;border:none;background:none;cursor:pointer;font-size:11px;font-weight:600;color:var(--text3);font-family:var(--sans);transition:all 0.15s;}
+.cal-view-btn.active{background:var(--accent);color:#fff;}
+
+/* Week view grid */
+.week-view-wrap{overflow-x:auto;}
+.week-time-grid{display:grid;grid-template-columns:52px repeat(7,1fr);min-width:600px;}
+.week-col-header{font-family:var(--mono);font-size:9px;color:var(--text3);text-align:center;padding:6px 4px;border-bottom:2px solid var(--border);text-transform:uppercase;letter-spacing:0.06em;position:sticky;top:0;background:var(--bg);z-index:2;}
+.week-col-header.today-col{color:var(--accent);font-weight:700;}
+.week-time-label{font-family:var(--mono);font-size:9px;color:var(--text3);text-align:right;padding:4px 6px 0 0;border-right:2px solid var(--border);line-height:1;}
+.week-slot{border-bottom:1px solid var(--border);border-right:1px solid var(--border);min-height:44px;padding:2px 3px;position:relative;cursor:pointer;transition:background 0.1s;}
+.week-slot:hover{background:var(--surface);}
+.week-slot.today-col{background:rgba(184,92,56,0.03);}
+.week-ev-chip{font-size:9px;padding:2px 5px;border-radius:3px;margin-bottom:2px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-weight:500;display:block;cursor:pointer;}
+
+/* Edit event modal — reuses existing modal styles */
+.cal-event-row{display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid var(--border);}
+.cal-event-row:last-child{border-bottom:none;}
 
 /* ── MORNING PAGE ── */
 .morning-hero{background:linear-gradient(135deg,#fdecd8 0%,#f5e0c8 60%,#eedcca 100%);border:1px solid #e4cdb0;border-radius:16px;padding:24px 28px;margin-bottom:16px;position:relative;overflow:hidden;}
@@ -396,6 +465,133 @@ select.input{cursor:pointer;appearance:none;}
 .size-btn.active{background:var(--accent);color:#fff;}
 .size-btn:hover:not(.active){background:var(--surface2);color:var(--text);}
 
+/* ── MOOD LOG ── */
+.mood-btn{padding:8px 14px;border-radius:20px;border:1px solid var(--border2);background:none;cursor:pointer;font-size:18px;transition:all 0.15s;font-family:var(--sans);}
+.mood-btn:hover,.mood-btn.active{background:var(--accent-soft);border-color:var(--accent);transform:scale(1.12);}
+
+/* ── EXAM COUNTDOWN ── */
+.exam-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 16px;margin-bottom:8px;display:flex;align-items:center;gap:12px;transition:border-color 0.15s;}
+.exam-card:hover{border-color:var(--border2);}
+.exam-days{font-family:var(--serif);font-size:28px;font-weight:900;min-width:48px;text-align:center;line-height:1;}
+.exam-days-label{font-size:9px;font-family:var(--mono);text-transform:uppercase;letter-spacing:0.06em;color:var(--text3);}
+.exam-info{flex:1;}
+.exam-name{font-size:13px;font-weight:600;color:var(--text);}
+.exam-subject{font-size:10px;color:var(--text3);font-family:var(--mono);}
+
+/* ── SRS FLASHCARDS ── */
+.srs-rating-bar{display:flex;gap:8px;margin-top:16px;justify-content:center;}
+.srs-btn{flex:1;max-width:90px;padding:8px 4px;border-radius:8px;border:none;cursor:pointer;font-size:11px;font-weight:700;font-family:var(--sans);transition:all 0.15s;}
+.srs-btn.again{background:rgba(192,64,64,0.12);color:var(--red);}
+.srs-btn.hard{background:rgba(196,146,42,0.12);color:var(--gold);}
+.srs-btn.good{background:rgba(58,107,138,0.12);color:var(--blue);}
+.srs-btn.easy{background:rgba(58,125,90,0.12);color:var(--green);}
+.srs-btn:hover{filter:brightness(1.15);transform:translateY(-1px);}
+.srs-due-badge{display:inline-block;background:var(--red);color:#fff;border-radius:10px;font-size:9px;font-weight:700;padding:2px 7px;font-family:var(--mono);}
+
+/* ── HABIT HEATMAP ── */
+.heatmap-grid{display:flex;gap:2px;flex-wrap:wrap;margin-top:8px;}
+.heatmap-cell{width:11px;height:11px;border-radius:2px;background:var(--border);transition:all 0.1s;}
+.heatmap-cell.done{background:var(--green);}
+.heatmap-cell.today{outline:1px solid var(--accent);outline-offset:1px;}
+.heatmap-label{font-size:9px;color:var(--text3);font-family:var(--mono);margin-bottom:4px;}
+
+/* ── ANALYTICS / STATS ── */
+.analytics-stat{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;text-align:center;}
+.analytics-num{font-family:var(--serif);font-size:24px;font-weight:900;color:var(--accent);}
+.analytics-label{font-size:9px;font-family:var(--mono);text-transform:uppercase;letter-spacing:0.06em;color:var(--text3);margin-top:2px;}
+.bar-chart-wrap{display:flex;align-items:flex-end;gap:4px;height:80px;margin-top:8px;}
+.bar-chart-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;}
+.bar-chart-bar{width:100%;border-radius:3px 3px 0 0;background:var(--accent);min-height:2px;transition:height 0.3s;}
+.bar-chart-val{font-size:8px;font-family:var(--mono);color:var(--text3);}
+.bar-chart-lbl{font-size:8px;font-family:var(--mono);color:var(--text3);}
+.pie-wrap{display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
+.pie-legend{display:flex;flex-direction:column;gap:5px;}
+.pie-legend-item{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text2);}
+.pie-legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+
+/* ── GRADE PREDICTOR ── */
+.grade-pred-result{background:var(--accent-soft);border:1px solid var(--accent);border-radius:8px;padding:12px 14px;margin-top:10px;font-size:13px;line-height:1.7;color:var(--text2);}
+
+/* ── DARK FOCUS MODE ── */
+.focus-overlay{position:fixed;inset:0;background:#0d0a08;z-index:500;display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;}
+.focus-overlay.active{display:flex;}
+.focus-overlay .focus-task-name{color:#e8d5c0;}
+.focus-overlay .focus-sub{color:#6b5040;}
+
+/* ── NOTIFICATION BANNER ── */
+.notif-banner{position:fixed;top:16px;left:50%;transform:translateX(-50%);background:var(--text);color:var(--bg);border-radius:12px;padding:12px 20px;font-size:13px;font-weight:600;z-index:9999;box-shadow:0 8px 32px rgba(0,0,0,0.3);display:none;align-items:center;gap:10px;max-width:380px;}
+.notif-banner.show{display:flex;}
+
+/* ── CAPTURES UPGRADED ── */
+.capture-actions{display:flex;gap:6px;margin-top:6px;}
+
+/* ── GPA CHART AREA ── */
+.gpa-chart-wrap{overflow-x:auto;margin:12px 0;}
+.gpa-sem-bar{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.gpa-sem-label{font-size:10px;font-family:var(--mono);color:var(--text3);min-width:80px;text-align:right;}
+.gpa-sem-fill{height:20px;border-radius:0 4px 4px 0;background:var(--accent);display:flex;align-items:center;padding-left:6px;font-size:10px;font-weight:700;color:#fff;min-width:8px;transition:width 0.4s;}
+
+/* ── MONTH FILTER TABS ── */
+.month-tabs{display:flex;gap:4px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none;margin-bottom:12px;}
+.month-tabs::-webkit-scrollbar{display:none;}
+.month-tab{padding:4px 12px;border-radius:14px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid var(--border2);background:var(--surface);color:var(--text3);white-space:nowrap;font-family:var(--sans);transition:all 0.15s;flex-shrink:0;}
+.month-tab.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+
+/* ── NOTE TAGS ── */
+.note-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;}
+.note-tag{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;background:var(--accent-soft);color:var(--accent);border:1px solid var(--accent);cursor:pointer;font-family:var(--mono);}
+.note-tag .tag-remove{font-size:9px;margin-left:2px;opacity:0.6;}
+.note-tag .tag-remove:hover{opacity:1;}
+.tag-input-wrap{display:flex;gap:6px;align-items:center;margin-top:6px;}
+.tag-suggestions{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px;}
+.tag-suggestion{padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;background:var(--bg);color:var(--text3);border:1px solid var(--border);cursor:pointer;font-family:var(--mono);transition:all 0.1s;}
+.tag-suggestion:hover{background:var(--accent-soft);color:var(--accent);border-color:var(--accent);}
+
+/* ── PINNED NOTE ── */
+.note-card.pinned{border-color:var(--accent);border-width:1.5px;}
+.note-card.pinned::before{content:'📌';position:absolute;top:8px;right:8px;font-size:11px;}
+.note-card{position:relative;}
+.pin-btn{background:none;border:none;cursor:pointer;font-size:14px;padding:2px 6px;color:var(--text3);border-radius:4px;transition:all 0.15s;}
+.pin-btn:hover,.pin-btn.active{color:var(--accent);}
+
+/* ── LECTURE MODE ── */
+.lecture-mode-overlay{position:fixed;inset:0;background:#faf7f4;z-index:800;display:none;flex-direction:column;}
+[data-theme="dark"] .lecture-mode-overlay{background:#1a1410;}
+.lecture-mode-overlay.active{display:flex;}
+.lecture-mode-topbar{display:flex;align-items:center;justify-content:space-between;padding:10px 20px;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--surface);}
+.lecture-mode-body{flex:1;overflow-y:auto;padding:40px 0;display:flex;justify-content:center;}
+.lecture-mode-editor{max-width:720px;width:100%;padding:0 24px;}
+.lecture-mode-editor .rich-editor{font-size:16px;line-height:2;min-height:80vh;}
+.lecture-mode-editor .rich-editor:focus{border-left:2px solid var(--accent);padding-left:10px;margin-left:-12px;}
+.lecture-mode-footer{padding:8px 24px;border-top:1px solid var(--border);display:flex;align-items:center;gap:12px;flex-shrink:0;background:var(--surface);}
+
+/* ── WORD COUNT ── */
+.editor-wordcount{font-size:10px;color:var(--text3);font-family:var(--mono);padding:4px 12px;border-top:1px solid var(--border);display:flex;gap:16px;background:var(--surface);}
+
+/* ── READING LIST ── */
+.reading-item{display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);}
+.reading-item:last-child{border-bottom:none;}
+.reading-favicon{width:28px;height:28px;border-radius:6px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;overflow:hidden;}
+.reading-favicon img{width:100%;height:100%;object-fit:cover;}
+.reading-info{flex:1;min-width:0;}
+.reading-title{font-size:13px;font-weight:500;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.reading-url{font-size:10px;color:var(--text3);font-family:var(--mono);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:2px;}
+.reading-meta{font-size:9px;color:var(--text3);font-family:var(--mono);margin-top:2px;}
+.reading-actions{display:flex;gap:4px;align-items:center;flex-shrink:0;}
+.reading-tag-pill{display:inline-block;padding:1px 7px;border-radius:8px;font-size:9px;font-weight:600;background:var(--accent-soft);color:var(--accent);font-family:var(--mono);margin-right:4px;}
+
+/* ── DAILY NOTE BUTTON on Morning ── */
+.daily-note-btn{display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--surface);border:1px solid var(--border);border-radius:10px;cursor:pointer;transition:all 0.15s;text-decoration:none;width:100%;}
+.daily-note-btn:hover{border-color:var(--accent);background:var(--accent-soft);}
+.daily-note-icon{font-size:20px;flex-shrink:0;}
+.daily-note-text{flex:1;}
+.daily-note-title{font-size:13px;font-weight:600;color:var(--text);}
+.daily-note-sub{font-size:10px;color:var(--text3);font-family:var(--mono);}
+
+/* ── IMAGE IN EDITOR ── */
+.rich-editor img{max-width:100%;border-radius:6px;margin:8px 0;display:block;}
+.rich-editor img.selected{outline:2px solid var(--accent);}
+
 /* ── DARK MODE ── */
 [data-theme="dark"]{
   --bg:#1a1410;--surface:#231c15;--surface2:#2d231a;
@@ -547,9 +743,10 @@ select.input{cursor:pointer;appearance:none;}
     <div id="detailHeaderActions" style="display:flex;gap:6px"></div>
   </div>
   <div class="editor-toolbar" id="editorToolbar">
-    <button class="toolbar-btn" onclick="fmt('bold')" title="Bold"><b>B</b></button>
-    <button class="toolbar-btn" onclick="fmt('italic')" title="Italic"><i>I</i></button>
-    <button class="toolbar-btn" onclick="fmt('underline')" title="Underline"><u>U</u></button>
+    <button class="toolbar-btn" onclick="fmt('bold')" title="Bold (Ctrl+B)"><b>B</b></button>
+    <button class="toolbar-btn" onclick="fmt('italic')" title="Italic (Ctrl+I)"><i>I</i></button>
+    <button class="toolbar-btn" onclick="fmt('underline')" title="Underline (Ctrl+U)"><u>U</u></button>
+    <button class="toolbar-btn" onclick="fmt('strikeThrough')" title="Strikethrough"><s>S</s></button>
     <div class="toolbar-sep"></div>
     <button class="toolbar-btn" onclick="fmtBlock('h1')" title="Heading 1">H1</button>
     <button class="toolbar-btn" onclick="fmtBlock('h2')" title="Heading 2">H2</button>
@@ -557,22 +754,53 @@ select.input{cursor:pointer;appearance:none;}
     <div class="toolbar-sep"></div>
     <button class="toolbar-btn" onclick="fmt('insertUnorderedList')" title="Bullet list">• List</button>
     <button class="toolbar-btn" onclick="fmt('insertOrderedList')" title="Numbered list">1. List</button>
-    <button class="toolbar-btn" onclick="insertTable()" title="Table">Table</button>
-    <button class="toolbar-btn" onclick="fmtBlock('blockquote')" title="Quote">❝</button>
-    <button class="toolbar-btn" onclick="fmt('insertHorizontalRule')" title="Divider">—</button>
+    <button class="toolbar-btn" onclick="insertChecklist()" title="Checklist">☑ Check</button>
+    <div class="toolbar-sep"></div>
+    <button class="toolbar-btn" id="tbHighlight" onclick="toggleHighlightPicker(event)" title="Highlight text">🖊 HL</button>
+    <div class="highlight-picker" id="highlightPicker">
+      <div class="hl-swatch" style="background:#fff176" onclick="applyHighlight('')" title="Yellow"></div>
+      <div class="hl-swatch" style="background:#b9f6ca" onclick="applyHighlight('green')" title="Green"></div>
+      <div class="hl-swatch" style="background:#fce4ec" onclick="applyHighlight('pink')" title="Pink"></div>
+      <div class="hl-swatch" style="background:#e3f2fd" onclick="applyHighlight('blue')" title="Blue"></div>
+      <div class="hl-swatch" style="background:transparent;border:1px solid var(--border2);font-size:10px;display:flex;align-items:center;justify-content:center;color:var(--text3)" onclick="removeHighlight()" title="Remove">✕</div>
+    </div>
+    <button class="toolbar-btn" onclick="insertCodeBlock()" title="Code block">⌨ Code</button>
+    <button class="toolbar-btn" id="tbTable" onclick="toggleTablePicker(event)" title="Insert table">⊞ Table</button>
+    <div class="table-picker-popup" id="tablePicker">
+      <div class="table-picker-grid" id="tablePickerGrid"></div>
+      <div class="table-picker-label" id="tablePickerLabel">0 × 0</div>
+    </div>
+    <button class="toolbar-btn" onclick="fmtBlock('blockquote')" title="Quote">❝ Quote</button>
+    <button class="toolbar-btn" onclick="fmt('insertHorizontalRule')" title="Divider">— HR</button>
     <div class="toolbar-sep"></div>
     <button class="toolbar-btn" onclick="insertTemplate('lecture')" title="Lecture template">📋 Lecture</button>
     <button class="toolbar-btn" onclick="insertTemplate('essay')" title="Essay template">✍️ Essay</button>
-    <button class="toolbar-btn" onclick="insertTemplate('casestudy')" title="Case study template">🔍 Case Study</button>
-    <button class="toolbar-btn" onclick="insertTemplate('problemset')" title="Problem set template">🧮 Problem Set</button>
+    <button class="toolbar-btn" onclick="insertTemplate('casestudy')" title="Case study">🔍 Case</button>
+    <button class="toolbar-btn" onclick="insertTemplate('problemset')" title="Problem set">🧮 Maths</button>
     <div class="toolbar-sep"></div>
-    <button class="toolbar-btn" onclick="insertBacklink()" title="Link to another note">🔗 [[Note]]</button>
+    <button class="toolbar-btn" onclick="insertBacklink()" title="Link to another note">[[Note]]</button>
     <button class="toolbar-btn" onclick="exportCurrentNote()" title="Export note">📤 Export</button>
-    <button class="toolbar-btn" onclick="generateFlashcardsFromNote()" title="Generate flashcards">🃏 Flashcards</button>
+    <button class="toolbar-btn" onclick="generateFlashcardsFromNote()" title="Generate flashcards">🃏 Cards</button>
+    <div class="autosave-indicator" id="autosaveIndicator">✓ Saved</div>
   </div>
   <div class="detail-body">
     <div id="detailMeta" style="margin-bottom:16px;display:flex;gap:8px;flex-wrap:wrap;align-items:center"></div>
-    <div class="rich-editor" id="richEditor" contenteditable="true" data-placeholder="Start writing... Use the toolbar for formatting, or try templates above." onblur="saveDetailContent()"></div>
+    <div class="rich-editor" id="richEditor" contenteditable="true" data-placeholder="Start writing... Type # for heading, - for bullets, [] for checklist, ** for bold, > for quote, --- for divider." onblur="saveDetailContent()" onkeydown="handleEditorKeydown(event)" oninput="handleEditorInput()"></div>
+    <div class="editor-wordcount" id="editorWordCount">
+      <span id="wcWords">0 words</span>
+      <span id="wcChars">0 chars</span>
+      <span id="wcReadTime">~0 min read</span>
+      <button class="toolbar-btn" style="margin-left:auto;font-size:10px" onclick="enterLectureMode()" title="Distraction-free writing mode">🎓 Lecture Mode</button>
+    </div>
+    <div id="noteTagsBar" style="padding:8px 0 4px;display:none">
+      <div style="font-size:9px;color:var(--text3);font-family:var(--mono);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">Tags</div>
+      <div id="noteTagsList" class="note-tags"></div>
+      <div class="tag-input-wrap">
+        <input class="input" id="noteTagInput" placeholder="Add tag..." style="max-width:160px;font-size:12px;padding:4px 8px" onkeydown="handleTagInput(event)"/>
+        <button class="btn btn-ghost btn-xs" onclick="addTagFromInput()">+ Add</button>
+      </div>
+      <div class="tag-suggestions" id="tagSuggestions"></div>
+    </div>
     <div id="detailExtras" style="margin-top:20px"></div>
   </div>
 </div>
@@ -815,12 +1043,16 @@ select.input{cursor:pointer;appearance:none;}
 
 <!-- Add Note -->
 <div class="modal-overlay" id="noteModal">
-  <div class="modal" style="max-width:380px">
+  <div class="modal" style="max-width:400px">
     <div class="modal-title">New Note</div>
     <div class="field"><div class="input-label">Title</div><input class="input" id="note-title" placeholder="Note title..."/></div>
     <div class="field">
       <div class="input-label">Subject / Category</div>
       <select class="input" id="note-subject"></select>
+    </div>
+    <div class="field">
+      <div class="input-label">Tags <span style="font-size:9px;color:var(--text3)">(comma separated)</span></div>
+      <input class="input" id="note-tags" placeholder="e.g. lecture, exam, accounting"/>
     </div>
     <div class="field">
       <div class="input-label">Template</div>
@@ -871,6 +1103,201 @@ select.input{cursor:pointer;appearance:none;}
   </div>
   <div class="colour-panel-footer">
     <button class="btn btn-primary btn-sm" style="width:100%;justify-content:center" onclick="openModal('labelModal')">+ Create New Label</button>
+  </div>
+</div>
+
+<!-- ADD READING ITEM MODAL -->
+<div class="modal-overlay" id="readingModal">
+  <div class="modal" style="max-width:440px">
+    <div class="modal-title">📖 Add to Reading List</div>
+    <div class="field"><div class="input-label">URL</div><input class="input" id="reading-url" placeholder="https://..." oninput="prefetchReadingTitle()"/></div>
+    <div class="field"><div class="input-label">Title <span style="font-size:9px;color:var(--text3)">(auto-filled if blank)</span></div><input class="input" id="reading-title" placeholder="Article or paper title..."/></div>
+    <div class="field"><div class="input-label">Tags <span style="font-size:9px;color:var(--text3)">(comma separated)</span></div><input class="input" id="reading-tags" placeholder="e.g. finance, research, exam-prep"/></div>
+    <div class="field">
+      <div class="input-label">Priority</div>
+      <select class="input" id="reading-priority">
+        <option value="high">🔴 Must read</option>
+        <option value="medium" selected>🟡 Want to read</option>
+        <option value="low">🟢 Someday</option>
+      </select>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('readingModal')">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="saveReadingItem()">Add to List</button>
+    </div>
+  </div>
+</div>
+
+<!-- NOTIFICATION BANNER -->
+<div class="notif-banner" id="notifBanner">
+  <span id="notifBannerText">⏰ Event starting soon</span>
+  <button onclick="document.getElementById('notifBanner').classList.remove('show')" style="background:none;border:none;cursor:pointer;color:inherit;font-size:16px;padding:0 0 0 8px">✕</button>
+</div>
+
+<!-- GPA ADD SEMESTER MODAL -->
+<div class="modal-overlay" id="semesterModal">
+  <div class="modal" style="max-width:380px">
+    <div class="modal-title">+ Add Semester</div>
+    <div class="field"><div class="input-label">Semester Name</div><input class="input" id="sem-name" placeholder="e.g. Year 1 Semester 1"/></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('semesterModal')">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="saveSemesterModal()">Add Semester</button>
+    </div>
+  </div>
+</div>
+
+<!-- GPA ADD MODULE MODAL -->
+<div class="modal-overlay" id="moduleModal">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-title">+ Add Module</div>
+    <input type="hidden" id="mod-sem-idx"/>
+    <div class="field"><div class="input-label">Module Name</div><input class="input" id="mod-name" placeholder="e.g. Financial Accounting"/></div>
+    <div class="grid-2">
+      <div class="field">
+        <div class="input-label">Grade</div>
+        <select class="input" id="mod-grade">
+          <option>A+</option><option>A</option><option>A-</option>
+          <option>B+</option><option selected>B</option><option>B-</option>
+          <option>C+</option><option>C</option><option>C-</option>
+          <option>D+</option><option>D</option><option>F</option>
+        </select>
+      </div>
+      <div class="field"><div class="input-label">Credit Hours</div><input class="input" type="number" id="mod-credits" placeholder="3" min="1" max="6"/></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('moduleModal')">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="saveModuleModal()">Add Module</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD EXAM MODAL -->
+<div class="modal-overlay" id="examModal">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-title">📝 Add Exam</div>
+    <div class="field"><div class="input-label">Exam / Test Name</div><input class="input" id="exam-name" placeholder="e.g. Final Exam — Financial Accounting"/></div>
+    <div class="grid-2">
+      <div class="field"><div class="input-label">Date</div><input class="input" type="date" id="exam-date"/></div>
+      <div class="field"><div class="input-label">Subject / Project</div><select class="input" id="exam-subject"></select></div>
+    </div>
+    <div class="grid-2">
+      <div class="field"><div class="input-label">Time (optional)</div><input class="input" type="time" id="exam-time"/></div>
+      <div class="field"><div class="input-label">Venue (optional)</div><input class="input" id="exam-venue" placeholder="e.g. Hall A"/></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('examModal')">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="saveExam()">Add Exam</button>
+    </div>
+  </div>
+</div>
+
+<!-- GRADE PREDICTOR MODAL -->
+<div class="modal-overlay" id="gradePredModal">
+  <div class="modal" style="max-width:460px">
+    <div class="modal-title">🎯 Grade Predictor</div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:12px">Calculate what you need on remaining assessments to hit your target grade.</div>
+    <div id="gradePredSubjectSel" style="margin-bottom:10px"></div>
+    <div id="gradePredBody"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('gradePredModal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- BACKLINK PICKER -->
+<div class="backlink-popup" id="backlinkPopup">
+  <div style="font-size:11px;font-weight:600;color:var(--text);margin-bottom:8px">🔗 Link to note</div>
+  <input class="input" id="backlinkSearch" placeholder="Search notes..." oninput="renderBacklinkResults(this.value)" style="margin-bottom:8px"/>
+  <div id="backlinkResults" style="max-height:200px;overflow-y:auto"></div>
+  <button class="btn btn-ghost btn-sm" onclick="closeBacklinkPopup()" style="margin-top:8px;width:100%">Cancel</button>
+</div>
+
+<!-- TIMETABLE ENTRY MODAL -->
+<div class="modal-overlay" id="timetableModal">
+  <div class="modal" style="max-width:440px">
+    <div class="modal-title">🗓️ Add Class to Timetable</div>
+    <div class="field"><div class="input-label">Class Name</div><input class="input" id="tt-title" placeholder="e.g. Financial Accounting"/></div>
+    <div class="field">
+      <div class="input-label">Days</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">
+        <button class="tt-day-btn" id="tt-day-0" onclick="toggleTTDay(0)">Sun</button>
+        <button class="tt-day-btn" id="tt-day-1" onclick="toggleTTDay(1)">Mon</button>
+        <button class="tt-day-btn" id="tt-day-2" onclick="toggleTTDay(2)">Tue</button>
+        <button class="tt-day-btn" id="tt-day-3" onclick="toggleTTDay(3)">Wed</button>
+        <button class="tt-day-btn" id="tt-day-4" onclick="toggleTTDay(4)">Thu</button>
+        <button class="tt-day-btn" id="tt-day-5" onclick="toggleTTDay(5)">Fri</button>
+        <button class="tt-day-btn" id="tt-day-6" onclick="toggleTTDay(6)">Sat</button>
+      </div>
+    </div>
+    <div class="grid-2">
+      <div class="field"><div class="input-label">Start Time</div><input class="input" type="time" id="tt-time"/></div>
+      <div class="field"><div class="input-label">End Time</div><input class="input" type="time" id="tt-endtime"/></div>
+    </div>
+    <div class="field"><div class="input-label">Room / Location</div><input class="input" id="tt-location" placeholder="e.g. Block A, Room 302"/></div>
+    <div class="field"><div class="input-label">Label / Subject</div><select class="input" id="tt-label"></select></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('timetableModal')">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="saveTimetableModal()">Add Class</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT EVENT MODAL -->
+<div class="modal-overlay" id="editEventModal">
+  <div class="modal" style="max-width:500px">
+    <div class="modal-title">✏️ Edit Event</div>
+    <input type="hidden" id="edit-ev-id"/>
+    <div class="field"><div class="input-label">Title</div><input class="input" id="edit-ev-title" placeholder="Event name..."/></div>
+    <div class="grid-2">
+      <div class="field"><div class="input-label">Date</div><input class="input" type="date" id="edit-ev-date"/></div>
+      <div class="field"><div class="input-label">Label</div><select class="input" id="edit-ev-label"></select></div>
+    </div>
+    <div class="grid-2">
+      <div class="field"><div class="input-label">Start Time</div><input class="input" type="time" id="edit-ev-time"/></div>
+      <div class="field"><div class="input-label">End Time</div><input class="input" type="time" id="edit-ev-endtime"/></div>
+    </div>
+    <div class="field"><div class="input-label">Location (optional)</div><input class="input" id="edit-ev-location" placeholder="Room, building..."/></div>
+    <div class="field"><div class="input-label">Notes (optional)</div><input class="input" id="edit-ev-notes" placeholder="Extra details..."/></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('editEventModal')">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="saveEditEvent()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- LECTURE MODE OVERLAY -->
+<div class="lecture-mode-overlay" id="lectureModeOverlay">
+  <div class="lecture-mode-topbar">
+    <div style="display:flex;align-items:center;gap:10px">
+      <button class="btn btn-ghost btn-sm" onclick="exitLectureMode()">✕ Exit Lecture Mode</button>
+      <div style="font-size:12px;color:var(--text3);font-family:var(--mono)" id="lectureModeName"></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <span style="font-size:10px;color:var(--text3);font-family:var(--mono)" id="lectureModeWC"></span>
+      <span class="autosave-indicator" id="lectureSaveIndicator">✓ Saved</span>
+    </div>
+  </div>
+  <div class="lecture-mode-body">
+    <div class="lecture-mode-editor">
+      <div class="rich-editor" id="lectureEditor" contenteditable="true" data-placeholder="Start typing your notes… Type # for heading, - for bullets, [] for checklist." onkeydown="handleEditorKeydown(event)" oninput="handleLectureModeInput()"></div>
+    </div>
+  </div>
+  <div class="lecture-mode-footer">
+    <button class="toolbar-btn" onclick="lectureFmt('bold')"><b>B</b></button>
+    <button class="toolbar-btn" onclick="lectureFmt('italic')"><i>I</i></button>
+    <button class="toolbar-btn" onclick="lectureFmt('underline')"><u>U</u></button>
+    <div class="toolbar-sep"></div>
+    <button class="toolbar-btn" onclick="lectureFmtBlock('h1')">H1</button>
+    <button class="toolbar-btn" onclick="lectureFmtBlock('h2')">H2</button>
+    <button class="toolbar-btn" onclick="lectureFmtBlock('h3')">H3</button>
+    <div class="toolbar-sep"></div>
+    <button class="toolbar-btn" onclick="lectureFmt('insertUnorderedList')">• List</button>
+    <button class="toolbar-btn" onclick="lectureFmt('insertOrderedList')">1. List</button>
+    <button class="toolbar-btn" onclick="lectureFmtBlock('blockquote')">❝ Quote</button>
+    <div class="toolbar-sep"></div>
+    <button class="toolbar-btn" onclick="applyHighlightLecture('')" style="background:#fff17633">🟡 HL</button>
+    <button class="toolbar-btn" onclick="lectureFmt('insertHorizontalRule')">— HR</button>
+    <div style="margin-left:auto;font-size:11px;color:var(--text3)">Lecture Mode — distraction free ✨</div>
   </div>
 </div>
 
@@ -932,6 +1359,54 @@ select.input{cursor:pointer;appearance:none;}
 
         <!-- Smart reminders -->
         <div id="morningReminders"></div>
+
+        <!-- Daily Note -->
+        <div class="card" style="margin-bottom:14px">
+          <div class="card-header" style="margin-bottom:8px">
+            <div class="card-title">📓 Today's Note</div>
+          </div>
+          <button class="daily-note-btn" onclick="openDailyNote()">
+            <div class="daily-note-icon">📝</div>
+            <div class="daily-note-text">
+              <div class="daily-note-title" id="dailyNoteTitle">Open today's note</div>
+              <div class="daily-note-sub" id="dailyNoteSub">Tap to create or continue writing</div>
+            </div>
+            <span style="color:var(--text3);font-size:14px">→</span>
+          </button>
+        </div>
+
+        <!-- Mood log -->
+        <div class="card" style="margin-bottom:14px">
+          <div class="card-header" style="margin-bottom:8px">
+            <div class="card-title">How are you feeling?</div>
+            <span id="moodSaved" style="font-size:10px;color:var(--green);font-family:var(--mono);display:none">✓ Logged</span>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap" id="moodBtns">
+            <button class="mood-btn" onclick="logMood('😴','Exhausted')" title="Exhausted">😴</button>
+            <button class="mood-btn" onclick="logMood('😐','Meh')" title="Meh">😐</button>
+            <button class="mood-btn" onclick="logMood('🙂','Good')" title="Good">🙂</button>
+            <button class="mood-btn" onclick="logMood('😊','Great')" title="Great">😊</button>
+            <button class="mood-btn" onclick="logMood('🔥','Energised')" title="Energised">🔥</button>
+          </div>
+        </div>
+
+        <!-- What's Next + Today Schedule -->
+        <div class="card" style="margin-bottom:14px">
+          <div class="card-header">
+            <div class="card-title">⏰ What's Next</div>
+            <button class="btn btn-ghost btn-sm" onclick="nav('calendar')">Calendar →</button>
+          </div>
+          <div id="whatsNextList"></div>
+        </div>
+
+        <!-- Exam countdown -->
+        <div class="card" style="margin-bottom:14px" id="examCountdownCard">
+          <div class="card-header">
+            <div class="card-title">📝 Upcoming Exams</div>
+            <button class="btn btn-primary btn-sm" onclick="openExamModal()">+ Exam</button>
+          </div>
+          <div id="examCountdownList"></div>
+        </div>
 
         <div class="grid-2" style="gap:14px">
           <div>
@@ -1006,7 +1481,12 @@ select.input{cursor:pointer;appearance:none;}
           <div class="topbar-sub">Events &amp; deadlines in one place</div>
         </div>
         <div class="topbar-actions">
+          <div class="cal-view-toggle">
+            <button class="cal-view-btn active" id="cvt-month" onclick="setCalView('month')">Month</button>
+            <button class="cal-view-btn" id="cvt-week" onclick="setCalView('week')">Week</button>
+          </div>
           <button class="btn btn-primary btn-sm" onclick="openAddEvent()">+ Event</button>
+          <button class="btn btn-ghost btn-sm" onclick="openExamModal()">📝 + Exam</button>
           <button class="btn btn-ghost btn-sm" onclick="openModal('taskModal')">+ Task</button>
         </div>
       </div>
@@ -1024,6 +1504,7 @@ select.input{cursor:pointer;appearance:none;}
           </div>
         </div>
         <div class="cal-grid" id="calGrid"></div>
+        <div class="week-view-wrap" id="weekViewWrap" style="display:none"></div>
         <div id="dayPanel"></div>
       </div>
     </div>
@@ -1106,7 +1587,7 @@ select.input{cursor:pointer;appearance:none;}
         </div>
       </div>
       <div class="content">
-        <div style="display:flex;gap:8px;margin-bottom:14px">
+        <div style="display:flex;gap:8px;margin-bottom:10px">
           <input class="input" id="notesSearch" placeholder="Search notes..." oninput="renderNotes()" style="flex:1"/>
           <select class="input" id="notesFilter" onchange="renderNotes()" style="max-width:160px">
             <option value="all">All projects</option>
@@ -1244,6 +1725,31 @@ select.input{cursor:pointer;appearance:none;}
         </div>
       </div>
       <div class="content" id="capturesContent"></div>
+    </div>
+
+    <!-- READING LIST -->
+    <div class="view" id="view-reading">
+      <div class="topbar">
+        <div class="topbar-left">
+          <div class="topbar-title">Reading List</div>
+          <div class="topbar-sub">Articles, papers and links to revisit</div>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn btn-primary btn-sm" onclick="openAddReading()">+ Add Link</button>
+        </div>
+      </div>
+      <div class="content" id="readingContent"></div>
+    </div>
+
+    <!-- ANALYTICS -->
+    <div class="view" id="view-analytics">
+      <div class="topbar">
+        <div class="topbar-left">
+          <div class="topbar-title">Analytics</div>
+          <div class="topbar-sub">Your study patterns, focus, and progress</div>
+        </div>
+      </div>
+      <div class="content" id="analyticsContent"></div>
     </div>
 
   </main>
@@ -1623,7 +2129,7 @@ function nav(view){
     habits:renderHabits,vault:renderVault,notes:renderNotes,
     focus:renderFocus,gpa:renderGPA,brief:()=>loadBriefTab('world',document.querySelector('#view-brief .space-tab')),
     concept:renderConcept,expenses:renderExpenses,captures:renderCaptures,
-    research:renderResearch
+    research:renderResearch,analytics:renderAnalytics,reading:renderReadingList
   };
   renders['planning'] = renderPlanning;
   if(renders[view])renders[view]();
@@ -1637,6 +2143,7 @@ function openModal(id){
   if(id==='eventModal'){populateLabelSelect('ev-label');document.getElementById('ev-date').value=new Date().toISOString().slice(0,10);}
   if(id==='labelModal'){renderColourOptions();}
   if(id==='noteModal'){populateNoteSubjectSelect();}
+  if(id==='gradePredModal'){/* populated by openGradePredictor */}
   document.getElementById(id).classList.add('show');
 }
 function closeModal(id){document.getElementById(id).classList.remove('show');}
@@ -1811,6 +2318,7 @@ function renderMorning(){
   // Daily quiz
   renderMorningQuiz();
   updateSidebarStats();
+  renderWhatsNext();
 }
 
 function planTask(id){
@@ -2012,6 +2520,10 @@ function openTaskDetail(id){
   detailId=id;
   document.getElementById('detailTitle').value=task.title;
   document.getElementById('richEditor').innerHTML=task.content||'';
+  // Hide note-only UI
+  var tagsBar=document.getElementById('noteTagsBar');
+  if(tagsBar)tagsBar.style.display='none';
+  updateWordCount();
 
   // Meta info
   const lbl=getLabelById(task.labelId);
@@ -2051,14 +2563,29 @@ function openNoteDetail(id){
   document.getElementById('detailTitle').value=note.title;
   document.getElementById('richEditor').innerHTML=note.content||'';
   const proj=getProjectById(note.subject||note.projectId);
+  const isPinned=note.pinned;
+  const tags=note.tags||[];
+
   document.getElementById('detailMeta').innerHTML=
-    (proj?'<span class="tag" style="color:'+proj.colour+';border-color:'+proj.colour+'44">'+esc(proj.icon)+' '+esc(proj.name)+'</span>':'');
+    (proj?'<span class="tag" style="color:'+proj.colour+';border-color:'+proj.colour+'44">'+esc(proj.icon)+' '+esc(proj.name)+'</span>':'')+
+    tags.map(function(t){return '<span class="note-tag">'+esc(t)+'</span>';}).join('');
+
   document.getElementById('detailHeaderActions').innerHTML=
-    '<button class="btn btn-ghost btn-sm" onclick="generateFlashcardsFromNote()">🃏 Flashcards</button>'+
+    '<button class="pin-btn'+(isPinned?' active':'')+'" onclick="toggleNotePin(\''+id+'\')" title="'+(isPinned?'Unpin':'Pin')+' note">'+(isPinned?'📌':'📍')+'</button>'+
+    '<button class="btn btn-ghost btn-sm" onclick="enterLectureMode()">🎓 Focus</button>'+
+    '<button class="btn btn-ghost btn-sm" onclick="generateFlashcardsFromNote()">🃏 Cards</button>'+
     '<button class="btn btn-ghost btn-sm" onclick="exportCurrentNote()">📤 Export</button>'+
     '<button class="btn btn-danger btn-sm" onclick="deleteNote(\''+id+'\')">Delete</button>';
+
+  // Show tags bar
+  var tagsBar=document.getElementById('noteTagsBar');
+  if(tagsBar){tagsBar.style.display='block';renderNoteTagsBar(tags);}
+
   document.getElementById('detailExtras').innerHTML='';
   document.getElementById('detailPage').classList.add('show');
+  updateWordCount();
+  // Image paste support
+  enableImagePaste();
 }
 
 function closeDetail(){
@@ -2132,33 +2659,528 @@ function startFocusOnTask(id){
 function fmt(cmd){document.execCommand(cmd,false,null);}
 function fmtBlock(tag){document.execCommand('formatBlock',false,tag);}
 
-function insertTable(){
-  const rows=parseInt(prompt('Rows:','3')||'3');
-  const cols=parseInt(prompt('Columns:','3')||'3');
+// ── CHECKLIST ──
+function insertChecklist(){
+  const ed=document.getElementById('richEditor');
+  const item=document.createElement('div');
+  item.className='checklist-item';
+  item.innerHTML='<input type="checkbox" onchange="this.closest(\'.checklist-item\').classList.toggle(\'checked\',this.checked)"/><span contenteditable="true">Item</span>';
+  const sel=window.getSelection();
+  if(sel.rangeCount){const r=sel.getRangeAt(0);r.collapse(false);r.insertNode(item);r.setStartAfter(item);r.collapse(true);sel.removeAllRanges();sel.addRange(r);}
+  else{ed.appendChild(item);}
+  item.querySelector('span').focus();
+  triggerAutosave();
+}
+
+// ── HIGHLIGHT ──
+function toggleHighlightPicker(e){
+  e.stopPropagation();
+  const p=document.getElementById('highlightPicker');
+  const btn=document.getElementById('tbHighlight');
+  const rect=btn.getBoundingClientRect();
+  p.style.top=(rect.bottom+4)+'px';
+  p.style.left=rect.left+'px';
+  p.style.position='fixed';
+  p.classList.toggle('show');
+}
+function applyHighlight(cls){
+  document.getElementById('highlightPicker').classList.remove('show');
+  const sel=window.getSelection();
+  if(!sel.rangeCount||sel.isCollapsed)return;
+  const mark=document.createElement('mark');
+  if(cls)mark.className=cls;
+  try{sel.getRangeAt(0).surroundContents(mark);}catch(e){document.execCommand('insertHTML',false,'<mark'+(cls?' class="'+cls+'"':'')+'>' + sel.toString()+'</mark>');}
+  triggerAutosave();
+}
+function removeHighlight(){
+  document.getElementById('highlightPicker').classList.remove('show');
+  document.execCommand('removeFormat',false,null);
+}
+document.addEventListener('click',function(e){
+  if(!e.target.closest('#highlightPicker')&&!e.target.closest('#tbHighlight'))document.getElementById('highlightPicker').classList.remove('show');
+  if(!e.target.closest('#tablePicker')&&!e.target.closest('#tbTable'))document.getElementById('tablePicker').classList.remove('show');
+  if(!e.target.closest('.backlink-popup'))closeBacklinkPopup();
+});
+
+// ── CODE BLOCK ──
+function insertCodeBlock(){
+  document.execCommand('insertHTML',false,'<pre><code contenteditable="true">// your code here</code></pre><p></p>');
+  triggerAutosave();
+}
+
+// ── TABLE PICKER ──
+var _tablePickerSel=null;
+function toggleTablePicker(e){
+  e.stopPropagation();
+  const p=document.getElementById('tablePicker');
+  const btn=document.getElementById('tbTable');
+  const rect=btn.getBoundingClientRect();
+  p.style.top=(rect.bottom+4)+'px';
+  p.style.left=rect.left+'px';
+  p.style.position='fixed';
+  p.classList.toggle('show');
+  if(p.classList.contains('show'))buildTablePickerGrid();
+  // save selection before popup opens
+  const sel=window.getSelection();
+  if(sel.rangeCount)_tablePickerSel=sel.getRangeAt(0).cloneRange();
+}
+function buildTablePickerGrid(){
+  const grid=document.getElementById('tablePickerGrid');
+  grid.innerHTML='';
+  for(let r=1;r<=6;r++){
+    for(let c=1;c<=6;c++){
+      const cell=document.createElement('div');
+      cell.className='table-picker-cell';
+      cell.dataset.r=r;cell.dataset.c=c;
+      cell.onmouseenter=function(){highlightTablePicker(r,c);};
+      cell.onclick=function(){insertTableFromPicker(r,c);};
+      grid.appendChild(cell);
+    }
+  }
+}
+function highlightTablePicker(rows,cols){
+  document.querySelectorAll('.table-picker-cell').forEach(function(c){
+    c.classList.toggle('highlighted',+c.dataset.r<=rows&&+c.dataset.c<=cols);
+  });
+  document.getElementById('tablePickerLabel').textContent=rows+' × '+cols;
+}
+function insertTableFromPicker(rows,cols){
+  document.getElementById('tablePicker').classList.remove('show');
   let html='<table><thead><tr>';
-  for(let c=0;c<cols;c++)html+='<th>Header '+( c+1)+'</th>';
+  for(let c=0;c<cols;c++)html+='<th>Col '+(c+1)+'</th>';
   html+='</tr></thead><tbody>';
   for(let r=0;r<rows-1;r++){html+='<tr>';for(let c=0;c<cols;c++)html+='<td>&nbsp;</td>';html+='</tr>';}
   html+='</tbody></table><p></p>';
+  // Restore selection then insert
+  const ed=document.getElementById('richEditor');
+  if(_tablePickerSel){const sel=window.getSelection();sel.removeAllRanges();sel.addRange(_tablePickerSel);}
+  else ed.focus();
   document.execCommand('insertHTML',false,html);
+  triggerAutosave();
+}
+
+// ── AUTOSAVE ──
+var _autosaveTimer=null;
+function triggerAutosave(){
+  clearTimeout(_autosaveTimer);
+  _autosaveTimer=setTimeout(function(){
+    saveDetailContent();
+    const ind=document.getElementById('autosaveIndicator');
+    if(ind){ind.textContent='✓ Saved';ind.className='autosave-indicator show saved';setTimeout(function(){ind.className='autosave-indicator';},2000);}
+  },1500);
+}
+
+// ── MARKDOWN SHORTCUTS ──
+function handleEditorKeydown(e){
+  const ed=document.getElementById('richEditor');
+  if(!ed)return;
+  const sel=window.getSelection();
+  if(!sel.rangeCount)return;
+  const range=sel.getRangeAt(0);
+  const node=range.startContainer;
+  const text=node.textContent||'';
+  const offset=range.startOffset;
+
+  if(e.key===' '||e.key==='Enter'){
+    const line=text.slice(0,offset);
+    // Heading shortcuts: # ## ###
+    const headingMatch=line.match(/^(#{1,3}) $/);
+    if(headingMatch&&e.key===' '){
+      e.preventDefault();
+      const level=headingMatch[1].length;
+      node.textContent='';
+      document.execCommand('formatBlock',false,'h'+level);
+      return;
+    }
+    // Bullet: - or *
+    if((line==='- '||line==='* ')&&e.key===' '){
+      e.preventDefault();
+      node.textContent='';
+      document.execCommand('insertUnorderedList',false,null);
+      return;
+    }
+    // Numbered: 1.
+    if(line==='1. '&&e.key===' '){
+      e.preventDefault();
+      node.textContent='';
+      document.execCommand('insertOrderedList',false,null);
+      return;
+    }
+    // Checklist: []
+    if((line==='[] '||line==='[ ] ')&&e.key===' '){
+      e.preventDefault();
+      node.textContent='';
+      insertChecklist();
+      return;
+    }
+    // Blockquote: >
+    if(line==='> '&&e.key===' '){
+      e.preventDefault();
+      node.textContent='';
+      document.execCommand('formatBlock',false,'blockquote');
+      return;
+    }
+    // HR: ---
+    if(line==='---'&&e.key==='Enter'){
+      e.preventDefault();
+      node.textContent='';
+      document.execCommand('insertHorizontalRule',false,null);
+      return;
+    }
+  }
+
+  // Bold: **text**
+  if(e.key==='*'){
+    const before=text.slice(0,offset);
+    const boldMatch=before.match(/\*\*(.+)$/);
+    if(boldMatch&&text[offset]==='*'){
+      // User is closing **...**
+      // Let the char land then check
+    }
+  }
+
+  // Tab in editor — insert 2 spaces
+  if(e.key==='Tab'){
+    e.preventDefault();
+    document.execCommand('insertHTML',false,'&nbsp;&nbsp;');
+  }
+}
+
+// Monitor for **bold** and `code` as you type
+function handleEditorInput(){
+  const ed=document.getElementById('richEditor');
+  const sel=window.getSelection();
+  if(!sel.rangeCount)return;
+  const range=sel.getRangeAt(0);
+  const node=range.startContainer;
+  if(node.nodeType!==3)return;
+  const text=node.textContent;
+  const offset=range.startOffset;
+
+  // **bold**
+  const boldMatch=text.slice(0,offset).match(/\*\*(.+)\*\*$/);
+  if(boldMatch){
+    const start=text.lastIndexOf('**',offset-1-(boldMatch[1].length+2));
+    if(start>=0){
+      const newText=text.slice(0,start)+text.slice(offset);
+      node.textContent=newText;
+      document.execCommand('bold',false,null);
+      // reposition cursor
+      const newRange=document.createRange();
+      newRange.setStart(node,start);newRange.collapse(true);
+      sel.removeAllRanges();sel.addRange(newRange);
+    }
+  }
+
+  // `code`
+  const codeMatch=text.slice(0,offset).match(/`([^`]+)`$/);
+  if(codeMatch){
+    const full='`'+codeMatch[1]+'`';
+    const s=text.slice(0,offset-full.length);
+    node.textContent=s+text.slice(offset);
+    const code=document.createElement('code');
+    code.textContent=codeMatch[1];
+    const afterRange=document.createRange();
+    afterRange.setStart(node,s.length);afterRange.collapse(true);
+    sel.removeAllRanges();sel.addRange(afterRange);
+    afterRange.insertNode(code);
+    // Move cursor after code
+    const after=document.createRange();
+    after.setStartAfter(code);after.collapse(true);
+    sel.removeAllRanges();sel.addRange(after);
+  }
+
+  triggerAutosave();
+}
+
+// ── BACKLINK PICKER ──
+var _savedBacklinkSel=null;
+function insertBacklink(){
+  const sel=window.getSelection();
+  if(sel.rangeCount)_savedBacklinkSel=sel.getRangeAt(0).cloneRange();
+  const pop=document.getElementById('backlinkPopup');
+  pop.classList.add('show');
+  document.getElementById('backlinkSearch').value='';
+  renderBacklinkResults('');
+  setTimeout(function(){document.getElementById('backlinkSearch').focus();},50);
+}
+function closeBacklinkPopup(){
+  document.getElementById('backlinkPopup').classList.remove('show');
+}
+function renderBacklinkResults(q){
+  const s=getS();
+  const notes=(s.notes||[]).filter(function(n){return !q||n.title.toLowerCase().includes(q.toLowerCase());}).slice(0,8);
+  const el=document.getElementById('backlinkResults');
+  if(notes.length===0){el.innerHTML='<div style="font-size:12px;color:var(--text3);padding:8px">No notes found</div>';return;}
+  el.innerHTML=notes.map(function(n){
+    return '<div class="backlink-result" onclick="insertBacklinkNote(\''+n.id+'\','+JSON.stringify(esc(n.title))+')">'+
+      '<div class="backlink-result-title">'+esc(n.title)+'</div>'+
+      '<div class="backlink-result-preview">'+esc(stripHtml(n.content||'').slice(0,60))+'</div>'+
+    '</div>';
+  }).join('');
+}
+function insertBacklinkNote(id,title){
+  closeBacklinkPopup();
+  const link='<a href="#" onclick="event.preventDefault();openNoteDetail(\''+id+'\')" style="color:var(--accent);text-decoration:underline;text-decoration-style:dotted">[['+title+']]</a>';
+  const ed=document.getElementById('richEditor');
+  ed.focus();
+  if(_savedBacklinkSel){const sel=window.getSelection();sel.removeAllRanges();sel.addRange(_savedBacklinkSel);}
+  document.execCommand('insertHTML',false,link);
+  triggerAutosave();
+}
+
+function insertTable(){
+  // Legacy fallback — now uses picker, but keep for safety
+  insertTableFromPicker(3,3);
 }
 
 const TEMPLATES={
-  lecture:'<h2>📋 Lecture Notes</h2><h3>Topic</h3><p>[Topic name]</p><h3>Key Concepts</h3><ul><li>Concept 1</li><li>Concept 2</li><li>Concept 3</li></ul><h3>Important Definitions</h3><p><strong>Term:</strong> Definition</p><h3>Formulas / Equations</h3><p>[Any formulas]</p><h3>Examples</h3><p>[Examples from lecture]</p><h3>Questions / Things to Follow Up</h3><ul><li>?</li></ul>',
-  essay:'<h2>✍️ Essay Draft</h2><h3>Title</h3><p>[Essay title]</p><h3>Thesis Statement</h3><p>[Your main argument]</p><h3>Introduction</h3><p>[Hook, context, thesis]</p><h3>Body Paragraph 1</h3><p><strong>Topic sentence:</strong> </p><p>Evidence: </p><p>Analysis: </p><h3>Body Paragraph 2</h3><p><strong>Topic sentence:</strong> </p><p>Evidence: </p><p>Analysis: </p><h3>Conclusion</h3><p>[Restate thesis, summary, implications]</p><h3>References</h3><ul><li></li></ul>',
+  lecture:'<h2>📋 Lecture Notes</h2><p style="font-size:11px;color:#999;font-family:monospace">'+new Date().toLocaleDateString()+'</p><h3>Topic</h3><p>[Topic name]</p><h3>Key Concepts</h3><ul><li>Concept 1</li><li>Concept 2</li><li>Concept 3</li></ul><h3>Important Definitions</h3><p><strong>Term:</strong> Definition</p><h3>Formulas / Equations</h3><p>[Any formulas]</p><h3>Examples</h3><p>[Examples from lecture]</p><h3>❓ Questions to Follow Up</h3><ul><li>?</li></ul>',
+  essay:'<h2>✍️ Essay Draft</h2><h3>Title</h3><p>[Essay title]</p><h3>Thesis Statement</h3><blockquote>[Your main argument]</blockquote><h3>Introduction</h3><p>[Hook, context, thesis]</p><h3>Body Paragraph 1</h3><p><strong>Topic sentence:</strong> </p><p>Evidence: </p><p>Analysis: </p><h3>Body Paragraph 2</h3><p><strong>Topic sentence:</strong> </p><p>Evidence: </p><p>Analysis: </p><h3>Conclusion</h3><p>[Restate thesis, summary, implications]</p><h3>References</h3><ul><li></li></ul>',
   casestudy:'<h2>🔍 Case Study</h2><h3>Company / Situation</h3><p></p><h3>Background</h3><p></p><h3>Key Issues</h3><ul><li></li></ul><h3>Analysis</h3><p>[Apply relevant frameworks: SWOT, Porter\'s 5 Forces, etc.]</p><h3>Recommendations</h3><ol><li></li></ol><h3>Conclusion</h3><p></p>',
-  problemset:'<h2>🧮 Problem Set</h2><h3>Question 1</h3><p><strong>Given:</strong> </p><p><strong>Find:</strong> </p><p><strong>Solution:</strong> </p><p><strong>Answer:</strong> </p><h3>Question 2</h3><p><strong>Given:</strong> </p><p><strong>Find:</strong> </p><p><strong>Solution:</strong> </p><p><strong>Answer:</strong> </p>'
+  problemset:'<h2>🧮 Problem Set</h2><h3>Question 1</h3><p><strong>Given:</strong> </p><p><strong>Find:</strong> </p><p><strong>Solution:</strong> </p><pre><code>// Working</code></pre><p><strong>Answer:</strong> </p><h3>Question 2</h3><p><strong>Given:</strong> </p><p><strong>Find:</strong> </p><p><strong>Solution:</strong> </p><p><strong>Answer:</strong> </p>'
 };
 
 function insertTemplate(name){
   if(TEMPLATES[name]){
     document.getElementById('richEditor').innerHTML=TEMPLATES[name];
+    triggerAutosave();
   }
 }
 
 // ═══════════════════════════════════════════════
-// CALENDAR
+// EDIT EVENT
 // ═══════════════════════════════════════════════
+function openEditEvent(id){
+  const s=getS();
+  const ev=s.events.find(function(e){return e.id===id;});
+  if(!ev)return;
+  document.getElementById('edit-ev-id').value=id;
+  document.getElementById('edit-ev-title').value=ev.title||'';
+  document.getElementById('edit-ev-date').value=ev.date||'';
+  document.getElementById('edit-ev-time').value=ev.time||'';
+  document.getElementById('edit-ev-endtime').value=ev.endtime||'';
+  document.getElementById('edit-ev-location').value=ev.location||'';
+  document.getElementById('edit-ev-notes').value=ev.notes||'';
+  populateLabelSelect('edit-ev-label');
+  setTimeout(function(){document.getElementById('edit-ev-label').value=ev.labelId||'';},30);
+  openModal('editEventModal');
+}
+
+function saveEditEvent(){
+  const id=document.getElementById('edit-ev-id').value;
+  const s=getS();
+  const events=s.events.map(function(e){
+    if(e.id!==id)return e;
+    return Object.assign({},e,{
+      title:document.getElementById('edit-ev-title').value.trim(),
+      date:document.getElementById('edit-ev-date').value,
+      time:document.getElementById('edit-ev-time').value,
+      endtime:document.getElementById('edit-ev-endtime').value,
+      labelId:document.getElementById('edit-ev-label').value,
+      location:document.getElementById('edit-ev-location').value,
+      notes:document.getElementById('edit-ev-notes').value
+    });
+  });
+  saveS({events:events});
+  closeModal('editEventModal');
+  showToast('Event updated!','success');
+  if(currentView==='calendar')renderCalendar();
+}
+
+// ═══════════════════════════════════════════════
+// CALENDAR WEEK VIEW
+// ═══════════════════════════════════════════════
+var calViewMode='month'; // 'month' | 'week'
+
+function setCalView(mode){
+  calViewMode=mode;
+  ['month','week'].forEach(function(m){
+    var btn=document.getElementById('cvt-'+m);
+    if(btn)btn.classList.toggle('active',m===mode);
+  });
+  renderCalendar();
+}
+
+function renderWeekView(){
+  var today=new Date();
+  var todayStr=today.toISOString().slice(0,10);
+  // Find Monday of current week
+  var startOfWeek=new Date(calYear,calMonth,1);
+  // Use selected day or today to anchor the week
+  var anchor=selectedDay?new Date(selectedDay+'T00:00:00'):new Date(calYear+'-'+String(calMonth+1).padStart(2,'0')+'-01T00:00:00');
+  var dow=anchor.getDay();
+  var mondayOffset=dow===0?-6:1-dow;
+  var monday=new Date(anchor);
+  monday.setDate(anchor.getDate()+mondayOffset);
+
+  var days=[];
+  for(var i=0;i<7;i++){
+    var d=new Date(monday);
+    d.setDate(monday.getDate()+i);
+    days.push(d);
+  }
+
+  var s=getS();
+  var hours=[];
+  for(var h=7;h<=22;h++)hours.push(h);
+  var dayLabels=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+
+  // Nav header
+  var weekStart=days[0].toLocaleDateString('en-MY',{day:'numeric',month:'short'});
+  var weekEnd=days[6].toLocaleDateString('en-MY',{day:'numeric',month:'short',year:'numeric'});
+
+  var html='<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">'+
+    '<button class="btn btn-ghost btn-sm" onclick="shiftWeek(-1)">← Prev</button>'+
+    '<div style="flex:1;text-align:center;font-family:var(--serif);font-size:14px;font-weight:600">'+weekStart+' – '+weekEnd+'</div>'+
+    '<button class="btn btn-ghost btn-sm" onclick="shiftWeek(1)">Next →</button>'+
+  '</div>';
+
+  html+='<div class="week-view-wrap"><div class="week-time-grid">';
+
+  // Header row
+  html+='<div class="week-col-header"></div>';
+  days.forEach(function(d,i){
+    var ds=d.toISOString().slice(0,10);
+    var isToday=ds===todayStr;
+    html+='<div class="week-col-header'+(isToday?' today-col':'')+'" onclick="selectedDay=\''+ds+'\';setCalView(\'month\')" style="cursor:pointer">'+
+      dayLabels[i]+'<br><span style="font-size:14px;font-weight:700">'+d.getDate()+'</span>'+
+    '</div>';
+  });
+
+  // Time rows
+  hours.forEach(function(h){
+    var timeStr=String(h).padStart(2,'0')+':00';
+    html+='<div class="week-time-label">'+timeStr+'</div>';
+    days.forEach(function(d){
+      var ds=d.toISOString().slice(0,10);
+      var isToday=ds===todayStr;
+      var slotEvents=getEventsForDate(ds).filter(function(e){
+        return e.time&&parseInt(e.time.split(':')[0])===h;
+      });
+      html+='<div class="week-slot'+(isToday?' today-col':'')+'" onclick="openAddEventForDay(\''+ds+'\')">';
+      slotEvents.forEach(function(e){
+        var lbl=getLabelById(e.labelId);
+        var col=e.colour||(lbl?lbl.colour:null)||(e.isTimetable?'var(--blue)':'var(--accent)');
+        var bg=col.startsWith('var')?col.replace(')',',0.15)').replace('var(','rgba(0,0,0,'):col+'33';
+        html+='<div class="week-ev-chip" style="background:'+col+'22;color:'+col+'" onclick="event.stopPropagation();'+(e.isTimetable?'':' openEditEvent(\''+e.id+'\')"')+'" title="'+esc(e.title)+'">'+esc(e.title)+'</div>';
+      });
+      html+='</div>';
+    });
+  });
+
+  html+='</div></div>';
+  return html;
+}
+
+var _weekOffset=0;
+function shiftWeek(dir){
+  var anchor=selectedDay?new Date(selectedDay+'T00:00:00'):new Date();
+  anchor.setDate(anchor.getDate()+dir*7);
+  selectedDay=anchor.toISOString().slice(0,10);
+  calYear=anchor.getFullYear();
+  calMonth=anchor.getMonth();
+  renderCalendar();
+}
+
+// ═══════════════════════════════════════════════
+// WHAT'S NEXT (Morning page)
+// ═══════════════════════════════════════════════
+function renderWhatsNext(){
+  var el=document.getElementById('whatsNextList');
+  if(!el)return;
+  var now=new Date();
+  var todayStr=now.toISOString().slice(0,10);
+  var events=getEventsForDate(todayStr);
+  var upcoming=[];
+  var nowMins=now.getHours()*60+now.getMinutes();
+
+  events.forEach(function(e){
+    if(!e.time)return;
+    var parts=e.time.split(':');
+    var evMins=parseInt(parts[0])*60+parseInt(parts[1]);
+    var diffMins=evMins-nowMins;
+    if(diffMins>-60&&diffMins<480)upcoming.push({ev:e,diffMins:diffMins});
+  });
+  upcoming.sort(function(a,b){return a.diffMins-b.diffMins;});
+
+  if(upcoming.length===0){
+    el.innerHTML='<div style="font-size:12px;color:var(--text3);padding:8px 0">No more events today. Enjoy your day! ✨</div>';
+    return;
+  }
+
+  el.innerHTML=upcoming.slice(0,4).map(function(item){
+    var e=item.ev;
+    var diff=item.diffMins;
+    var lbl=getLabelById(e.labelId);
+    var col=e.colour||(lbl?lbl.colour:'var(--accent)');
+    var countdown='';
+    if(diff<0)countdown='<span style="color:var(--green);font-weight:600;font-size:10px;font-family:var(--mono)">In progress</span>';
+    else if(diff===0)countdown='<span style="color:var(--red);font-weight:600;font-size:10px;font-family:var(--mono)">Now!</span>';
+    else if(diff<60)countdown='<span style="color:var(--accent);font-weight:600;font-size:10px;font-family:var(--mono)">in '+diff+'m</span>';
+    else countdown='<span style="font-size:10px;font-family:var(--mono);color:var(--text3)">in '+(Math.floor(diff/60))+'h '+(diff%60)+'m</span>';
+    return '<div class="whats-next-item">'+
+      '<div class="whats-next-dot" style="background:'+col+'"></div>'+
+      '<div class="whats-next-info">'+
+        '<div class="whats-next-title">'+esc(e.title)+'</div>'+
+        '<div class="whats-next-meta">'+(e.time||'')+(e.endtime?' – '+e.endtime:'')+(e.location?' · 📍'+esc(e.location):'')+'</div>'+
+      '</div>'+
+      countdown+
+    '</div>';
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════
+// TIMETABLE MODAL (replace prompt() calls)
+// ═══════════════════════════════════════════════
+var _ttSelectedDays=[];
+
+function openTimetableModal(){
+  _ttSelectedDays=[];
+  ['tt-title','tt-time','tt-endtime','tt-location'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
+  [0,1,2,3,4,5,6].forEach(function(i){
+    var btn=document.getElementById('tt-day-'+i);
+    if(btn)btn.classList.remove('active');
+  });
+  populateLabelSelect('tt-label');
+  openModal('timetableModal');
+}
+
+function toggleTTDay(d){
+  var idx=_ttSelectedDays.indexOf(d);
+  if(idx>=0)_ttSelectedDays.splice(idx,1);
+  else _ttSelectedDays.push(d);
+  var btn=document.getElementById('tt-day-'+d);
+  if(btn)btn.classList.toggle('active',_ttSelectedDays.includes(d));
+}
+
+function saveTimetableModal(){
+  var title=document.getElementById('tt-title').value.trim();
+  if(!title){showToast('Enter a class name','error');return;}
+  if(_ttSelectedDays.length===0){showToast('Select at least one day','error');return;}
+  var s=getS();
+  var entry={
+    id:'tt'+Date.now(),
+    title:title,
+    days:[..._ttSelectedDays],
+    time:document.getElementById('tt-time').value,
+    endtime:document.getElementById('tt-endtime').value,
+    location:document.getElementById('tt-location').value,
+    labelId:document.getElementById('tt-label').value,
+    isTimetable:true
+  };
+  saveS({timetable:[...(s.timetable||[]),entry]});
+  closeModal('timetableModal');
+  showToast('Class added!','success');
+  if(currentView==='calendar')renderCalendar();
+  if(currentView==='planning')renderPlanning();
+}
+
+// Override old prompt-based function
+function addTimetableEntry(){ openTimetableModal(); }
+
+// ═══════════════════════════════════════════════
+// CALENDAR (continued)
 let calYear=new Date().getFullYear();
 let calMonth=new Date().getMonth();
 let selectedDay=null;
@@ -2169,6 +3191,20 @@ function renderCalendar(){
   const firstDay=new Date(calYear,calMonth,1);
   const lastDay=new Date(calYear,calMonth+1,0);
   document.getElementById('calMonthLabel').textContent=firstDay.toLocaleDateString('en-MY',{month:'long',year:'numeric'});
+
+  // Week view
+  if(calViewMode==='week'){
+    document.getElementById('calGrid').style.display='none';
+    document.getElementById('dayPanel').innerHTML='';
+    const ww=document.getElementById('weekViewWrap');
+    ww.style.display='block';
+    ww.innerHTML=renderWeekView();
+    return;
+  }
+
+  // Month view
+  document.getElementById('weekViewWrap').style.display='none';
+  document.getElementById('calGrid').style.display='';
 
   const grid=document.getElementById('calGrid');
   const dayHeaders=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
@@ -2237,7 +3273,7 @@ function selectCalDay(dateStr){
 
 function renderDayPanel(dateStr){
   const s=getS();
-  const d=new Date(dateStr);
+  const d=new Date(dateStr+'T00:00:00');
   const panel=document.getElementById('dayPanel');
   const dayEvents=getEventsForDate(dateStr);
   const dayTasks=s.tasks.filter(function(t){return t.due===dateStr&&!t.done;});
@@ -2248,19 +3284,26 @@ function renderDayPanel(dateStr){
 
     (dayEvents.length>0?dayEvents.map(function(e){
       const lbl=getLabelById(e.labelId);
-      const col=lbl?lbl.colour:'var(--accent)';
-      return '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">'+
+      const col=e.colour||(lbl?lbl.colour:'var(--accent)');
+      const bg=col.startsWith('#')?col+'22':col;
+      return '<div class="cal-event-row">'+
         '<div style="width:10px;height:10px;border-radius:50%;background:'+col+';flex-shrink:0"></div>'+
-        '<div style="flex:1"><div style="font-size:12px;font-weight:500;color:var(--text)">'+e.title+'</div>'+
-        (e.time?'<div style="font-size:10px;color:var(--text3);font-family:var(--mono)">'+e.time+(e.endtime?' – '+e.endtime:'')+'</div>':'')+
-        (e.location?'<div style="font-size:10px;color:var(--blue);font-family:var(--mono)">📍 '+e.location+'</div>':'')+
-        (e.notes?'<div style="font-size:11px;color:var(--text3)">'+e.notes+'</div>':'')+
-        '</div><button onclick="deleteEvent(\''+e.id+'\')" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:12px">✕</button></div>';
+        '<div style="flex:1">'+
+          '<div style="font-size:13px;font-weight:500;color:var(--text)">'+esc(e.title)+'</div>'+
+          (e.time?'<div style="font-size:10px;color:var(--text3);font-family:var(--mono)">'+e.time+(e.endtime?' – '+e.endtime:'')+'</div>':'')+
+          (e.location?'<div style="font-size:10px;color:var(--blue)">📍 '+esc(e.location)+'</div>':'')+
+          (e.notes?'<div style="font-size:11px;color:var(--text3);margin-top:2px">'+esc(e.notes)+'</div>':'')+
+          (e.isTimetable?'<div style="font-size:9px;color:var(--text3);font-family:var(--mono);margin-top:2px">Recurring class</div>':'')+
+        '</div>'+
+        (!e.isTimetable?
+          '<button onclick="openEditEvent(\''+e.id+'\')" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:12px;padding:3px 6px" title="Edit">✏️</button>'+
+          '<button onclick="deleteEvent(\''+e.id+'\')" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:12px;padding:3px 6px" title="Delete">✕</button>':'')+
+      '</div>';
     }).join(''):'')+
 
     (dayTasks.length>0?'<div style="margin-top:8px">'+dayTasks.map(function(t){return renderTaskItem(t,true);}).join('')+'</div>':'')+
 
-    ((dayEvents.length===0&&dayTasks.length===0)?'<div class="empty" style="padding:16px"><div class="empty-text">Nothing scheduled.<br/>Add an event or task.</div></div>':'')+
+    ((dayEvents.length===0&&dayTasks.length===0)?'<div class="empty" style="padding:16px"><div class="empty-text">Nothing scheduled.<br/>Tap + Event to add one.</div></div>':'')+
     '</div>';
 }
 
@@ -2361,29 +3404,68 @@ function renderHabits(){
     days.push({str:d.toDateString(),label:d.toLocaleDateString('en',{weekday:'short'}),isToday:i===0});
   }
 
-  document.getElementById('habitsContent').innerHTML=s.habits.length>0
+  // Build 90-day heatmap data
+  const heatDays=[];
+  for(let i=89;i>=0;i--){
+    const d=new Date(Date.now()-i*86400000);
+    heatDays.push({str:d.toDateString(),isToday:i===0});
+  }
+
+  document.getElementById('habitsContent').innerHTML= (s.habits.length>0
     ?s.habits.map(function(h){
       const doneToday=(h.history||[]).includes(today);
+      const streak=h.streak||calcStreak(h.history||[]);
+      const freq=h.frequency||'daily'; // 'daily' | '3x' | '5x'
+      const history=h.history||[];
+      // Completion rate last 30 days
+      let done30=0;
+      for(let i=0;i<30;i++){const d=new Date(Date.now()-i*86400000);if(history.includes(d.toDateString()))done30++;}
+      const rate=Math.round((done30/30)*100);
+
       return '<div class="habit-full">'+
         '<div class="habit-full-header">'+
-          '<button onclick="toggleHabit(\''+h.id+'\')" class="btn '+(doneToday?'btn-green':'btn-primary')+' btn-sm" style="min-width:80px">'+(doneToday?'✓ Done':'Mark Done')+'</button>'+
+          '<button onclick="toggleHabit(\''+h.id+'\')" class="btn '+(doneToday?'btn-success':'btn-primary')+' btn-sm" style="min-width:88px;background:'+(doneToday?'var(--green)':'')+';">'+(doneToday?'✓ Done':'Mark Done')+'</button>'+
           '<span class="habit-full-icon">'+h.icon+'</span>'+
-          '<span class="habit-full-name">'+h.name+'</span>'+
-          '<span class="habit-full-streak">🔥 '+h.streak+'</span>'+
-          '<button onclick="deleteHabit(\''+h.id+'\')" class="btn btn-ghost btn-xs">✕</button>'+
+          '<span class="habit-full-name">'+esc(h.name)+'</span>'+
+          '<span class="habit-full-streak" title="Current streak">🔥 '+streak+'d</span>'+
+          '<span style="font-size:10px;color:var(--text3);font-family:var(--mono)" title="30-day completion rate">'+rate+'%</span>'+
+          '<button onclick="deleteHabit(\''+h.id+'\')" class="btn btn-ghost btn-xs" title="Delete habit">✕</button>'+
         '</div>'+
+        // 7-day dots
         '<div class="habit-week">'+
           days.map(function(day){
-            const done=(h.history||[]).includes(day.str);
+            const done=history.includes(day.str);
             return '<div class="habit-week-day">'+
               '<div class="habit-week-label">'+day.label+'</div>'+
               '<div class="habit-week-dot'+(done?' done':'')+(day.isToday?' today':'')+'"></div>'+
             '</div>';
           }).join('')+
         '</div>'+
+        // 90-day heatmap
+        '<div class="heatmap-label">Last 90 days</div>'+
+        '<div class="heatmap-grid">'+
+          heatDays.map(function(day){
+            const done=history.includes(day.str);
+            return '<div class="heatmap-cell'+(done?' done':'')+(day.isToday?' today':'')+'" title="'+day.str+'"></div>';
+          }).join('')+
+        '</div>'+
       '</div>';
     }).join('')
-    :'<div class="empty"><div class="empty-icon">💪</div><div class="empty-text">No habits yet. Add your first one!</div></div>';
+    :'<div class="empty"><div class="empty-icon">💪</div><div class="empty-text">No habits yet. Add your first one!</div></div>'
+  );
+}
+
+function calcStreak(history){
+  if(!history||history.length===0)return 0;
+  let streak=0;
+  const today=new Date();
+  for(let i=0;;i++){
+    const d=new Date(today);
+    d.setDate(today.getDate()-i);
+    if(history.includes(d.toDateString()))streak++;
+    else break;
+  }
+  return streak;
 }
 
 function toggleHabit(id){
@@ -2392,11 +3474,8 @@ function toggleHabit(id){
   const habits=s.habits.map(function(h){
     if(h.id!==id)return h;
     const hist=h.history||[];
-    if(hist.includes(today)){
-      return Object.assign({},h,{streak:Math.max(0,h.streak-1),history:hist.filter(function(d){return d!==today;})});
-    } else {
-      return Object.assign({},h,{streak:h.streak+1,history:[...hist,today]});
-    }
+    var newHist=hist.includes(today)?hist.filter(function(d){return d!==today;}): [...hist,today];
+    return Object.assign({},h,{history:newHist,streak:calcStreak(newHist)});
   });
   saveS({habits:habits});
   if(currentView==='habits')renderHabits();
@@ -2730,10 +3809,13 @@ function createNote(){
   const title=document.getElementById('note-title').value.trim()||'Untitled Note';
   const subject=document.getElementById('note-subject').value||'general';
   const template=document.getElementById('note-template').value;
+  const rawTags=(document.getElementById('note-tags').value||'').split(',').map(function(t){return t.trim().toLowerCase();}).filter(Boolean);
   const note={
     id:'n'+Date.now(),
     title:title,
     subject:subject,
+    tags:rawTags,
+    pinned:false,
     content:template!=='blank'?TEMPLATES[template]:'',
     created:new Date().toISOString(),
     updated:new Date().toISOString()
@@ -2742,6 +3824,7 @@ function createNote(){
   saveS({notes:[note,...s.notes]});
   closeModal('noteModal');
   document.getElementById('note-title').value='';
+  document.getElementById('note-tags').value='';
   openNoteDetail(note.id);
 }
 
@@ -2759,6 +3842,11 @@ function renderNotes(){
     '<option value="general">General</option>';
   filterSel.value=savedFilter||'all';
 
+  // Tag filter
+  var tagFilter='';
+  var tagFilterEl=document.getElementById('notesTagFilter');
+  if(tagFilterEl)tagFilter=tagFilterEl.value||'';
+
   let notes=[...s.notes];
   const taskNotes=s.tasks.filter(function(t){return t.content&&t.content.length>20;}).map(function(t){
     return {id:t.id,title:t.title+' (Task)',subject:t.projectId||t.space||'',content:t.content,updated:t.created,isTask:true};
@@ -2769,24 +3857,52 @@ function renderNotes(){
   notes=[...notes,...taskNotes,...completedNotes];
 
   if(filter&&filter!=='all')notes=notes.filter(function(n){return n.subject===filter||n.projectId===filter;});
-  if(search)notes=notes.filter(function(n){return n.title.toLowerCase().includes(search)||stripHtml(n.content||'').toLowerCase().includes(search);});
+  if(tagFilter)notes=notes.filter(function(n){return (n.tags||[]).includes(tagFilter);});
+  if(search)notes=notes.filter(function(n){return n.title.toLowerCase().includes(search)||stripHtml(n.content||'').toLowerCase().includes(search)||(n.tags||[]).some(function(t){return t.includes(search);});});
 
-  notes.sort(function(a,b){return new Date(b.updated||b.created)-new Date(a.updated||a.created);});
+  // Pinned notes first
+  notes.sort(function(a,b){
+    if(a.pinned&&!b.pinned)return -1;
+    if(!a.pinned&&b.pinned)return 1;
+    return new Date(b.updated||b.created)-new Date(a.updated||a.created);
+  });
+
+  // Collect all tags for suggestion bar
+  var allTags={};
+  s.notes.forEach(function(n){(n.tags||[]).forEach(function(t){allTags[t]=(allTags[t]||0)+1;});});
+  var tagBarHtml='';
+  if(Object.keys(allTags).length>0){
+    tagBarHtml='<div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px;align-items:center">'+
+      '<span style="font-size:9px;color:var(--text3);font-family:var(--mono);text-transform:uppercase">Tags:</span>'+
+      '<span class="tag-suggestion'+(tagFilter===''?' active-tag':'')+'" onclick="setNotesTagFilter(\'\')" style="'+(tagFilter===''?'background:var(--accent-soft);color:var(--accent);border-color:var(--accent)':'')+'">All</span>'+
+      Object.keys(allTags).map(function(t){return '<span class="tag-suggestion'+(tagFilter===t?' active-tag':'')+'" onclick="setNotesTagFilter(\''+esc(t)+'\')" style="'+(tagFilter===t?'background:var(--accent-soft);color:var(--accent);border-color:var(--accent)':'')+'">#'+esc(t)+' <span style="opacity:0.5">'+allTags[t]+'</span></span>';}).join('')+
+      '<input id="notesTagFilter" type="hidden" value="'+esc(tagFilter)+'"/>'+
+    '</div>';
+  }
 
   const listEl=document.getElementById('notesList');
-  listEl.innerHTML=notes.length>0
+  listEl.innerHTML=tagBarHtml+(notes.length>0
     ?notes.map(function(n){
       const proj=getProjectById(n.subject||n.projectId);
-      return '<div class="note-card" onclick="'+(n.isTask?'openTaskDetail':'openNoteDetail')+'(\''+n.id+'\')">'+
-        '<div class="note-card-title">'+esc(n.title)+'</div>'+
+      const tags=(n.tags||[]).slice(0,3);
+      return '<div class="note-card'+(n.pinned?' pinned':'')+'" onclick="'+(n.isTask?'openTaskDetail':'openNoteDetail')+'(\''+n.id+'\')">'+
+        '<div class="note-card-title">'+(n.pinned?'📌 ':'')+esc(n.title)+'</div>'+
         '<div class="note-card-preview">'+esc(stripHtml(n.content||'No content').slice(0,100))+'</div>'+
         '<div class="note-card-meta">'+
           (proj&&proj.colour?'<span class="tag" style="color:'+proj.colour+';border-color:'+proj.colour+'44;font-size:9px">'+esc(proj.icon)+' '+esc(proj.name)+'</span>':'')+
+          tags.map(function(t){return '<span class="note-tag" style="font-size:8px;padding:1px 5px">#'+esc(t)+'</span>';}).join('')+
           '<span class="note-card-date">'+new Date(n.updated||n.created).toLocaleDateString()+'</span>'+
         '</div>'+
       '</div>';
     }).join('')
-    :'<div class="empty"><div class="empty-icon">📝</div><div class="empty-text">No notes found.</div></div>';
+    :'<div class="empty"><div class="empty-icon">📝</div><div class="empty-text">No notes found.</div></div>');
+}
+
+function setNotesTagFilter(tag){
+  var el=document.getElementById('notesTagFilter');
+  if(el)el.value=tag;
+  // Re-filter without re-rendering filter dropdown
+  renderNotes();
 }
 
 function deleteNote(id){
@@ -2970,17 +4086,24 @@ function renderGPA(){
 }
 
 function addSemester(){
-  const name=prompt('Semester name (e.g. Year 1 Semester 1):');
-  if(!name)return;
+  document.getElementById('sem-name').value='';
+  openModal('semesterModal');
+}
+
+function saveSemesterModal(){
+  const name=document.getElementById('sem-name').value.trim();
+  if(!name){showToast('Enter a semester name','error');return;}
   const s=getS();
   const gpa=s.gpa||{semesters:[]};
   gpa.semesters=[...gpa.semesters,{name:name,modules:[]}];
   saveS({gpa:gpa});
+  closeModal('semesterModal');
   renderGPA();
+  showToast('Semester added!','success');
 }
 
 function deleteSemester(si){
-  if(!confirm('Delete this semester?'))return;
+  if(!confirm('Delete this semester and all its modules?'))return;
   const s=getS();
   const gpa=s.gpa||{semesters:[]};
   gpa.semesters=gpa.semesters.filter(function(_,i){return i!==si;});
@@ -2989,15 +4112,27 @@ function deleteSemester(si){
 }
 
 function addModule(si){
-  const name=prompt('Module name:');if(!name)return;
-  const grade=prompt('Grade (A+, A, A-, B+, B, B-, C+, C, C-, D+, D, F):','B');if(!grade)return;
-  const credits=parseInt(prompt('Credit hours:','3'));if(!credits)return;
-  if(!GRADE_PTS.hasOwnProperty(grade)){showToast('Invalid grade','error');return;}
+  document.getElementById('mod-sem-idx').value=si;
+  document.getElementById('mod-name').value='';
+  document.getElementById('mod-grade').value='B';
+  document.getElementById('mod-credits').value='3';
+  openModal('moduleModal');
+}
+
+function saveModuleModal(){
+  const si=parseInt(document.getElementById('mod-sem-idx').value);
+  const name=document.getElementById('mod-name').value.trim();
+  if(!name){showToast('Enter module name','error');return;}
+  const grade=document.getElementById('mod-grade').value;
+  const credits=parseInt(document.getElementById('mod-credits').value)||3;
   const s=getS();
   const gpa=s.gpa||{semesters:[]};
+  if(!gpa.semesters[si])return;
   gpa.semesters[si].modules=[...(gpa.semesters[si].modules||[]),{name:name,grade:grade,credits:credits}];
   saveS({gpa:gpa});
+  closeModal('moduleModal');
   renderGPA();
+  showToast('Module added!','success');
 }
 
 function deleteModule(si,mi){
@@ -3387,10 +4522,27 @@ function saveResearchAsNote(q){
 // ═══════════════════════════════════════════════
 var EXP_ICONS={Food:'🍜',Transport:'🚗',Education:'📚',Entertainment:'🎮',Shopping:'🛒','Part-time':'💰',Other:'📦'};
 
+var expenseMonthFilter='all';
+
 function renderExpenses(){
   const s=getS();
-  const exps=s.expenses||[];
+  let exps=s.expenses||[];
   const budgets=s.budgets||{};
+
+  // Build month filter options
+  const months=[];
+  const seen=new Set();
+  exps.forEach(function(e){
+    const key=e.date?e.date.slice(0,7):'';
+    if(key&&!seen.has(key)){seen.add(key);months.push(key);}
+  });
+  months.sort().reverse();
+
+  // Filter by month
+  if(expenseMonthFilter!=='all'){
+    exps=exps.filter(function(e){return e.date&&e.date.startsWith(expenseMonthFilter);});
+  }
+
   const income=exps.filter(function(e){return e.type==='income';}).reduce(function(a,b){return a+b.amount;},0);
   const expense=exps.filter(function(e){return e.type==='expense';}).reduce(function(a,b){return a+b.amount;},0);
 
@@ -3400,6 +4552,30 @@ function renderExpenses(){
   exps.filter(function(e){return e.type==='expense';}).forEach(function(e){
     catTotals[e.cat]=(catTotals[e.cat]||0)+e.amount;
   });
+
+  // Pie chart SVG
+  const pieData=cats.filter(function(c){return catTotals[c]>0;}).map(function(c,i){
+    return {cat:c,val:catTotals[c],col:['#b85c38','#c4922a','#3a7d5a','#3a6b8a','#7a5fa0','#c04040','#2a6b6b'][i%7]};
+  });
+  let pieSvg='';
+  if(pieData.length>0&&expense>0){
+    let cumAngle=-Math.PI/2;
+    const r=60;const cx=70;const cy=70;
+    pieSvg='<svg width="140" height="140" viewBox="0 0 140 140">';
+    pieData.forEach(function(d){
+      const angle=(d.val/expense)*2*Math.PI;
+      const x1=cx+r*Math.cos(cumAngle);const y1=cy+r*Math.sin(cumAngle);
+      cumAngle+=angle;
+      const x2=cx+r*Math.cos(cumAngle);const y2=cy+r*Math.sin(cumAngle);
+      const large=angle>Math.PI?1:0;
+      if(angle<2*Math.PI-0.001){
+        pieSvg+='<path d="M'+cx+','+cy+' L'+x1.toFixed(1)+','+y1.toFixed(1)+' A'+r+','+r+' 0 '+large+',1 '+x2.toFixed(1)+','+y2.toFixed(1)+' Z" fill="'+d.col+'" opacity="0.85"/>';
+      } else {
+        pieSvg+='<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="'+d.col+'" opacity="0.85"/>';
+      }
+    });
+    pieSvg+='</svg>';
+  }
 
   const budgetSection=cats.filter(function(c){return catTotals[c]||budgets[c];}).map(function(cat){
     const spent=catTotals[cat]||0;
@@ -3415,23 +4591,41 @@ function renderExpenses(){
     '</div>';
   }).join('');
 
+  const monthTabsHtml='<div class="month-tabs">'+
+    '<div class="month-tab'+(expenseMonthFilter==='all'?' active':'')+'" onclick="expenseMonthFilter=\'all\';renderExpenses()">All</div>'+
+    months.map(function(m){
+      const label=new Date(m+'-01').toLocaleDateString('en-MY',{month:'short',year:'2-digit'});
+      return '<div class="month-tab'+(expenseMonthFilter===m?' active':'')+'" onclick="expenseMonthFilter=\''+m+'\';renderExpenses()">'+label+'</div>';
+    }).join('')+
+  '</div>';
+
   document.getElementById('expensesContent').innerHTML=
+    monthTabsHtml+
     '<div class="grid-3" style="margin-bottom:14px">'+
       '<div class="card" style="text-align:center;margin-bottom:0"><div style="font-family:var(--serif);font-size:22px;font-weight:700;color:var(--green)">RM '+income.toFixed(2)+'</div><div class="stat-label">INCOME</div></div>'+
       '<div class="card" style="text-align:center;margin-bottom:0"><div style="font-family:var(--serif);font-size:22px;font-weight:700;color:var(--red)">RM '+expense.toFixed(2)+'</div><div class="stat-label">EXPENSES</div></div>'+
       '<div class="card" style="text-align:center;margin-bottom:0"><div style="font-family:var(--serif);font-size:22px;font-weight:700;color:'+(income-expense>=0?'var(--green)':'var(--red)')+'">RM '+(income-expense).toFixed(2)+'</div><div class="stat-label">NET</div></div>'+
     '</div>'+
 
+    // Pie chart + legend
+    (pieData.length>0?'<div class="card" style="margin-bottom:14px"><div class="card-header"><div class="card-title">Spending Breakdown</div></div><div class="pie-wrap">'+
+      pieSvg+
+      '<div class="pie-legend">'+pieData.map(function(d){
+        return '<div class="pie-legend-item"><div class="pie-legend-dot" style="background:'+d.col+'"></div><span>'+EXP_ICONS[d.cat]+' '+d.cat+' — <strong>RM '+d.val.toFixed(2)+'</strong> ('+Math.round(d.val/expense*100)+'%)</span></div>';
+      }).join('')+'</div></div></div>':'')+
+
     (budgetSection?'<div class="card" style="margin-bottom:14px"><div class="card-header"><div class="card-title">Budget Overview</div><button class="btn btn-ghost btn-sm" onclick="openBudgetModal()">⚙ Set Budgets</button></div>'+budgetSection+'</div>':'<div style="margin-bottom:10px"><button class="btn btn-ghost btn-sm" onclick="openBudgetModal()">⚙ Set Monthly Budgets</button></div>')+
 
     '<div class="card">'+
+      '<div class="card-header" style="margin-bottom:10px"><div class="card-title">Transactions</div></div>'+
       (exps.length>0
-        ?exps.slice(0,30).map(function(e,i){
+        ?exps.slice(0,50).map(function(e,i){
+          const realIdx=(s.expenses||[]).indexOf(e);
           return '<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)">'+
             '<span style="font-size:18px">'+(EXP_ICONS[e.cat]||'📦')+'</span>'+
-            '<div style="flex:1"><div style="font-size:12px;font-weight:500;color:var(--text)">'+e.desc+'</div><div style="font-size:10px;color:var(--text3);font-family:var(--mono)">'+e.cat+' · '+e.date+'</div></div>'+
+            '<div style="flex:1"><div style="font-size:12px;font-weight:500;color:var(--text)">'+esc(e.desc)+'</div><div style="font-size:10px;color:var(--text3);font-family:var(--mono)">'+esc(e.cat)+' · '+e.date+'</div></div>'+
             '<div style="font-family:var(--mono);font-size:13px;font-weight:600;color:'+(e.type==='income'?'var(--green)':'var(--red)')+'">'+( e.type==='income'?'+':'-')+'RM '+e.amount.toFixed(2)+'</div>'+
-            '<button onclick="deleteExpense('+i+')" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:12px">✕</button>'+
+            '<button onclick="deleteExpense('+realIdx+')" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:12px">✕</button>'+
           '</div>';
         }).join('')
         :'<div class="empty" style="padding:20px"><div class="empty-text">No transactions yet</div></div>')+
@@ -3518,13 +4712,52 @@ function renderCaptures(){
     ?'<div class="card">'+caps.map(function(c,i){
       return '<div style="padding:10px 0;border-bottom:1px solid var(--border)">'+
         '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">'+
-          '<div style="font-size:13px;color:var(--text);line-height:1.6;flex:1">'+c.text+'</div>'+
+          '<div style="font-size:13px;color:var(--text);line-height:1.6;flex:1">'+esc(c.text)+'</div>'+
           '<button onclick="deleteCapture('+i+')" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:12px;flex-shrink:0">✕</button>'+
         '</div>'+
         '<div style="font-size:9px;color:var(--text3);font-family:var(--mono);margin-top:4px">'+c.date+'</div>'+
+        '<div class="capture-actions">'+
+          '<button class="btn btn-ghost btn-xs" onclick="captureToTask('+i+')">→ Task</button>'+
+          '<button class="btn btn-ghost btn-xs" onclick="captureToNote('+i+')">→ Note</button>'+
+          '<button class="btn btn-ghost btn-xs" onclick="captureToEvent('+i+')">→ Event</button>'+
+        '</div>'+
       '</div>';
     }).join('')+'</div>'
     :'<div class="empty"><div class="empty-icon">⚡</div><div class="empty-text">Nothing captured yet.<br/>Use the + button to dump thoughts fast.</div></div>';
+}
+
+function captureToTask(idx){
+  const s=getS();
+  const cap=s.captures[idx];
+  if(!cap)return;
+  const task={id:'t'+Date.now(),title:cap.text.slice(0,80),done:false,created:new Date().toISOString(),projectId:'',labelId:'',priority:'medium'};
+  const caps=[...(s.captures||[])];caps.splice(idx,1);
+  saveS({tasks:[...s.tasks,task],captures:caps});
+  showToast('Added to Tasks!','success');
+  renderCaptures();updateSidebarStats();
+}
+
+function captureToNote(idx){
+  const s=getS();
+  const cap=s.captures[idx];
+  if(!cap)return;
+  const note={id:'n'+Date.now(),title:cap.text.slice(0,60)||'Quick Note',content:'<p>'+esc(cap.text)+'</p>',subject:'general',created:new Date().toISOString(),updated:new Date().toISOString()};
+  const caps=[...(s.captures||[])];caps.splice(idx,1);
+  saveS({notes:[note,...s.notes],captures:caps});
+  showToast('Saved to Notes!','success');
+  renderCaptures();updateSidebarStats();
+  openNoteDetail(note.id);
+}
+
+function captureToEvent(idx){
+  const s=getS();
+  const cap=s.captures[idx];
+  if(!cap)return;
+  const caps=[...(s.captures||[])];caps.splice(idx,1);
+  saveS({captures:caps});
+  openAddEvent();
+  setTimeout(function(){document.getElementById('ev-title').value=cap.text.slice(0,80);},50);
+  renderCaptures();updateSidebarStats();
 }
 
 function deleteCapture(idx){
@@ -4908,6 +6141,8 @@ var DEFAULT_NAV_ITEMS = [
   {id:'concept',  icon:'🧠', label:'Concept',     section:'Learn',   visible:true,  special:null},
   {id:'research', icon:'🔍', label:'Research',    section:'Learn',   visible:true,  special:null},
   {id:'expenses', icon:'💸', label:'Expenses',    section:'More',    visible:true,  special:null},
+  {id:'analytics',icon:'📊', label:'Analytics',   section:'More',    visible:true,  special:null},
+  {id:'reading',  icon:'📖', label:'Reading List', section:'More',    visible:true,  special:null},
   {id:'captures', icon:'⚡', label:'Quick Notes', section:'More',    visible:true,  special:'capsBadge'},
   {id:'labels',   icon:'🏷️', label:'Labels',      section:'More',    visible:true,  special:null, isModal:'labelModal'}
 ];
@@ -5206,6 +6441,1045 @@ function applyFontSize(){
     var btn2=document.getElementById('cfg-size-'+m);
     if(btn2)btn2.classList.toggle('active',m===mode);
   });
+}
+
+// ═══════════════════════════════════════════════
+// FOCUS TIMER ALARM SOUND
+// ═══════════════════════════════════════════════
+function playAlarm(){
+  try{
+    var ctx=new(window.AudioContext||window.webkitAudioContext)();
+    [0,0.3,0.6].forEach(function(delay){
+      var osc=ctx.createOscillator();
+      var gain=ctx.createGain();
+      osc.connect(gain);gain.connect(ctx.destination);
+      osc.frequency.value=880;
+      osc.type='sine';
+      gain.gain.setValueAtTime(0.4,ctx.currentTime+delay);
+      gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+delay+0.4);
+      osc.start(ctx.currentTime+delay);
+      osc.stop(ctx.currentTime+delay+0.4);
+    });
+  }catch(e){}
+  // Also show in-app banner
+  showNotifBanner('🍅 Focus session complete! Time for a break.');
+}
+
+function showNotifBanner(msg){
+  var el=document.getElementById('notifBanner');
+  if(!el)return;
+  document.getElementById('notifBannerText').textContent=msg;
+  el.classList.add('show');
+  setTimeout(function(){el.classList.remove('show');},6000);
+}
+
+// Patch toggleFocus to call playAlarm when work phase ends
+var _origToggleFocus=toggleFocus;
+function toggleFocus(){
+  if(focusRunning){
+    clearInterval(focusInterval);focusRunning=false;
+    document.getElementById('focusPlayBtn').textContent='▶ Resume';
+  } else {
+    focusRunning=true;
+    document.getElementById('focusPlayBtn').textContent='⏸ Pause';
+    focusInterval=setInterval(function(){
+      focusSeconds--;
+      updateFocusDisplay();
+      if(focusSeconds<=0){
+        clearInterval(focusInterval);focusRunning=false;
+        if(focusPhase==='work'){
+          focusPomos++;
+          document.getElementById('focusPomosLabel').textContent='🍅 '+focusPomos+' session'+(focusPomos!==1?'s':'')+' completed';
+          focusPhase='break';focusSeconds=BREAK_TIME*60;
+          document.getElementById('focusPhaseLabel').textContent='BREAK';
+          document.getElementById('focusSub').textContent='Take a '+BREAK_TIME+' minute break — you earned it!';
+          playAlarm();
+          sendBrowserNotif('🍅 Pomodoro done!','Time for a '+BREAK_TIME+'-minute break.');
+        } else {
+          focusPhase='work';focusSeconds=focusDuration*60;
+          document.getElementById('focusPhaseLabel').textContent='FOCUS';
+          playAlarm();
+        }
+        document.getElementById('focusPlayBtn').textContent='▶ Start';
+      }
+    },1000);
+  }
+}
+
+// ═══════════════════════════════════════════════
+// BROWSER PUSH NOTIFICATIONS
+// ═══════════════════════════════════════════════
+var _notifPermission='default';
+
+function requestNotifPermission(){
+  if(!('Notification' in window)){showToast('Notifications not supported in this browser','error');return;}
+  Notification.requestPermission().then(function(perm){
+    _notifPermission=perm;
+    if(perm==='granted'){showToast('Notifications enabled! You\'ll be reminded before events.','success');}
+    else{showToast('Notifications blocked — enable in browser settings','error');}
+  });
+}
+
+function sendBrowserNotif(title,body){
+  if(typeof Notification!=='undefined'&&Notification.permission==='granted'){
+    new Notification(title,{body:body,icon:'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">📅</text></svg>'});
+  }
+}
+
+// Check upcoming events and fire reminders (runs every minute)
+function checkUpcomingNotifs(){
+  if(typeof Notification==='undefined'||Notification.permission!=='granted')return;
+  var now=new Date();
+  var todayStr=now.toISOString().slice(0,10);
+  var nowMins=now.getHours()*60+now.getMinutes();
+  var events=getEventsForDate(todayStr);
+  events.forEach(function(e){
+    if(!e.time)return;
+    var parts=e.time.split(':');
+    var evMins=parseInt(parts[0])*60+parseInt(parts[1]);
+    var diff=evMins-nowMins;
+    if(diff===15){sendBrowserNotif('⏰ In 15 minutes: '+e.title,(e.location?'📍 '+e.location:''));}
+    if(diff===0){sendBrowserNotif('🔔 Starting now: '+e.title,(e.location?'📍 '+e.location:''));}
+  });
+}
+setInterval(checkUpcomingNotifs,60000);
+
+// ═══════════════════════════════════════════════
+// DAILY BRIEF LOCK-IN (cache per day)
+// ═══════════════════════════════════════════════
+// briefTabData already exists — patch loadBriefTab to use daily date key
+var _briefDate=new Date().toDateString();
+
+// Patch: clear briefTabData if it's a new day
+(function(){
+  var savedDate=localStorage.getItem('dd_brief_date');
+  var today=new Date().toDateString();
+  if(savedDate!==today){
+    localStorage.removeItem('dd_brief_cache');
+    localStorage.setItem('dd_brief_date',today);
+  } else {
+    try{var cached=JSON.parse(localStorage.getItem('dd_brief_cache')||'{}');if(Object.keys(cached).length)briefTabData=cached;}catch(e){}
+  }
+})();
+
+// Override loadBriefTab to also persist to localStorage
+var _origLoadBriefTab=loadBriefTab;
+async function loadBriefTab(tab,el){
+  document.querySelectorAll('#view-brief .space-tab').forEach(function(t){t.classList.remove('active');});
+  if(el)el.classList.add('active');
+  currentBriefTab=tab;
+  if(briefTabData[tab]){document.getElementById('briefContent').innerHTML=briefTabData[tab];return;}
+  document.getElementById('briefContent').innerHTML='<div class="loading"><div class="spinner"></div><div class="loading-text">Fetching '+BRIEF_CFG[tab].label+'...</div></div>';
+  try{
+    if(!hasGroq()){document.getElementById('briefContent').innerHTML=noKeyHtml();return;}
+    const news=await fetchNews(tab,6);
+    const today=new Date().toLocaleDateString('en-MY',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+    const prompt='Today is '+today+'.\n\nHere are today\'s headlines:\n'+news+'\n\n'+
+      (tab==='world'?'Write a deep analysis of the 3 most important world stories. For each: background context (2-3 sentences), what just happened, why it matters beyond the headline, what to watch next. Use <h3> for story titles. Do NOT just summarise headlines — give me the analysis I cannot get from a Google search.':'')+
+      (tab==='finance'?'Write a finance briefing for a Year 2 A&F student. Cover: (1) what moved in markets today and the real reason why, (2) one macroeconomic concept illustrated by today\'s news, (3) what this means for Malaysia and the ringgit. Go deep. Use <h3> for sections.':'')+
+      (tab==='geo'?'Write a geopolitics briefing. Cover 2-3 major developments. For each: the situation, historical context, the competing interests at play, what each side wants and why, what it means for Southeast Asia. Use <h3> for each topic.':'')+
+      (tab==='learn'?'Choose the most interesting concept from today\'s news or from A&F studies. Teach it properly: what it is (simple analogy first), how it actually works (mechanics), why it matters for a student in Malaysia, a real-world example, and one counterintuitive insight. Use <h3> for sections. Make it genuinely educational — the kind of thing someone would tell a friend about.':'');
+    const content=await askGroq(prompt,BRIEF_CFG[tab].sys);
+    var sources=[];
+    news.split('\n').forEach(function(line){var m=line.match(/\(([^,)]+),/);if(m&&!sources.includes(m[1].trim()))sources.push(m[1].trim());});
+    var sourceStr=sources.length?sources.slice(0,4).join(' · '):'RSS';
+    const html='<div class="card">'+
+      '<div class="card-label" style="margin-bottom:4px">'+BRIEF_CFG[tab].label+' · '+today+'</div>'+
+      '<div style="font-size:13px;line-height:1.85;color:var(--text2)">'+content+'</div>'+
+      '<div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border)">'+
+        '<div style="font-size:10px;color:var(--text3);font-family:var(--mono);margin-bottom:10px">📰 Sources: '+sourceStr+'</div>'+
+        '<div style="display:flex;gap:8px">'+
+          '<button class="btn btn-ghost btn-sm" onclick="saveArticleAsNote(\''+tab+'\')">Save to Notes</button>'+
+        '</div>'+
+      '</div>'+
+    '</div>';
+    briefTabData[tab]=html;
+    try{localStorage.setItem('dd_brief_cache',JSON.stringify(briefTabData));}catch(e){}
+    document.getElementById('briefContent').innerHTML=html;
+    const s=getS();
+    saveS({articlesRead:(s.articlesRead||0)+1});
+    updateSidebarStats();
+  }catch(e){
+    document.getElementById('briefContent').innerHTML='<div class="card"><p style="color:var(--red)">'+e.message+'</p></div>';
+  }
+}
+
+// ═══════════════════════════════════════════════
+// MOOD LOG
+// ═══════════════════════════════════════════════
+function logMood(emoji,label){
+  var today=new Date().toISOString().slice(0,10);
+  var s=getS();
+  var moodLog=s.moodLog||{};
+  moodLog[today]={emoji:emoji,label:label,time:new Date().toLocaleTimeString()};
+  saveS({moodLog:moodLog});
+  // Highlight active button
+  document.querySelectorAll('.mood-btn').forEach(function(b){b.classList.remove('active');if(b.textContent===emoji)b.classList.add('active');});
+  var saved=document.getElementById('moodSaved');
+  if(saved){saved.textContent='✓ '+label+' logged';saved.style.display='block';}
+  showToast('Mood logged: '+emoji+' '+label,'success');
+}
+
+function renderMoodForToday(){
+  var today=new Date().toISOString().slice(0,10);
+  var s=getS();
+  var mood=(s.moodLog||{})[today];
+  if(mood){
+    document.querySelectorAll('.mood-btn').forEach(function(b){b.classList.toggle('active',b.textContent===mood.emoji);});
+    var saved=document.getElementById('moodSaved');
+    if(saved){saved.textContent='✓ '+mood.label+' logged';saved.style.display='block';}
+  }
+}
+
+// ═══════════════════════════════════════════════
+// EXAM COUNTDOWN
+// ═══════════════════════════════════════════════
+function openExamModal(){
+  document.getElementById('exam-name').value='';
+  document.getElementById('exam-date').value='';
+  document.getElementById('exam-time').value='';
+  document.getElementById('exam-venue').value='';
+  populateSpaceSelect('exam-subject');
+  openModal('examModal');
+}
+
+function saveExam(){
+  var name=document.getElementById('exam-name').value.trim();
+  if(!name){showToast('Enter exam name','error');return;}
+  var date=document.getElementById('exam-date').value;
+  if(!date){showToast('Pick a date','error');return;}
+  var s=getS();
+  var exams=s.exams||[];
+  exams.push({
+    id:'ex'+Date.now(),
+    name:name,
+    date:date,
+    time:document.getElementById('exam-time').value,
+    venue:document.getElementById('exam-venue').value,
+    subjectId:document.getElementById('exam-subject').value
+  });
+  exams.sort(function(a,b){return a.date.localeCompare(b.date);});
+  saveS({exams:exams});
+  closeModal('examModal');
+  showToast('Exam added!','success');
+  renderExamCountdown();
+  if(currentView==='morning')renderMorning();
+}
+
+function deleteExam(id){
+  var s=getS();
+  saveS({exams:(s.exams||[]).filter(function(e){return e.id!==id;})});
+  renderExamCountdown();
+  if(currentView==='morning')renderMorning();
+}
+
+function renderExamCountdown(){
+  var el=document.getElementById('examCountdownList');
+  if(!el)return;
+  var s=getS();
+  var exams=s.exams||[];
+  var today=new Date().toISOString().slice(0,10);
+  var upcoming=exams.filter(function(e){return e.date>=today;}).slice(0,5);
+  if(upcoming.length===0){
+    el.innerHTML='<div style="font-size:12px;color:var(--text3);padding:8px 0">No upcoming exams. Add one above!</div>';
+    return;
+  }
+  el.innerHTML=upcoming.map(function(e){
+    var days=Math.ceil((new Date(e.date+'T00:00:00')-new Date(today+'T00:00:00'))/86400000);
+    var col=days<=3?'var(--red)':days<=7?'var(--gold)':days<=14?'var(--accent)':'var(--green)';
+    var proj=getProjectById(e.subjectId);
+    return '<div class="exam-card">'+
+      '<div style="text-align:center;min-width:52px">'+
+        '<div class="exam-days" style="color:'+col+'">'+days+'</div>'+
+        '<div class="exam-days-label">days</div>'+
+      '</div>'+
+      '<div class="exam-info">'+
+        '<div class="exam-name">'+esc(e.name)+'</div>'+
+        '<div class="exam-subject">'+(proj?esc(proj.icon)+' '+esc(proj.name)+' · ':'')+new Date(e.date+'T00:00:00').toLocaleDateString('en-MY',{weekday:'short',day:'numeric',month:'short'})+(e.time?' · '+e.time:'')+(e.venue?' · '+esc(e.venue):'')+'</div>'+
+      '</div>'+
+      '<button onclick="deleteExam(\''+e.id+'\')" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:12px;padding:4px">✕</button>'+
+    '</div>';
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════
+// SPACED REPETITION (SRS) FOR FLASHCARDS
+// ═══════════════════════════════════════════════
+var srsMode=false;
+
+function openSRSMode(){
+  var s=getS();
+  var allCards=s.srsCards||[];
+  var today=new Date().toISOString().slice(0,10);
+  var due=allCards.filter(function(c){return !c.nextReview||c.nextReview<=today;});
+  if(due.length===0){showToast('No cards due for review today! 🎉','success');return;}
+  flashcardDeck=due;
+  flashcardIdx=0;
+  srsMode=true;
+  document.getElementById('flashDeckName').textContent='🧠 SRS Review — '+due.length+' due';
+  showFlashcard();
+  // Add SRS rating bar
+  var controls=document.querySelector('.flashcard-controls');
+  if(controls){
+    controls.innerHTML='<div class="srs-rating-bar">'+
+      '<button class="srs-btn again" onclick="rateSRS(1)">Again<br><span style="font-size:9px;opacity:0.7">&lt;10m</span></button>'+
+      '<button class="srs-btn hard" onclick="rateSRS(2)">Hard<br><span style="font-size:9px;opacity:0.7">1d</span></button>'+
+      '<button class="srs-btn good" onclick="rateSRS(3)">Good<br><span style="font-size:9px;opacity:0.7">3d</span></button>'+
+      '<button class="srs-btn easy" onclick="rateSRS(4)">Easy<br><span style="font-size:9px;opacity:0.7">7d</span></button>'+
+    '</div>';
+  }
+  document.getElementById('flashcardOverlay').classList.add('show');
+}
+
+function rateSRS(rating){
+  var card=flashcardDeck[flashcardIdx];
+  if(!card||!card.id)return;
+  var s=getS();
+  var allCards=s.srsCards||[];
+  var today=new Date();
+  var intervals={1:0,2:1,3:3,4:7};
+  var nextDate=new Date(today);
+  nextDate.setDate(today.getDate()+(intervals[rating]||1));
+  var nextReview=nextDate.toISOString().slice(0,10);
+  var updated=allCards.map(function(c){
+    if(c.id!==card.id)return c;
+    return Object.assign({},c,{nextReview:nextReview,lastRating:rating,reviews:(c.reviews||0)+1});
+  });
+  saveS({srsCards:updated});
+  flashcardIdx++;
+  if(flashcardIdx>=flashcardDeck.length){
+    document.getElementById('flashcardOverlay').classList.remove('show');
+    showToast('Review complete! 🎉 Come back tomorrow for more.','success');
+    srsMode=false;
+    restoreFlashcardControls();
+    return;
+  }
+  showFlashcard();
+}
+
+function restoreFlashcardControls(){
+  var controls=document.querySelector('.flashcard-controls');
+  if(controls){
+    controls.innerHTML='<button class="btn btn-ghost btn-sm" onclick="prevCard()" style="color:#fff;border-color:rgba(255,255,255,0.3)">← Prev</button>'+
+      '<div class="flashcard-progress" id="flashProgress" style="color:rgba(255,255,255,0.6)">1 / 1</div>'+
+      '<button class="btn btn-ghost btn-sm" onclick="nextCard()" style="color:#fff;border-color:rgba(255,255,255,0.3)">Next →</button>'+
+      '<button class="btn btn-primary btn-sm" onclick="shuffleCards()">🔀 Shuffle</button>';
+  }
+}
+
+// When generating flashcards from note, also save to SRS deck
+var _origGenerateFlashcards=generateFlashcardsFromNote;
+async function generateFlashcardsFromNote(){
+  if(!detailId||detailType!=='note'){showToast('Open a note first','error');return;}
+  var s=getS();
+  var note=s.notes.find(function(n){return n.id===detailId;});
+  if(!note)return;
+  var content=stripHtml(note.content||'').trim();
+  if(content.length<50){showToast('Note is too short to generate flashcards','error');return;}
+  showToast('Generating flashcards…','info');
+  try{
+    var raw=await askGroq(
+      'Generate 8 flashcards from this note content. Return ONLY a JSON array with objects: {"q":"question","a":"answer"}. No preamble, no markdown code fences, just the raw JSON array.\n\nNote title: '+note.title+'\n\nContent:\n'+content.slice(0,2000),
+      'You are a study assistant. Create clear, exam-style flashcards. Be concise. Return ONLY valid JSON.'
+    );
+    var cleaned=raw.replace(/```json|```/g,'').trim();
+    var cards=JSON.parse(cleaned);
+    if(!Array.isArray(cards)||cards.length===0)throw new Error('Invalid response');
+    // Save to SRS deck
+    var today=new Date().toISOString().slice(0,10);
+    var srsCards=s.srsCards||[];
+    var newSRS=cards.map(function(c){return {id:'srs'+Date.now()+Math.random().toString(36).slice(2),noteId:note.id,q:c.q,a:c.a,nextReview:today,reviews:0};});
+    saveS({srsCards:[...srsCards,...newSRS]});
+    flashcardDeck=cards;
+    flashcardIdx=0;
+    srsMode=false;
+    restoreFlashcardControls();
+    document.getElementById('flashDeckName').textContent='🃏 '+note.title;
+    showFlashcard();
+    document.getElementById('flashcardOverlay').classList.add('show');
+    showToast(cards.length+' cards generated & saved to SRS deck!','success');
+  }catch(err){showToast('Could not generate flashcards: '+err.message,'error');}
+}
+
+// ═══════════════════════════════════════════════
+// GRADE PREDICTOR
+// ═══════════════════════════════════════════════
+function openGradePredictor(){
+  var s=getS();
+  var projects=getProjects();
+  var sel=document.getElementById('gradePredSubjectSel');
+  sel.innerHTML='<div class="field"><div class="input-label">Subject</div><select class="input" id="gradePredProj" onchange="renderGradePredictor()"><option value="">Pick a subject</option>'+
+    projects.map(function(p){return '<option value="'+p.id+'">'+esc(p.icon)+' '+esc(p.name)+'</option>';}).join('')+
+  '</select></div>';
+  document.getElementById('gradePredBody').innerHTML='<div style="font-size:12px;color:var(--text3)">Select a subject above to see your assignments.</div>';
+  openModal('gradePredModal');
+}
+
+function renderGradePredictor(){
+  var projId=document.getElementById('gradePredProj').value;
+  if(!projId)return;
+  var s=getS();
+  var all=(s.tasks||[]).concat(s.completedTasks||[]);
+  var assignments=all.filter(function(t){return (t.projectId===projId||t.space===projId)&&t.isAssignment&&t.weightage;});
+  if(assignments.length===0){
+    document.getElementById('gradePredBody').innerHTML='<div style="font-size:12px;color:var(--text3)">No assignments with weightings found for this subject. Add assignments via the Projects tab.</div>';
+    return;
+  }
+  var scoredWeight=0,scoredPoints=0;
+  assignments.forEach(function(a){
+    if(a.actualGrade&&GRADE_PTS[a.actualGrade]!==undefined){
+      scoredWeight+=parseFloat(a.weightage);
+      scoredPoints+=GRADE_PTS[a.actualGrade]*(parseFloat(a.weightage)/4);
+    }
+  });
+  var remaining=assignments.filter(function(a){return !a.actualGrade;});
+  var remainWeight=remaining.reduce(function(sum,a){return sum+parseFloat(a.weightage);},0);
+  var currentPct=scoredWeight>0?(scoredPoints/scoredWeight*4).toFixed(2):0;
+
+  var rows=assignments.map(function(a){
+    var graded=a.actualGrade?('<span style="color:var(--green);font-weight:700">'+esc(a.actualGrade)+'</span>'):'<em style="color:var(--text3)">pending</em>';
+    return '<tr><td style="padding:6px 8px;font-size:12px">'+esc(a.title)+'</td>'+
+      '<td style="padding:6px 8px;text-align:center;font-family:var(--mono);font-size:11px">'+a.weightage+'%</td>'+
+      '<td style="padding:6px 8px;text-align:center">'+graded+'</td></tr>';
+  }).join('');
+
+  // Predict needed grade
+  var targets=[4.0,3.7,3.3,3.0,2.7];
+  var targetLabels=['A (4.0)','A- (3.7)','B+ (3.3)','B (3.0)','B- (2.7)'];
+  var predRows=remainWeight>0?targets.map(function(t,i){
+    var needed=(t*100-scoredPoints*100/scoredWeight*scoredWeight/100*(scoredWeight>0?1:0))/remainWeight;
+    var needGPA=scoredWeight>0?((t*100-currentPct*scoredWeight)/remainWeight):t;
+    var label=needGPA<=0?'Already achieved':needGPA>4?'Not achievable':('≥ GPA '+needGPA.toFixed(2)+' avg');
+    var col=needGPA<=0?'var(--green)':needGPA>4?'var(--red)':needGPA<=3?'var(--gold)':'var(--text)';
+    return '<tr><td style="padding:5px 8px;font-size:12px">'+targetLabels[i]+'</td><td style="padding:5px 8px;font-family:var(--mono);font-size:11px;color:'+col+'">'+label+'</td></tr>';
+  }).join(''):'<tr><td colspan="2" style="padding:8px;color:var(--text3);font-size:12px">All assignments graded</td></tr>';
+
+  document.getElementById('gradePredBody').innerHTML=
+    '<table style="width:100%;border-collapse:collapse;margin-bottom:12px;font-size:12px">'+
+      '<thead><tr style="border-bottom:1px solid var(--border)"><th style="text-align:left;padding:5px 8px;font-size:9px;font-family:var(--mono);color:var(--text3);text-transform:uppercase">Assignment</th><th style="text-align:center;padding:5px 8px;font-size:9px;font-family:var(--mono);color:var(--text3);text-transform:uppercase">Weight</th><th style="text-align:center;padding:5px 8px;font-size:9px;font-family:var(--mono);color:var(--text3);text-transform:uppercase">Grade</th></tr></thead>'+
+      '<tbody>'+rows+'</tbody>'+
+    '</table>'+
+    (remainWeight>0?
+    '<div style="font-size:11px;color:var(--text3);margin-bottom:6px">'+Math.round(scoredWeight)+'% graded · '+Math.round(remainWeight)+'% remaining</div>'+
+    '<div class="card-title" style="font-size:13px;margin-bottom:8px">What you need on remaining '+Math.round(remainWeight)+'%</div>'+
+    '<table style="width:100%;border-collapse:collapse"><thead><tr><th style="text-align:left;padding:5px 8px;font-size:9px;font-family:var(--mono);color:var(--text3);text-transform:uppercase">Target Overall</th><th style="text-align:left;padding:5px 8px;font-size:9px;font-family:var(--mono);color:var(--text3);text-transform:uppercase">Needed Average</th></tr></thead><tbody>'+predRows+'</tbody></table>'
+    :'<div class="grade-pred-result">All assignments graded. Your current GPA for this subject is approximately <strong>'+currentPct+'</strong>.</div>');
+}
+
+// ═══════════════════════════════════════════════
+// ANALYTICS
+// ═══════════════════════════════════════════════
+function renderAnalytics(){
+  var s=getS();
+  var el=document.getElementById('analyticsContent');
+  if(!el)return;
+
+  var today=new Date();
+  var todayStr=today.toISOString().slice(0,10);
+
+  // Focus stats
+  var sessions=s.focusSessions||[];
+  var totalPomos=sessions.reduce(function(a,f){return a+(f.pomos||0);},0);
+  var totalMins=sessions.reduce(function(a,f){return a+(f.mins||0);},0);
+  var weekSessions=sessions.filter(function(f){
+    var d=new Date(f.date||'');
+    return (today-d)<7*86400000;
+  });
+  var weekPomos=weekSessions.reduce(function(a,f){return a+(f.pomos||0);},0);
+
+  // Notes stats
+  var notes=s.notes||[];
+  var notesThisWeek=notes.filter(function(n){return n.updated&&(today-new Date(n.updated))<7*86400000;}).length;
+
+  // Tasks stats
+  var done=s.completedTasks||[];
+  var doneThisWeek=done.filter(function(t){var d=new Date(t.doneDate||t.created||'');return (today-d)<7*86400000;}).length;
+  var totalDone=done.length;
+
+  // Habits stats
+  var habits=s.habits||[];
+  var habitsDoneToday=habits.filter(function(h){return (h.history||[]).includes(today.toDateString());}).length;
+  var bestStreak=habits.reduce(function(max,h){return Math.max(max,calcStreak(h.history||[]));},0);
+
+  // Mood log
+  var moodLog=s.moodLog||{};
+  var last7Moods=[];
+  for(var i=6;i>=0;i--){
+    var d=new Date(today);d.setDate(today.getDate()-i);
+    var key=d.toISOString().slice(0,10);
+    last7Moods.push({date:d.toLocaleDateString('en',{weekday:'short'}),mood:moodLog[key]?moodLog[key].emoji:'—'});
+  }
+
+  // Focus bar chart (last 7 days)
+  var focusDays=[];
+  for(var i=6;i>=0;i--){
+    var d=new Date(today);d.setDate(today.getDate()-i);
+    var label=d.toLocaleDateString('en',{weekday:'short'});
+    var dateLabel=d.toLocaleDateString();
+    var dayPomos=sessions.filter(function(f){return f.date===dateLabel;}).reduce(function(a,f){return a+(f.pomos||0);},0);
+    focusDays.push({label:label,val:dayPomos});
+  }
+  var maxPomos=Math.max(1,...focusDays.map(function(d){return d.val;}));
+
+  // SRS stats
+  var srsCards=s.srsCards||[];
+  var srsDue=srsCards.filter(function(c){return !c.nextReview||c.nextReview<=todayStr;}).length;
+
+  // GPA trend
+  var semesters=(s.gpa&&s.gpa.semesters)||[];
+  var semGPAs=semesters.map(function(sem){
+    var pts=0,creds=0;
+    (sem.modules||[]).forEach(function(m){pts+=(GRADE_PTS[m.grade]||0)*m.credits;creds+=m.credits;});
+    return {name:sem.name.slice(0,8),gpa:creds>0?(pts/creds).toFixed(2):0};
+  });
+
+  el.innerHTML=
+    // Top stats row
+    '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px">'+
+      '<div class="analytics-stat"><div class="analytics-num">'+weekPomos+'🍅</div><div class="analytics-label">Pomos this week</div></div>'+
+      '<div class="analytics-stat"><div class="analytics-num">'+doneThisWeek+'</div><div class="analytics-label">Tasks done this week</div></div>'+
+      '<div class="analytics-stat"><div class="analytics-num">'+notesThisWeek+'</div><div class="analytics-label">Notes written this week</div></div>'+
+      '<div class="analytics-stat"><div class="analytics-num" style="color:var(--red)">'+srsDue+'</div><div class="analytics-label">SRS cards due</div></div>'+
+    '</div>'+
+
+    // Focus chart
+    '<div class="card" style="margin-bottom:14px">'+
+      '<div class="card-header"><div class="card-title">🍅 Focus Sessions — Last 7 Days</div><span style="font-size:10px;color:var(--text3);font-family:var(--mono)">'+totalPomos+' total · '+Math.round(totalMins/60*10)/10+'h total</span></div>'+
+      '<div class="bar-chart-wrap">'+
+        focusDays.map(function(d){
+          var h=maxPomos>0?Math.round((d.val/maxPomos)*70):0;
+          return '<div class="bar-chart-col">'+
+            '<div class="bar-chart-val">'+(d.val>0?d.val:'')+'</div>'+
+            '<div class="bar-chart-bar" style="height:'+(h||2)+'px;background:'+(d.val>0?'var(--accent)':'var(--border)')+'"></div>'+
+            '<div class="bar-chart-lbl">'+d.label+'</div>'+
+          '</div>';
+        }).join('')+
+      '</div>'+
+    '</div>'+
+
+    // Mood + Habits row
+    '<div class="grid-2" style="gap:14px;margin-bottom:14px">'+
+      '<div class="card">'+
+        '<div class="card-title" style="margin-bottom:10px">😊 Mood — Last 7 Days</div>'+
+        '<div style="display:flex;gap:6px;flex-wrap:wrap">'+
+          last7Moods.map(function(m){return '<div style="text-align:center;flex:1"><div style="font-size:10px;color:var(--text3);font-family:var(--mono)">'+m.date+'</div><div style="font-size:18px">'+m.mood+'</div></div>';}).join('')+
+        '</div>'+
+        '<button class="btn btn-ghost btn-sm" style="margin-top:10px;width:100%" onclick="openColourPanel()">View all moods via 🎨 panel</button>'+
+      '</div>'+
+      '<div class="card">'+
+        '<div class="card-title" style="margin-bottom:10px">💪 Habits</div>'+
+        '<div style="display:flex;gap:10px;margin-bottom:8px">'+
+          '<div style="flex:1;text-align:center"><div style="font-family:var(--serif);font-size:22px;font-weight:700;color:var(--green)">'+habitsDoneToday+'/'+habits.length+'</div><div style="font-size:9px;color:var(--text3);font-family:var(--mono);text-transform:uppercase">Done Today</div></div>'+
+          '<div style="flex:1;text-align:center"><div style="font-family:var(--serif);font-size:22px;font-weight:700;color:var(--gold)">'+bestStreak+'</div><div style="font-size:9px;color:var(--text3);font-family:var(--mono);text-transform:uppercase">Best Streak</div></div>'+
+          '<div style="flex:1;text-align:center"><div style="font-family:var(--serif);font-size:22px;font-weight:700;color:var(--accent)">'+totalDone+'</div><div style="font-size:9px;color:var(--text3);font-family:var(--mono);text-transform:uppercase">Tasks Done Ever</div></div>'+
+        '</div>'+
+      '</div>'+
+    '</div>'+
+
+    // GPA trend
+    (semGPAs.length>0?'<div class="card" style="margin-bottom:14px">'+
+      '<div class="card-title" style="margin-bottom:12px">🎓 GPA Trend by Semester</div>'+
+      '<div class="gpa-chart-wrap">'+
+        semGPAs.map(function(sg){
+          var w=Math.round((parseFloat(sg.gpa)/4)*100);
+          var col=parseFloat(sg.gpa)>=3.7?'var(--green)':parseFloat(sg.gpa)>=3.0?'var(--gold)':'var(--accent)';
+          return '<div class="gpa-sem-bar">'+
+            '<div class="gpa-sem-label">'+sg.name+'</div>'+
+            '<div style="flex:1;background:var(--border);border-radius:4px;height:20px;overflow:hidden">'+
+              '<div class="gpa-sem-fill" style="width:'+w+'%;background:'+col+'">'+sg.gpa+'</div>'+
+            '</div>'+
+          '</div>';
+        }).join('')+
+      '</div>'+
+      '<button class="btn btn-ghost btn-sm" style="margin-top:8px" onclick="nav(\'gpa\')">Open GPA →</button>'+
+    '</div>':'<div class="card" style="margin-bottom:14px"><div class="card-title" style="margin-bottom:8px">🎓 GPA Trend</div><div style="font-size:12px;color:var(--text3)">Add semesters in the GPA tab to see your trend here.</div><button class="btn btn-ghost btn-sm" style="margin-top:8px" onclick="nav(\'gpa\')">Open GPA →</button></div>')+
+
+    // SRS + Grade predictor
+    '<div class="grid-2" style="gap:14px">'+
+      '<div class="card">'+
+        '<div class="card-title" style="margin-bottom:8px">🧠 SRS Review Deck</div>'+
+        '<div style="font-size:13px;color:var(--text2);margin-bottom:10px"><span class="srs-due-badge">'+srsDue+' due</span> card'+(srsDue!==1?'s':'')+' ready for review</div>'+
+        '<div style="font-size:11px;color:var(--text3);margin-bottom:10px">'+srsCards.length+' total cards · Generate from notes to build your deck</div>'+
+        '<button class="btn btn-primary btn-sm" onclick="openSRSMode()">Start Review 🧠</button>'+
+      '</div>'+
+      '<div class="card">'+
+        '<div class="card-title" style="margin-bottom:8px">🎯 Grade Predictor</div>'+
+        '<div style="font-size:11px;color:var(--text3);margin-bottom:10px">See what grades you need on remaining assessments to hit your target</div>'+
+        '<button class="btn btn-primary btn-sm" onclick="openGradePredictor()">Open Predictor</button>'+
+      '</div>'+
+    '</div>'+
+
+    // Notification toggle
+    '<div class="card" style="margin-top:14px">'+
+      '<div class="card-header"><div class="card-title">🔔 Event Reminders</div></div>'+
+      '<div style="font-size:12px;color:var(--text2);margin-bottom:10px">Get browser notifications 15 minutes before events and timetable classes.</div>'+
+      '<button class="btn btn-primary btn-sm" onclick="requestNotifPermission()">Enable Notifications</button>'+
+      '<span style="font-size:10px;color:var(--text3);font-family:var(--mono);margin-left:10px" id="notifStatus"></span>'+
+    '</div>';
+
+  // Update notif status
+  if(typeof Notification!=='undefined'){
+    var statusEl=el.querySelector('#notifStatus');
+    if(statusEl)statusEl.textContent=Notification.permission==='granted'?'✓ Enabled':Notification.permission==='denied'?'✗ Blocked':'Not yet enabled';
+  }
+}
+
+// ═══════════════════════════════════════════════
+// NOTE TAGS
+// ═══════════════════════════════════════════════
+function renderNoteTagsBar(tags){
+  var el=document.getElementById('noteTagsList');
+  if(!el)return;
+  el.innerHTML=(tags||[]).map(function(t){
+    return '<span class="note-tag">#'+esc(t)+'<span class="tag-remove" onclick="removeNoteTag(\''+esc(t)+'\')">✕</span></span>';
+  }).join('');
+  // suggestions from all notes
+  var s=getS();
+  var allTags={};
+  s.notes.forEach(function(n){(n.tags||[]).forEach(function(t){if(!(tags||[]).includes(t))allTags[t]=(allTags[t]||0)+1;});});
+  var sugEl=document.getElementById('tagSuggestions');
+  if(sugEl){
+    sugEl.innerHTML=Object.keys(allTags).slice(0,8).map(function(t){
+      return '<span class="tag-suggestion" onclick="addNoteTag(\''+esc(t)+'\')">#'+esc(t)+'</span>';
+    }).join('');
+  }
+}
+
+function handleTagInput(e){
+  if(e.key==='Enter'||e.key===','){e.preventDefault();addTagFromInput();}
+}
+
+function addTagFromInput(){
+  var input=document.getElementById('noteTagInput');
+  if(!input)return;
+  var tag=input.value.trim().toLowerCase().replace(/[^a-z0-9-]/g,'');
+  if(!tag)return;
+  addNoteTag(tag);
+  input.value='';
+}
+
+function addNoteTag(tag){
+  if(!detailId||detailType!=='note')return;
+  var s=getS();
+  var notes=s.notes.map(function(n){
+    if(n.id!==detailId)return n;
+    var tags=(n.tags||[]);
+    if(tags.includes(tag))return n;
+    return Object.assign({},n,{tags:[...tags,tag],updated:new Date().toISOString()});
+  });
+  saveS({notes:notes});
+  var note=notes.find(function(n){return n.id===detailId;});
+  renderNoteTagsBar(note?note.tags:[]);
+}
+
+function removeNoteTag(tag){
+  if(!detailId||detailType!=='note')return;
+  var s=getS();
+  var notes=s.notes.map(function(n){
+    if(n.id!==detailId)return n;
+    return Object.assign({},n,{tags:(n.tags||[]).filter(function(t){return t!==tag;}),updated:new Date().toISOString()});
+  });
+  saveS({notes:notes});
+  var note=notes.find(function(n){return n.id===detailId;});
+  renderNoteTagsBar(note?note.tags:[]);
+}
+
+// ═══════════════════════════════════════════════
+// NOTE PIN
+// ═══════════════════════════════════════════════
+function toggleNotePin(id){
+  var s=getS();
+  var notes=s.notes.map(function(n){
+    if(n.id!==id)return n;
+    return Object.assign({},n,{pinned:!n.pinned});
+  });
+  saveS({notes:notes});
+  var note=notes.find(function(n){return n.id===id;});
+  showToast(note&&note.pinned?'Note pinned 📌':'Note unpinned','success');
+  openNoteDetail(id);
+}
+
+// ═══════════════════════════════════════════════
+// WORD COUNT
+// ═══════════════════════════════════════════════
+function updateWordCount(){
+  var ed=document.getElementById('richEditor');
+  if(!ed)return;
+  var text=ed.innerText||ed.textContent||'';
+  var words=text.trim()===''?0:text.trim().split(/\s+/).length;
+  var chars=text.replace(/\s/g,'').length;
+  var readTime=Math.max(1,Math.ceil(words/200));
+  var wc=document.getElementById('wcWords');
+  var cc=document.getElementById('wcChars');
+  var rt=document.getElementById('wcReadTime');
+  if(wc)wc.textContent=words+' word'+(words!==1?'s':'');
+  if(cc)cc.textContent=chars+' char'+(chars!==1?'s':'');
+  if(rt)rt.textContent='~'+readTime+' min read';
+  // Also update lecture mode if open
+  var lwc=document.getElementById('lectureModeWC');
+  if(lwc)lwc.textContent=words+' words';
+}
+
+// Patch handleEditorInput to also update word count
+var _origHandleEditorInput=handleEditorInput;
+function handleEditorInput(){
+  _origHandleEditorInput();
+  updateWordCount();
+}
+
+// ═══════════════════════════════════════════════
+// IMAGE PASTE INTO EDITOR
+// ═══════════════════════════════════════════════
+var _imagePasteAttached=false;
+function enableImagePaste(){
+  if(_imagePasteAttached)return;
+  _imagePasteAttached=true;
+  var ed=document.getElementById('richEditor');
+  if(!ed)return;
+  ed.addEventListener('paste',function(e){
+    var items=e.clipboardData&&e.clipboardData.items;
+    if(!items)return;
+    for(var i=0;i<items.length;i++){
+      if(items[i].type.startsWith('image/')){
+        e.preventDefault();
+        var file=items[i].getAsFile();
+        var reader=new FileReader();
+        reader.onload=function(ev){
+          document.execCommand('insertHTML',false,'<img src="'+ev.target.result+'" style="max-width:100%;border-radius:6px;margin:8px 0"/>');
+          triggerAutosave();
+        };
+        reader.readAsDataURL(file);
+        return;
+      }
+    }
+  });
+}
+
+// ═══════════════════════════════════════════════
+// LECTURE MODE
+// ═══════════════════════════════════════════════
+var _lectureModeActive=false;
+
+function enterLectureMode(){
+  if(!detailId||detailType!=='note'){showToast('Open a note first','error');return;}
+  var s=getS();
+  var note=s.notes.find(function(n){return n.id===detailId;});
+  if(!note)return;
+  // Copy content to lecture editor
+  var le=document.getElementById('lectureEditor');
+  le.innerHTML=document.getElementById('richEditor').innerHTML;
+  document.getElementById('lectureModeName').textContent=note.title;
+  _lectureModeActive=true;
+  document.getElementById('lectureModeOverlay').classList.add('active');
+  le.focus();
+  updateWordCount();
+}
+
+function exitLectureMode(){
+  if(!_lectureModeActive)return;
+  // Copy content back to main editor
+  var le=document.getElementById('lectureEditor');
+  var me=document.getElementById('richEditor');
+  me.innerHTML=le.innerHTML;
+  _lectureModeActive=false;
+  document.getElementById('lectureModeOverlay').classList.remove('active');
+  saveDetailContent();
+  updateWordCount();
+  showToast('Returned to normal view. Note saved.','success');
+}
+
+function lectureFmt(cmd){
+  document.getElementById('lectureEditor').focus();
+  document.execCommand(cmd,false,null);
+  syncLectureModeToMain();
+}
+
+function lectureFmtBlock(tag){
+  document.getElementById('lectureEditor').focus();
+  document.execCommand('formatBlock',false,tag);
+  syncLectureModeToMain();
+}
+
+function applyHighlightLecture(cls){
+  document.getElementById('lectureEditor').focus();
+  var sel=window.getSelection();
+  if(!sel.rangeCount||sel.isCollapsed)return;
+  var mark=document.createElement('mark');
+  if(cls)mark.className=cls;
+  try{sel.getRangeAt(0).surroundContents(mark);}catch(e){document.execCommand('insertHTML',false,'<mark'+(cls?' class="'+cls+'"':'')+'>'+ sel.toString()+'</mark>');}
+  syncLectureModeToMain();
+}
+
+var _lectureSaveTimer=null;
+function handleLectureModeInput(){
+  syncLectureModeToMain();
+  updateWordCount();
+  clearTimeout(_lectureSaveTimer);
+  _lectureSaveTimer=setTimeout(function(){
+    saveDetailContent();
+    var ind=document.getElementById('lectureSaveIndicator');
+    if(ind){ind.textContent='✓ Saved';ind.className='autosave-indicator show saved';setTimeout(function(){ind.className='autosave-indicator';},2000);}
+  },1500);
+}
+
+function syncLectureModeToMain(){
+  var le=document.getElementById('lectureEditor');
+  var me=document.getElementById('richEditor');
+  if(le&&me)me.innerHTML=le.innerHTML;
+}
+
+// ═══════════════════════════════════════════════
+// DAILY NOTE
+// ═══════════════════════════════════════════════
+function getDailyNoteId(){
+  var today=new Date().toISOString().slice(0,10);
+  var s=getS();
+  var existing=s.notes.find(function(n){return n.isDailyNote&&n.dailyDate===today;});
+  return existing?existing.id:null;
+}
+
+function openDailyNote(){
+  var today=new Date().toISOString().slice(0,10);
+  var s=getS();
+  var existing=s.notes.find(function(n){return n.isDailyNote&&n.dailyDate===today;});
+  if(existing){
+    // Navigate to notes view and open
+    nav('notes');
+    setTimeout(function(){openNoteDetail(existing.id);},100);
+    return;
+  }
+  // Create new daily note
+  var dateLabel=new Date().toLocaleDateString('en-MY',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  var note={
+    id:'dn'+Date.now(),
+    title:'📅 '+dateLabel,
+    subject:'general',
+    tags:['daily'],
+    isDailyNote:true,
+    dailyDate:today,
+    pinned:false,
+    content:'<h2>📅 '+dateLabel+'</h2>'+
+      '<h3>🎯 Intention</h3><p></p>'+
+      '<h3>📋 Today\'s Plan</h3><ul><li></li></ul>'+
+      '<h3>📝 Notes & Thoughts</h3><p></p>'+
+      '<h3>✅ What I accomplished</h3><ul><li></li></ul>',
+    created:new Date().toISOString(),
+    updated:new Date().toISOString()
+  };
+  saveS({notes:[note,...s.notes]});
+  nav('notes');
+  setTimeout(function(){openNoteDetail(note.id);},100);
+}
+
+function renderDailyNoteButton(){
+  var today=new Date().toISOString().slice(0,10);
+  var s=getS();
+  var existing=s.notes.find(function(n){return n.isDailyNote&&n.dailyDate===today;});
+  var titleEl=document.getElementById('dailyNoteTitle');
+  var subEl=document.getElementById('dailyNoteSub');
+  if(!titleEl)return;
+  if(existing){
+    titleEl.textContent='Continue today\'s note';
+    var wordCount=existing.content?stripHtml(existing.content).trim().split(/\s+/).filter(Boolean).length:0;
+    if(subEl)subEl.textContent=wordCount+' words written today';
+  } else {
+    titleEl.textContent='Create today\'s note';
+    if(subEl)subEl.textContent='Start your daily log for '+new Date().toLocaleDateString('en-MY',{weekday:'long'});
+  }
+}
+
+// ═══════════════════════════════════════════════
+// TABLE CALCULATIONS IN EDITOR
+// ═══════════════════════════════════════════════
+function evalTableCalc(ed){
+  // Find all td/th with = prefix and evaluate
+  if(!ed)return;
+  ed.querySelectorAll('td,th').forEach(function(cell){
+    var text=(cell.innerText||cell.textContent||'').trim();
+    if(!text.startsWith('='))return;
+    var formula=text.slice(1).trim().toUpperCase();
+    var table=cell.closest('table');
+    if(!table)return;
+    // Get all numeric values in the same row or column
+    var row=cell.closest('tr');
+    var cells=row?Array.from(row.querySelectorAll('td,th')).filter(function(c){return c!==cell;}):[];
+    var vals=cells.map(function(c){return parseFloat(c.innerText||c.textContent||'');}).filter(function(v){return !isNaN(v);});
+    var result=null;
+    if(formula.startsWith('SUM('))result=vals.reduce(function(a,b){return a+b;},0);
+    else if(formula.startsWith('AVG(')||formula.startsWith('AVERAGE('))result=vals.length?vals.reduce(function(a,b){return a+b;},0)/vals.length:0;
+    else if(formula.startsWith('COUNT('))result=vals.length;
+    else if(formula.startsWith('MAX('))result=vals.length?Math.max.apply(null,vals):0;
+    else if(formula.startsWith('MIN('))result=vals.length?Math.min.apply(null,vals):0;
+    if(result!==null){
+      cell.style.color='var(--blue)';
+      cell.style.fontFamily='var(--mono)';
+      cell.setAttribute('data-formula',text);
+      cell.innerText=Number.isInteger(result)?result:result.toFixed(2);
+    }
+  });
+}
+
+// Run table calc whenever editor content changes
+var _origTriggerAutosave=triggerAutosave;
+function triggerAutosave(){
+  var ed=document.getElementById('richEditor');
+  if(ed)evalTableCalc(ed);
+  _origTriggerAutosave();
+}
+
+// ═══════════════════════════════════════════════
+// READING LIST
+// ═══════════════════════════════════════════════
+function openAddReading(){
+  document.getElementById('reading-url').value='';
+  document.getElementById('reading-title').value='';
+  document.getElementById('reading-tags').value='';
+  document.getElementById('reading-priority').value='medium';
+  openModal('readingModal');
+}
+
+function prefetchReadingTitle(){
+  // Try to extract domain as fallback title
+  var url=document.getElementById('reading-url').value.trim();
+  if(!url)return;
+  var titleEl=document.getElementById('reading-title');
+  if(titleEl.value)return; // Don't overwrite if user has typed
+  try{
+    var domain=new URL(url.startsWith('http')?url:'https://'+url).hostname.replace('www.','');
+    titleEl.placeholder='Article from '+domain+'...';
+  }catch(e){}
+}
+
+function saveReadingItem(){
+  var url=document.getElementById('reading-url').value.trim();
+  if(!url){showToast('Enter a URL','error');return;}
+  if(!url.startsWith('http'))url='https://'+url;
+  var title=document.getElementById('reading-title').value.trim();
+  if(!title){
+    try{title=new URL(url).hostname.replace('www.','');}catch(e){title=url;}
+  }
+  var tags=document.getElementById('reading-tags').value.split(',').map(function(t){return t.trim().toLowerCase();}).filter(Boolean);
+  var priority=document.getElementById('reading-priority').value;
+  var s=getS();
+  var item={
+    id:'rl'+Date.now(),
+    url:url,
+    title:title,
+    tags:tags,
+    priority:priority,
+    added:new Date().toISOString(),
+    read:false
+  };
+  saveS({readingList:[item,...(s.readingList||[])]});
+  closeModal('readingModal');
+  showToast('Added to reading list!','success');
+  if(currentView==='reading')renderReadingList();
+}
+
+function markReadingDone(id){
+  var s=getS();
+  var list=(s.readingList||[]).map(function(r){return r.id===id?Object.assign({},r,{read:!r.read,readDate:new Date().toISOString()}):r;});
+  saveS({readingList:list});
+  renderReadingList();
+}
+
+function deleteReadingItem(id){
+  var s=getS();
+  saveS({readingList:(s.readingList||[]).filter(function(r){return r.id!==id;})});
+  renderReadingList();
+}
+
+function saveReadingAsNote(id){
+  if(!id){
+    // Legacy call from old reading mode - use readingTitle/readingContent if available
+    var s0=getS();
+    var note0={id:'n'+Date.now(),title:typeof readingTitle!=='undefined'?readingTitle:'Reading Note',subject:'general',tags:['reading'],content:typeof readingContent!=='undefined'?readingContent:'',created:new Date().toISOString(),updated:new Date().toISOString()};
+    saveS({notes:[note0,...s0.notes]});
+    showToast('Saved as note!','success');
+    return;
+  }
+  var s=getS();
+  var item=(s.readingList||[]).find(function(r){return r.id===id;});
+  if(!item)return;
+  var note={
+    id:'n'+Date.now(),
+    title:'📖 '+item.title,
+    subject:'general',
+    tags:['reading',...(item.tags||[])],
+    content:'<h2>📖 '+esc(item.title)+'</h2><p><a href="'+esc(item.url)+'" target="_blank">'+esc(item.url)+'</a></p><h3>Notes</h3><p></p><h3>Key Takeaways</h3><ul><li></li></ul>',
+    created:new Date().toISOString(),
+    updated:new Date().toISOString()
+  };
+  saveS({notes:[note,...s.notes]});
+  showToast('Saved as note!','success');
+  nav('notes');
+  setTimeout(function(){openNoteDetail(note.id);},100);
+}
+
+function renderReadingList(){
+  var el=document.getElementById('readingContent');
+  if(!el)return;
+  var s=getS();
+  var list=s.readingList||[];
+  var unread=list.filter(function(r){return !r.read;});
+  var read=list.filter(function(r){return r.read;});
+
+  var prioColour={high:'var(--red)',medium:'var(--accent)',low:'var(--text3)'};
+  var prioLabel={high:'Must read',medium:'Want to read',low:'Someday'};
+
+  function renderItem(r){
+    var domain='';
+    try{domain=new URL(r.url).hostname.replace('www.','');}catch(e){domain=r.url;}
+    var favicon='https://www.google.com/s2/favicons?domain='+domain+'&sz=32';
+    return '<div class="reading-item'+(r.read?' read':'')+'">'+
+      '<div class="reading-favicon"><img src="'+favicon+'" onerror="this.style.display=\'none\'" alt=""/><span style="'+(r.read?'':'display:none')+'">✓</span></div>'+
+      '<div class="reading-info">'+
+        '<div class="reading-title" style="'+(r.read?'text-decoration:line-through;opacity:0.5':'')+'">'+
+          '<a href="'+esc(r.url)+'" target="_blank" rel="noopener" style="color:inherit;text-decoration:none">'+esc(r.title)+'</a>'+
+        '</div>'+
+        '<div class="reading-url">'+esc(domain)+'</div>'+
+        '<div class="reading-meta">'+
+          '<span style="color:'+prioColour[r.priority||'medium']+'">'+prioLabel[r.priority||'medium']+'</span>'+
+          ' · Added '+new Date(r.added).toLocaleDateString()+
+          (r.tags&&r.tags.length?' · '+r.tags.map(function(t){return '<span class="reading-tag-pill">#'+esc(t)+'</span>';}).join(''):'')
+        +'</div>'+
+      '</div>'+
+      '<div class="reading-actions">'+
+        '<button class="btn btn-ghost btn-xs" onclick="markReadingDone(\''+r.id+'\')" title="'+(r.read?'Mark unread':'Mark as read')+'">'+(r.read?'↩':'✓')+'</button>'+
+        '<button class="btn btn-ghost btn-xs" onclick="saveReadingAsNote(\''+r.id+'\')" title="Save as note">📝</button>'+
+        '<button class="btn btn-ghost btn-xs" onclick="deleteReadingItem(\''+r.id+'\')" title="Remove">✕</button>'+
+      '</div>'+
+    '</div>';
+  }
+
+  el.innerHTML=
+    '<div class="grid-3" style="margin-bottom:14px">'+
+      '<div class="analytics-stat"><div class="analytics-num">'+list.length+'</div><div class="analytics-label">Total saved</div></div>'+
+      '<div class="analytics-stat"><div class="analytics-num" style="color:var(--accent)">'+unread.length+'</div><div class="analytics-label">Unread</div></div>'+
+      '<div class="analytics-stat"><div class="analytics-num" style="color:var(--green)">'+read.length+'</div><div class="analytics-label">Read</div></div>'+
+    '</div>'+
+
+    (unread.length>0?'<div class="card" style="margin-bottom:14px">'+
+      '<div class="card-header"><div class="card-title">📚 To Read</div></div>'+
+      unread.map(renderItem).join('')+
+    '</div>':
+    '<div class="card" style="margin-bottom:14px;text-align:center;padding:24px"><div style="font-size:22px;margin-bottom:8px">📭</div><div style="font-size:13px;color:var(--text3)">No unread items. Add a link above!</div></div>')+
+
+    (read.length>0?'<div class="card">'+
+      '<div class="card-header"><div class="card-title">✅ Read</div></div>'+
+      read.map(renderItem).join('')+
+    '</div>':'');
+}
+
+// ═══════════════════════════════════════════════
+// PATCH renderMorning to include daily note button render
+// ═══════════════════════════════════════════════
+var _origRenderMorning2=renderMorning;
+function renderMorning(){
+  _origRenderMorning2();
+  renderDailyNoteButton();
+  renderExamCountdown();
+  renderMoodForToday();
 }
 
 // Boot — always launch the app. Show setup screen as first-time welcome if no Groq key yet.
