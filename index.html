@@ -279,6 +279,7 @@ select.input{cursor:pointer;appearance:none;}
 /* Task action buttons — appear on hover */
 .task-actions{display:flex;gap:2px;opacity:0;transition:opacity 0.15s;flex-shrink:0;align-items:center;margin-left:auto;}
 .task-item:hover .task-actions{opacity:1;}
+@media(max-width:768px){.task-actions{opacity:1!important;}}
 .task-action-btn{background:none;border:none;cursor:pointer;font-size:13px;padding:4px 6px;border-radius:5px;color:var(--text3);transition:all 0.15s;line-height:1;}
 .task-action-btn:hover{background:var(--bg);color:var(--text);}
 /* Undo toast */
@@ -939,6 +940,12 @@ select.input{cursor:pointer;appearance:none;}
       <div class="field"><div class="input-label">Your Name</div><input class="input" id="cfg-name" placeholder="Durgha"/></div>
       <div class="field"><div class="input-label">Subtitle (shown under name)</div><input class="input" id="cfg-sub" placeholder="Year 2 · Sunway A&F"/></div>
       <div class="field"><div class="input-label">Groq API Key</div><input class="input" type="password" id="cfg-groq" placeholder="gsk_..."/><div style="font-size:10px;color:var(--text3);margin-top:3px">Used for AI features · free at console.groq.com</div></div>
+      <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
+        <div style="font-size:11px;font-weight:600;color:var(--text);margin-bottom:6px">Data Migration</div>
+        <div style="font-size:11px;color:var(--text3);margin-bottom:10px">If you used this app before signing up, your old data may be in a different Supabase row. Click below to merge it into your current account.</div>
+        <button class="btn btn-ghost btn-sm" onclick="migrateOldSupabaseData()">↩ Import old data into this account</button>
+        <div id="migrationStatus" style="font-size:10px;color:var(--text3);margin-top:6px"></div>
+      </div>
     </div>
     <div id="settings-appearance" class="settings-pane" style="display:none">
       <div class="field">
@@ -1785,7 +1792,7 @@ select.input{cursor:pointer;appearance:none;}
       </div>
       <div class="content">
         <div style="display:flex;gap:8px;margin-bottom:10px">
-          <input class="input" id="notesSearch" placeholder="Search notes..." oninput="renderNotes()" style="flex:1"/>
+          <input class="input" id="notesSearch" placeholder="Search notes..." oninput="debounceNotesSearch()" style="flex:1"/>
           <select class="input" id="notesFilter" onchange="renderNotes()" style="max-width:160px">
             <option value="all">All projects</option>
           </select>
@@ -1858,21 +1865,9 @@ select.input{cursor:pointer;appearance:none;}
           <button class="space-tab active" onclick="loadBriefTab('world',this)">🌍 World</button>
           <button class="space-tab" onclick="loadBriefTab('finance',this)">📊 Finance</button>
           <button class="space-tab" onclick="loadBriefTab('geo',this)">🌐 Geopolitics</button>
-          <button class="space-tab" onclick="loadBriefTab('learn',this)">🧠 Learn</button>
         </div>
         <div id="briefContent"></div>
       </div>
-    </div>
-
-    <!-- CONCEPT -->
-    <div class="view" id="view-concept">
-      <div class="topbar">
-        <div class="topbar-left">
-          <div class="topbar-title">Concept of the Day</div>
-          <div class="topbar-sub">One concept. Taught properly.</div>
-        </div>
-      </div>
-      <div class="content" id="conceptContent"></div>
     </div>
 
     <!-- RESEARCH -->
@@ -2313,6 +2308,12 @@ function pushToSupabase(data){
   if(!_userId) return;
   clearTimeout(_syncTimer);
   _syncTimer = setTimeout(async function(){
+    // Refresh token if it expires within 5 minutes
+    if(_authSession){
+      var expiry=(_authSession.expires_at||0)*1000;
+      if(!expiry&&_authSession.expires_in){expiry=Date.now()+(_authSession.expires_in*1000);}
+      if(expiry&&Date.now()>expiry-5*60*1000){await refreshAuthToken();}
+    }
     _syncStatus = 'syncing';
     updateSyncIndicator();
     try{
@@ -2322,6 +2323,18 @@ function pushToSupabase(data){
         body:JSON.stringify({id:_userId, data:data, updated_at:new Date().toISOString()})
       });
       _syncStatus = r.ok ? 'idle' : 'error';
+      if(r.status===401){
+        // Token expired — try refresh and retry once
+        await refreshAuthToken();
+        if(_authSession){
+          var r2=await fetch(SUPA_URL+'/rest/v1/app_data',{
+            method:'POST',
+            headers:Object.assign({},supaHeaders(true),{'Prefer':'resolution=merge-duplicates,return=minimal'}),
+            body:JSON.stringify({id:_userId,data:data,updated_at:new Date().toISOString()})
+          });
+          _syncStatus=r2.ok?'idle':'error';
+        }
+      }
     }catch(e){_syncStatus='error';}
     updateSyncIndicator();
   }, 1500);
@@ -2566,7 +2579,7 @@ function nav(view){
     morning:renderMorning,calendar:renderCalendar,tasks:renderTasks,
     habits:renderHabits,vault:renderVault,notes:renderNotes,
     focus:renderFocus,gpa:renderGPA,brief:()=>loadBriefTab('world',document.querySelector('#view-brief .space-tab')),
-    concept:renderConcept,expenses:renderExpenses,captures:renderCaptures,
+    expenses:renderExpenses,captures:renderCaptures,
     research:renderResearch,analytics:renderAnalytics,reading:renderReadingList
   };
   renders['planning'] = renderPlanning;
@@ -4842,8 +4855,7 @@ var currentBriefTab='world';
 var BRIEF_CFG={
   world:{label:'World News',q:'world news',sys:'You are a sharp analyst writing for a smart Malaysian student. Give deep context, not just headlines. Explain WHY things matter and the underlying forces at play.'},
   finance:{label:'Finance',q:'financial markets economy stocks',sys:'You are a finance educator writing for a Year 2 Accounting & Finance student at Sunway University Malaysia. Connect market events to concepts they study. Make it relevant to their degree.'},
-  geo:{label:'Geopolitics',q:'geopolitics diplomacy international relations',sys:'You are a geopolitics analyst. Go beyond what happened — explain the power dynamics, historical context, and what it means for the region. Be analytical, not just descriptive.'},
-  learn:{label:'Learn',q:'economics business technology innovation',sys:'You are a world-class educator. Pick one genuinely fascinating concept relevant to A&F students. Teach it thoroughly with real examples. Make it memorable.'}
+  geo:{label:'Geopolitics',q:'geopolitics diplomacy international relations',sys:'You are a geopolitics analyst. Go beyond what happened — explain the power dynamics, historical context, and what it means for the region. Be analytical, not just descriptive.'}
 };
 
 async function renderBrief(){
@@ -4863,8 +4875,7 @@ async function loadBriefTab(tab,el){
     const prompt='Today is '+today+'.\n\nHere are today\'s headlines:\n'+news+'\n\n'+
       (tab==='world'?'Write a deep analysis of the 3 most important world stories. For each: background context (2-3 sentences), what just happened, why it matters beyond the headline, what to watch next. Use <h3> for story titles. Do NOT just summarise headlines — give me the analysis I cannot get from a Google search.':'')+
       (tab==='finance'?'Write a finance briefing for a Year 2 A&F student. Cover: (1) what moved in markets today and the real reason why, (2) one macroeconomic concept illustrated by today\'s news, (3) what this means for Malaysia and the ringgit. Go deep. Use <h3> for sections.':'')+
-      (tab==='geo'?'Write a geopolitics briefing. Cover 2-3 major developments. For each: the situation, historical context, the competing interests at play, what each side wants and why, what it means for Southeast Asia. Use <h3> for each topic.':'')+
-      (tab==='learn'?'Choose the most interesting concept from today\'s news or from A&F studies. Teach it properly: what it is (simple analogy first), how it actually works (mechanics), why it matters for a student in Malaysia, a real-world example, and one counterintuitive insight. Use <h3> for sections. Make it genuinely educational — the kind of thing someone would tell a friend about.':'');
+      (tab==='geo'?'Write a geopolitics briefing. Cover 2-3 major developments. For each: the situation, historical context, the competing interests at play, what each side wants and why, what it means for Southeast Asia. Use <h3> for each topic.':'');
     const content=await askGroq(prompt,BRIEF_CFG[tab].sys);
     var sources = [];
     news.split('\n').forEach(function(line) { var m = line.match(/\(([^,)]+),/); if (m && !sources.includes(m[1].trim())) sources.push(m[1].trim()); });
@@ -4899,53 +4910,6 @@ function saveArticleAsNote(tab){
 }
 
 // ═══════════════════════════════════════════════
-// CONCEPT
-// ═══════════════════════════════════════════════
-var CONCEPTS=['How does a Leveraged Buyout (LBO) work?','What is DCF valuation and how do bankers build one?','How do comparable company analysis (comps) work?','What is EBITDA and why do deal professionals use it?','How does McKinsey structure problem solving — issue trees explained','What is MECE and how do consultants use it?','What is the difference between equity value and enterprise value?','How does an IPO work from mandate to listing?','What is a hedge fund and what are the main strategies?','How does M&A due diligence work?','What is private equity and how does a fund generate returns?','What is the carry trade and why do macro funds use it?','How do Goldman Sachs and JPMorgan actually make money?','What is the BCG Growth-Share Matrix?','How does options pricing work — delta, gamma, vega?','What is a pitch book and how do bankers structure one?','How does short selling work mechanically?','What is a credit default swap (CDS)?','What does a first-year analyst at Goldman Sachs do all day?','What is venture capital and how does the VC model work?','What is the Porter Five Forces framework?','What is yield curve inversion and why does it matter?','How does a consulting engagement run at McKinsey or BCG?','What is the 2-and-20 fee structure in hedge funds?','What is the difference between buy-side and sell-side?','What is a Special Purpose Acquisition Company (SPAC)?','How does fixed income trading work at a bank?','What is quantitative easing and how does it affect asset prices?'];
-
-async function renderConcept(){
-  const s=getS();
-  const today=new Date().toDateString();
-  if(s.conceptCache&&s.conceptCache.date===today){
-    document.getElementById('conceptContent').innerHTML=s.conceptCache.html;
-    return;
-  }
-  document.getElementById('conceptContent').innerHTML='<div class="loading"><div class="spinner"></div><div class="loading-text">Selecting today\'s concept...</div></div>';
-  try{
-    if(!hasGroq()){document.getElementById('conceptContent').innerHTML=noKeyHtml();return;}
-    const learned=s.learnedTopics||[];
-    const pool=CONCEPTS.filter(function(c){return !learned.includes(c);});
-    const topic=(pool.length>0?pool:CONCEPTS)[Math.floor(Math.random()*(pool.length>0?pool.length:CONCEPTS.length))];
-    const content=await askGroq(
-      'Teach me: "'+topic+'"\n\nI am a Year 2 Accounting & Finance student at Sunway University Malaysia.\n\nStructure in HTML:\n<h3>The simple version</h3><p>One paragraph. No jargon. Vivid real-world analogy that actually makes sense.</p>\n<h3>How it works in practice</h3><p>The real mechanics. 2-3 paragraphs. Use a specific Malaysian or ASEAN company example where possible.</p>\n<h3>Why this matters for your degree</h3><p>Specific modules where this appears. How it connects to things you already know.</p>\n<h3>The numbers</h3><p>A worked example with actual numbers. Show the calculation or process step by step.</p>\n<h3>What most people misunderstand</h3><p>One common misconception or non-obvious insight.</p>\n\nDo NOT include a section called "why you need to know this" or "exam tips". Just teach the concept deeply and let the value speak for itself.',
-      'You are the world\'s best Accounting & Finance tutor. You explain things with crystal clarity, vivid examples, and genuine insight. You never pad content or state the obvious. Every sentence teaches something.'
-    );
-    const todayStr=new Date().toLocaleDateString('en-MY',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
-    const html='<div class="card">'+
-      '<div class="card-label" style="margin-bottom:4px">Concept of the Day · '+todayStr+'</div>'+
-      '<div class="card-title" style="margin-bottom:14px">'+topic+'</div>'+
-      '<div style="font-size:13px;line-height:1.85;color:var(--text2)">'+content+'</div>'+
-      '<div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border);display:flex;gap:8px">'+
-        '<button class="btn btn-ghost btn-sm" onclick="saveConceptAsNote()">Save to Notes</button>'+
-        '<button class="btn btn-secondary btn-sm" onclick="quickResearch(\''+topic+'\')">Deep Research →</button>'+
-      '</div>'+
-    '</div>';
-    saveS({conceptCache:{date:today,html:html,topic:topic,rawContent:content},learnedTopics:[...learned,topic]});
-    document.getElementById('conceptContent').innerHTML=html;
-  } catch(e){
-    document.getElementById('conceptContent').innerHTML='<div class="card"><p style="color:var(--red)">'+e.message+'</p></div>';
-  }
-}
-
-function saveConceptAsNote(){
-  const s=getS();
-  if(!s.conceptCache)return;
-  const note={id:'n'+Date.now(),title:'Concept: '+s.conceptCache.topic,subject:'general',content:s.conceptCache.html,created:new Date().toISOString(),updated:new Date().toISOString()};
-  saveS({notes:[note,...s.notes]});
-  showToast('Saved to Notes!','success');
-}
-
-// ═══════════════════════════════════════════════
 // DAILY QUIZ
 // ═══════════════════════════════════════════════
 var quizData=[];
@@ -4958,7 +4922,7 @@ async function renderMorningQuiz(){
   const card=document.getElementById('morningQuizCard');
   if(!card)return;
 
-  if(!s.conceptCache&&Object.keys(briefTabData).length===0){
+  if(Object.keys(briefTabData).length===0){
     card.style.display='none';return;
   }
 
@@ -5971,7 +5935,8 @@ async function fetchGCalEvents(){
     if(calListRes.status===401){
       GCAL_TOKEN=''; localStorage.removeItem('dd_gcal_token');
       updateGCalUI();
-      showToast('Google Calendar session expired — please reconnect','error');
+      // Show reconnect banner in calendar view
+      showGCalExpiredBanner();
       return;
     }
     var calListData = await calListRes.json();
@@ -6063,6 +6028,18 @@ async function addEventToGCal(ev){
     if(r.ok) showToast('Added to Google Calendar!','success');
     else showToast('Could not add to Google Calendar','error');
   }catch(e){showToast('Error: '+e.message,'error');}
+}
+
+function showGCalExpiredBanner(){
+  var el=document.getElementById('gcalExpiredBanner');
+  if(!el){
+    el=document.createElement('div');
+    el.id='gcalExpiredBanner';
+    el.style.cssText='position:fixed;top:16px;left:50%;transform:translateX(-50%);background:#c04040;color:#fff;border-radius:10px;padding:10px 18px;font-size:12px;font-weight:600;z-index:9999;display:flex;align-items:center;gap:12px;box-shadow:0 4px 20px rgba(0,0,0,0.3)';
+    el.innerHTML='📅 Google Calendar session expired <button onclick="connectGoogleCalendar();document.getElementById(\'gcalExpiredBanner\').remove()" style="background:#fff;color:#c04040;border:none;border-radius:6px;padding:3px 10px;font-size:11px;font-weight:700;cursor:pointer">Reconnect</button><button onclick="this.closest(\'#gcalExpiredBanner\').remove()" style="background:none;border:none;color:#fff;cursor:pointer;font-size:16px;padding:0 4px">✕</button>';
+    document.body.appendChild(el);
+  }
+  setTimeout(function(){if(el.parentNode)el.remove();},15000);
 }
 
 function handleGCalBtn(){
@@ -6419,8 +6396,10 @@ document.addEventListener('keydown', function(e) {
     if(document.getElementById('colourPanel').classList.contains('open')){closeColourPanel();return;}
     return;
   }
-  // Single-key shortcuts — only when not typing
+  // Single-key shortcuts — only when not typing and search not open
   if(isTyping)return;
+  if(document.getElementById('searchOverlay').classList.contains('show'))return;
+  if(document.querySelector('.modal-overlay.show'))return;
   if(e.key==='t'){openModal('taskModal');return;}
   if(e.key==='e'){openAddEvent();return;}
   if(e.key==='n'){openModal('noteModal');return;}
@@ -6813,9 +6792,8 @@ var DEFAULT_NAV_ITEMS = [
   {id:'notes',    icon:'📝', label:'All Notes',   section:'Study',   visible:true,  special:null},
   {id:'focus',    icon:'⏱️', label:'Focus Mode',  section:'Study',   visible:true,  special:null},
   {id:'gpa',      icon:'🎓', label:'GPA',         section:'Study',   visible:true,  special:null},
-  {id:'brief',    icon:'📰', label:'Daily Brief', section:'Learn',   visible:true,  special:null},
-  {id:'concept',  icon:'🧠', label:'Concept',     section:'Learn',   visible:true,  special:null},
-  {id:'research', icon:'🔍', label:'Research',    section:'Learn',   visible:true,  special:null},
+  {id:'brief',    icon:'📰', label:'Daily Brief', section:'More',    visible:true,  special:null},
+  {id:'research', icon:'🔍', label:'Research',    section:'More',    visible:true,  special:null},
   {id:'expenses', icon:'💸', label:'Expenses',    section:'More',    visible:true,  special:null},
   {id:'analytics',icon:'📊', label:'Analytics',   section:'More',    visible:true,  special:null},
   {id:'reading',  icon:'📖', label:'Reading List', section:'More',    visible:true,  special:null},
@@ -7108,23 +7086,18 @@ function zoomLabel(pct){
 
 function applyZoomFromSlider(val, fromSettings){
   val=parseInt(val);
-  // Apply zoom to the entire app wrapper
-  var app=document.getElementById('mainApp');
-  var body=document.body;
-  // Use zoom on body — scales everything uniformly
-  body.style.zoom=(val/100);
+  // Use font-size on :root so rem units scale everything — works in all browsers including Safari
+  document.documentElement.style.fontSize=(val/100*16)+'px';
   // Sync both sliders
   var s1=document.getElementById('fontSizeSlider');
   var s2=document.getElementById('cfg-fontSizeSlider');
   if(s1)s1.value=val;
   if(s2)s2.value=val;
-  // Update labels
   var lbl=zoomLabel(val);
   var l1=document.getElementById('sizePreviewLabel');
   var l2=document.getElementById('cfg-sizePreviewLabel');
   if(l1)l1.textContent=lbl;
   if(l2)l2.textContent=lbl;
-  // Persist
   var s=getS();
   var cfg=Object.assign({},s.appConfig||{},{fontZoom:val});
   saveS({appConfig:cfg});
@@ -7133,8 +7106,7 @@ function applyZoomFromSlider(val, fromSettings){
 function applyFontSize(){
   var s=getS();
   var zoom=(s.appConfig||{}).fontZoom||100;
-  document.body.style.zoom=(zoom/100);
-  // Sync sliders
+  document.documentElement.style.fontSize=(zoom/100*16)+'px';
   var s1=document.getElementById('fontSizeSlider');
   var s2=document.getElementById('cfg-fontSizeSlider');
   if(s1)s1.value=zoom;
@@ -7146,7 +7118,6 @@ function applyFontSize(){
   if(l2)l2.textContent=lbl;
 }
 
-// Keep setFontSize as no-op for any remaining legacy calls
 function setFontSize(mode){}
 
 // ═══════════════════════════════════════════════
@@ -7283,8 +7254,7 @@ async function loadBriefTab(tab,el){
     const prompt='Today is '+today+'.\n\nHere are today\'s headlines:\n'+news+'\n\n'+
       (tab==='world'?'Write a deep analysis of the 3 most important world stories. For each: background context (2-3 sentences), what just happened, why it matters beyond the headline, what to watch next. Use <h3> for story titles. Do NOT just summarise headlines — give me the analysis I cannot get from a Google search.':'')+
       (tab==='finance'?'Write a finance briefing for a Year 2 A&F student. Cover: (1) what moved in markets today and the real reason why, (2) one macroeconomic concept illustrated by today\'s news, (3) what this means for Malaysia and the ringgit. Go deep. Use <h3> for sections.':'')+
-      (tab==='geo'?'Write a geopolitics briefing. Cover 2-3 major developments. For each: the situation, historical context, the competing interests at play, what each side wants and why, what it means for Southeast Asia. Use <h3> for each topic.':'')+
-      (tab==='learn'?'Choose the most interesting concept from today\'s news or from A&F studies. Teach it properly: what it is (simple analogy first), how it actually works (mechanics), why it matters for a student in Malaysia, a real-world example, and one counterintuitive insight. Use <h3> for sections. Make it genuinely educational — the kind of thing someone would tell a friend about.':'');
+      (tab==='geo'?'Write a geopolitics briefing. Cover 2-3 major developments. For each: the situation, historical context, the competing interests at play, what each side wants and why, what it means for Southeast Asia. Use <h3> for each topic.':'');
     const content=await askGroq(prompt,BRIEF_CFG[tab].sys);
     var sources=[];
     news.split('\n').forEach(function(line){var m=line.match(/\(([^,)]+),/);if(m&&!sources.includes(m[1].trim()))sources.push(m[1].trim());});
@@ -7836,7 +7806,23 @@ function handleEditorInput(){
 // ═══════════════════════════════════════════════
 // IMAGE PASTE INTO EDITOR
 // ═══════════════════════════════════════════════
-var _imagePasteAttached=false;
+var _notesSearchTimer=null;
+function debounceNotesSearch(){
+  clearTimeout(_notesSearchTimer);
+  _notesSearchTimer=setTimeout(renderNotes,220);
+}
+
+// Image paste — warn if localStorage is getting full
+function checkStorageSize(){
+  try{
+    var used=0;
+    for(var k in localStorage){if(localStorage.hasOwnProperty(k))used+=localStorage[k].length;}
+    var usedMB=(used*2/1024/1024).toFixed(1); // UTF-16 = 2 bytes per char
+    if(used*2>3.5*1024*1024){
+      showToast('⚠️ Storage '+usedMB+'MB / ~5MB limit. Consider removing pasted images from old notes.','error');
+    }
+  }catch(e){}
+}
 function enableImagePaste(){
   if(_imagePasteAttached)return;
   _imagePasteAttached=true;
@@ -7851,8 +7837,21 @@ function enableImagePaste(){
         var file=items[i].getAsFile();
         var reader=new FileReader();
         reader.onload=function(ev){
-          document.execCommand('insertHTML',false,'<img src="'+ev.target.result+'" style="max-width:100%;border-radius:6px;margin:8px 0"/>');
-          triggerAutosave();
+          // Resize to max 800px wide before storing — prevents storage explosion
+          var img=new Image();
+          img.onload=function(){
+            var MAX=800;
+            var scale=img.width>MAX?MAX/img.width:1;
+            var canvas=document.createElement('canvas');
+            canvas.width=Math.round(img.width*scale);
+            canvas.height=Math.round(img.height*scale);
+            canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);
+            var resized=canvas.toDataURL('image/jpeg',0.82);
+            document.execCommand('insertHTML',false,'<img src="'+resized+'" style="max-width:100%;border-radius:6px;margin:8px 0"/>');
+            triggerAutosave();
+            checkStorageSize();
+          };
+          img.src=ev.target.result;
         };
         reader.readAsDataURL(file);
         return;
@@ -8180,6 +8179,44 @@ function renderReadingList(){
 // ═══════════════════════════════════════════════
 // PATCH renderMorning to include daily note button render
 // ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════════
+// OLD DATA MIGRATION
+// ═══════════════════════════════════════════════
+async function migrateOldSupabaseData(){
+  var statusEl=document.getElementById('migrationStatus');
+  if(statusEl)statusEl.textContent='Scanning for old data rows…';
+  if(!_userId){showToast('Sign in first','error');return;}
+  try{
+    var r=await fetch(SUPA_URL+'/rest/v1/app_data?select=id,data,updated_at&order=updated_at.desc',{
+      headers:supaHeaders(true)
+    });
+    if(!r.ok){if(statusEl)statusEl.textContent='Could not reach Supabase.';return;}
+    var rows=await r.json();
+    var oldRows=rows.filter(function(row){return row.id!==_userId&&row.data&&Object.keys(row.data).length>0;});
+    if(oldRows.length===0){if(statusEl)statusEl.textContent='No old data found — you\'re all good!';return;}
+    var best=oldRows.find(function(row){var d=row.data;return (d.notes&&d.notes.length>0)||(d.tasks&&d.tasks.length>0)||(d.events&&d.events.length>0);})||oldRows[0];
+    var old=best.data;
+    var current=getS();
+    function mergeArr(a,b){var ids=new Set((a||[]).map(function(x){return x.id;}));return [...(a||[]),...(b||[]).filter(function(x){return !ids.has(x.id);})];}
+    var merged=Object.assign({},current,{
+      notes:mergeArr(current.notes,old.notes),
+      tasks:mergeArr(current.tasks,old.tasks),
+      completedTasks:mergeArr(current.completedTasks,old.completedTasks),
+      events:mergeArr(current.events,old.events),
+      habits:mergeArr(current.habits,old.habits),
+      expenses:mergeArr(current.expenses,old.expenses),
+      projects:current.projects&&current.projects.length>0?current.projects:old.projects,
+      gpa:current.gpa&&(current.gpa.semesters||[]).length>0?current.gpa:old.gpa
+    });
+    saveS(merged);
+    var noteCount=(old.notes||[]).length;
+    var taskCount=(old.tasks||[]).length;
+    if(statusEl)statusEl.textContent='✓ Imported '+noteCount+' notes, '+taskCount+' tasks from old account ('+new Date(best.updated_at).toLocaleDateString()+')';
+    showToast('Old data merged!','success');
+    refreshCurrentView();updateSidebarStats();
+  }catch(e){if(statusEl)statusEl.textContent='Error: '+e.message;}
+}
+
 var _origRenderMorning2=renderMorning;
 function renderMorning(){
   _origRenderMorning2();
