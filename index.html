@@ -5709,6 +5709,17 @@ async function fetchGCalEvents(){
 
     var s=getS();
     var localEvents=(s.events||[]).filter(function(e){return !e.fromGCal;});
+    // Build a map of existing GCal events so we can preserve local colour overrides
+    var existingGCalMap={};
+    (s.events||[]).filter(function(e){return e.fromGCal;}).forEach(function(e){
+      existingGCalMap[e.id]=e;
+    });
+    // Preserve any local colour the user set on a GCal event
+    allGcalEvents=allGcalEvents.map(function(ev){
+      var existing=existingGCalMap[ev.id];
+      if(existing&&existing.colour) ev.colour=existing.colour;
+      return ev;
+    });
     saveS({events:[...localEvents,...allGcalEvents]});
     showToast('✓ Synced '+allGcalEvents.length+' events from '+calendars.length+' Google calendar'+(calendars.length!==1?'s':''),'success');
     if(currentView==='calendar') renderCalendar();
@@ -5739,6 +5750,9 @@ async function addEventToGCal(ev){
       start:ev.time?{dateTime:startDT,timeZone:MY_TZ}:{date:ev.date},
       end:ev.time?{dateTime:endDT,timeZone:MY_TZ}:{date:ev.date}
     };
+    // Map hex colour to nearest Google Calendar colorId
+    var cid=hexToGCalColorId(ev.colour);
+    if(cid) body.colorId=cid;
     var r=await fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events',{
       method:'POST',
       headers:{'Authorization':'Bearer '+GCAL_TOKEN,'Content-Type':'application/json'},
@@ -5746,7 +5760,6 @@ async function addEventToGCal(ev){
     });
     if(r.ok){
       var created=await r.json();
-      // Save GCal event ID back to local event so future edits can update it
       var s=getS();
       var events=s.events.map(function(e){
         return e.id===ev.id?Object.assign({},e,{gcalEventId:created.id}):e;
@@ -5771,12 +5784,51 @@ async function updateGCalEvent(ev){
       start:ev.time?{dateTime:startDT,timeZone:MY_TZ}:{date:ev.date},
       end:ev.time?{dateTime:endDT,timeZone:MY_TZ}:{date:ev.date}
     };
+    var cid=hexToGCalColorId(ev.colour);
+    if(cid) body.colorId=cid;
     await fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events/'+encodeURIComponent(ev.gcalEventId),{
       method:'PATCH',
       headers:{'Authorization':'Bearer '+GCAL_TOKEN,'Content-Type':'application/json'},
       body:JSON.stringify(body)
     });
   }catch(e){console.warn('GCal update failed:',e.message);}
+}
+
+// Map hex colour to closest Google Calendar colorId (1-11)
+function hexToGCalColorId(hex){
+  if(!hex) return null;
+  // Google Calendar color IDs and their approximate hex values
+  var gcalColors={
+    '1':'#a4bdfc', // Lavender
+    '2':'#7ae7bf', // Sage
+    '3':'#dbadff', // Grape
+    '4':'#ff887c', // Flamingo
+    '5':'#fbd75b', // Banana
+    '6':'#ffb878', // Tangerine
+    '7':'#46d6db', // Peacock
+    '8':'#e1e1e1', // Graphite
+    '9':'#5484ed', // Blueberry
+    '10':'#51b749', // Basil
+    '11':'#dc2127'  // Tomato
+  };
+  // Parse input hex to RGB
+  var h=hex.replace('#','');
+  if(h.length===3) h=h[0]+h[0]+h[1]+h[1]+h[2]+h[2];
+  if(h.length!==6) return '7'; // default peacock
+  var r=parseInt(h.slice(0,2),16);
+  var g=parseInt(h.slice(2,4),16);
+  var b=parseInt(h.slice(4,6),16);
+  // Find nearest color by Euclidean distance
+  var best='7'; var bestDist=Infinity;
+  Object.keys(gcalColors).forEach(function(id){
+    var ch=gcalColors[id].replace('#','');
+    var cr=parseInt(ch.slice(0,2),16);
+    var cg=parseInt(ch.slice(2,4),16);
+    var cb=parseInt(ch.slice(4,6),16);
+    var dist=(r-cr)*(r-cr)+(g-cg)*(g-cg)+(b-cb)*(b-cb);
+    if(dist<bestDist){bestDist=dist;best=id;}
+  });
+  return best;
 }
 
 function showGCalExpiredBanner(){
