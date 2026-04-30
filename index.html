@@ -8,7 +8,9 @@
 <title>Durgha's Dashboard</title>
 <link rel="manifest" href="manifest.json"/>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;900&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <style>
 :root {
   --bg: #f7f3ee;
@@ -362,8 +364,8 @@ select.input{cursor:pointer;appearance:none;}
 .fab{position:fixed;bottom:20px;right:20px;width:46px;height:46px;border-radius:50%;background:var(--accent);color:#fff;border:none;font-size:20px;cursor:pointer;box-shadow:0 4px 14px rgba(184,92,56,0.4);z-index:100;display:none;align-items:center;justify-content:center;transition:all 0.2s;}
 .fab:hover{transform:scale(1.08);}
 
-/* ── SETUP ── */
-#setup-screen{display:none;position:fixed;inset:0;background:var(--bg);z-index:9999;align-items:center;justify-content:center;}
+/* ── SETUP WIZARD ── */
+#setup-screen{display:none;position:fixed;inset:0;background:var(--bg);z-index:9999;align-items:flex-start;justify-content:center;overflow-y:auto;padding:40px 16px;}
 .setup-card{max-width:440px;width:100%;padding:36px 32px;background:var(--surface);border:1px solid var(--border);border-radius:18px;box-shadow:var(--shadow-lg);}
 .setup-title{font-family:var(--serif);font-size:26px;font-weight:700;color:var(--accent);margin-bottom:4px;}
 .setup-sub{font-size:11px;color:var(--text3);margin-bottom:24px;font-family:var(--mono);letter-spacing:0.04em;}
@@ -408,6 +410,16 @@ select.input{cursor:pointer;appearance:none;}
 .progress-ring-pct{font-family:var(--serif);font-size:22px;font-weight:700;color:var(--accent);line-height:1;}
 @keyframes spin{to{transform:rotate(360deg)}}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+
+/* ── TEXT SIZE SLIDER (replaces old data-size modes) ── */
+.size-slider-wrap{display:flex;flex-direction:column;gap:6px;}
+.size-slider-row{display:flex;align-items:center;gap:10px;}
+.size-slider{-webkit-appearance:none;appearance:none;width:100%;height:4px;border-radius:2px;background:var(--border);outline:none;cursor:pointer;}
+.size-slider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:18px;height:18px;border-radius:50%;background:var(--accent);cursor:pointer;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,0.2);transition:transform 0.1s;}
+.size-slider::-webkit-slider-thumb:hover{transform:scale(1.2);}
+.size-slider::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--accent);cursor:pointer;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,0.2);}
+.size-slider-labels{display:flex;justify-content:space-between;font-size:9px;color:var(--text3);font-family:var(--mono);}
+.size-preview{font-size:10px;color:var(--text3);font-family:var(--mono);text-align:center;}
 
 /* ── COLOUR PICKER ── */
 .colour-options{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;}
@@ -685,17 +697,110 @@ select.input{cursor:pointer;appearance:none;}
 </head>
 <body>
 
-<!-- SETUP -->
+<!-- ═══════════════════════════════════════════ -->
+<!-- SETUP / LOGIN SCREEN                        -->
+<!-- ═══════════════════════════════════════════ -->
 <div id="setup-screen" style="display:none">
-  <div class="setup-card">
-    <div class="setup-title">Durgha's Dashboard</div>
-    <div class="setup-sub">Add a Groq API key to enable AI features — or skip to use the dashboard without them</div>
-    <div class="field"><div class="input-label">Groq API Key <span style="color:var(--text3);font-weight:400">(optional)</span></div><input class="input" id="setup-groq" type="password" placeholder="gsk_..."/><div style="font-size:10px;color:var(--text3);margin-top:3px">Free at console.groq.com · powers Daily Brief, Concept of Day, Flashcards, Research</div></div>
-    <div style="display:flex;gap:8px">
-      <button class="btn btn-primary" style="flex:1;justify-content:center;padding:11px" onclick="completeSetup()">Save Key & Launch →</button>
-      <button class="btn btn-ghost" style="padding:11px 16px" onclick="skipSetup()">Skip for now</button>
+  <div style="width:100%;max-width:500px;padding:24px 16px">
+
+    <!-- STEP 1 — Account -->
+    <div id="step-account">
+      <div style="text-align:center;margin-bottom:28px">
+        <div style="font-family:var(--serif);font-size:32px;font-weight:900;color:var(--accent);margin-bottom:4px">Durgha's Dashboard</div>
+        <div style="font-size:12px;color:var(--text3);font-family:var(--mono)">Your personal academic command centre</div>
+      </div>
+
+      <!-- Sign in -->
+      <div id="authLoginForm">
+        <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:14px">Sign in to your account</div>
+        <div class="field"><div class="input-label">Email</div><input class="input" id="auth-email" type="email" placeholder="your@email.com" onkeydown="if(event.key==='Enter')authSignIn()"/></div>
+        <div class="field"><div class="input-label">Password</div><input class="input" id="auth-password" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')authSignIn()"/></div>
+        <div id="authError" style="font-size:11px;color:var(--red);margin-bottom:10px;display:none;padding:8px 10px;background:rgba(192,64,64,0.08);border-radius:6px"></div>
+        <button class="btn btn-primary" style="width:100%;justify-content:center;padding:12px;margin-bottom:10px;font-size:14px" onclick="authSignIn()" id="authSignInBtn">Sign In →</button>
+        <button class="btn btn-ghost" style="width:100%;justify-content:center;padding:10px" onclick="showAuthSignUp()">Don't have an account? Create one</button>
+      </div>
+
+      <!-- Sign up -->
+      <div id="authSignUpForm" style="display:none">
+        <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:14px">Create your account</div>
+        <div class="field"><div class="input-label">Your Name</div><input class="input" id="signup-name" placeholder="e.g. Durgha"/></div>
+        <div class="field"><div class="input-label">Email</div><input class="input" id="signup-email" type="email" placeholder="your@email.com"/></div>
+        <div class="field"><div class="input-label">Password <span style="font-size:9px;color:var(--text3);font-weight:400">(min 6 chars)</span></div><input class="input" id="signup-password" type="password" placeholder="Choose a password"/></div>
+        <div id="signupError" style="font-size:11px;color:var(--red);margin-bottom:10px;display:none;padding:8px 10px;background:rgba(192,64,64,0.08);border-radius:6px"></div>
+        <button class="btn btn-primary" style="width:100%;justify-content:center;padding:12px;margin-bottom:10px;font-size:14px" onclick="authSignUp()" id="authSignUpBtn">Create Account →</button>
+        <button class="btn btn-ghost" style="width:100%;justify-content:center;padding:10px" onclick="showAuthLogin()">Already have an account? Sign in</button>
+      </div>
     </div>
-    <div style="font-size:10px;color:var(--text3);margin-top:12px;text-align:center">Your key is stored only in your browser's local storage. You can add it later in ⚙️ Settings → Profile.</div>
+
+    <!-- STEP 2 — API Keys (shown after sign-up only, not on returning login) -->
+    <div id="step-apikeys" style="display:none">
+      <div style="text-align:center;margin-bottom:24px">
+        <div style="font-size:22px;margin-bottom:6px">⚙️</div>
+        <div style="font-family:var(--serif);font-size:20px;font-weight:700;color:var(--text);margin-bottom:4px">Set up your integrations</div>
+        <div style="font-size:11px;color:var(--text3)">All keys are saved to your account and load automatically on every device. You only do this once.</div>
+      </div>
+
+      <!-- Groq -->
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+          <span style="font-size:20px">🤖</span>
+          <div>
+            <div style="font-size:13px;font-weight:600;color:var(--text)">Groq API Key</div>
+            <div style="font-size:10px;color:var(--text3)">Powers AI Daily Brief, Flashcards, Research, Concept of Day · Free at console.groq.com</div>
+          </div>
+          <span id="groqStatus" style="margin-left:auto;font-size:11px;color:var(--text3)">Optional</span>
+        </div>
+        <input class="input" id="setup-groq" type="password" placeholder="gsk_..." oninput="validateSetupGroq()" style="margin-bottom:6px"/>
+        <div style="font-size:10px;color:var(--text3)">
+          How to get it: <a href="https://console.groq.com" target="_blank" style="color:var(--accent)">console.groq.com</a> → Sign up free → API Keys → Create key → paste above
+        </div>
+      </div>
+
+      <!-- Google Calendar -->
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+          <span style="font-size:20px">📅</span>
+          <div>
+            <div style="font-size:13px;font-weight:600;color:var(--text)">Google Calendar Client ID</div>
+            <div style="font-size:10px;color:var(--text3)">Two-way sync with your Google Calendar · Optional</div>
+          </div>
+          <span id="gcalStatus" style="margin-left:auto;font-size:11px;color:var(--text3)">Optional</span>
+        </div>
+        <input class="input" id="setup-gcal-id" placeholder="123456789-abc.apps.googleusercontent.com" oninput="validateSetupGcal()" style="margin-bottom:6px"/>
+        <div style="font-size:10px;color:var(--text3);line-height:1.6">
+          How to get it: <a href="https://console.cloud.google.com" target="_blank" style="color:var(--accent)">console.cloud.google.com</a> → New project → Enable Google Calendar API → Credentials → Create OAuth 2.0 Client ID (Web app) → Add your app URL to Authorised JavaScript origins → copy Client ID
+        </div>
+      </div>
+
+      <!-- Profile -->
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:20px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+          <span style="font-size:20px">👤</span>
+          <div>
+            <div style="font-size:13px;font-weight:600;color:var(--text)">Your Profile</div>
+            <div style="font-size:10px;color:var(--text3)">Shown in your dashboard sidebar</div>
+          </div>
+        </div>
+        <div class="grid-2" style="gap:8px">
+          <div class="field" style="margin-bottom:0"><div class="input-label">Display Name</div><input class="input" id="setup-name" placeholder="Durgha"/></div>
+          <div class="field" style="margin-bottom:0"><div class="input-label">Subtitle</div><input class="input" id="setup-subtitle" placeholder="Year 2 · Sunway A&F"/></div>
+        </div>
+      </div>
+
+      <button class="btn btn-primary" style="width:100%;justify-content:center;padding:13px;font-size:15px" onclick="completeSetup()">
+        Save & Launch Dashboard →
+      </button>
+      <button class="btn btn-ghost" style="width:100%;justify-content:center;padding:10px;margin-top:8px" onclick="completeSetup()">
+        Skip for now — I'll add these in Settings later
+      </button>
+    </div>
+
+    <!-- Progress dots -->
+    <div style="display:flex;justify-content:center;gap:6px;margin-top:20px" id="setupDots">
+      <div style="width:8px;height:8px;border-radius:50%;background:var(--accent)" id="dot1"></div>
+      <div style="width:8px;height:8px;border-radius:50%;background:var(--border)" id="dot2"></div>
+    </div>
+
   </div>
 </div>
 
@@ -842,11 +947,17 @@ select.input{cursor:pointer;appearance:none;}
         <input type="color" id="cfg-accent-custom" style="margin-top:8px;width:100%;height:32px;border-radius:6px;border:1px solid var(--border);cursor:pointer;padding:2px" onchange="setAccent(this.value,null)"/>
       </div>
       <div class="field">
-        <div class="input-label">Text Size</div>
-        <div class="size-mode-toggle" style="margin-top:4px">
-          <button class="size-btn active" id="cfg-size-small" onclick="setFontSize('small')">Small</button>
-          <button class="size-btn" id="cfg-size-medium" onclick="setFontSize('medium')">Medium</button>
-          <button class="size-btn" id="cfg-size-large" onclick="setFontSize('large')">Large</button>
+        <div class="input-label">Text & UI Size</div>
+        <div class="size-slider-wrap" style="margin-top:6px">
+          <div class="size-slider-row">
+            <span style="font-size:10px;color:var(--text3)">A</span>
+            <input type="range" class="size-slider" id="cfg-fontSizeSlider" min="80" max="150" step="5" value="100" oninput="applyZoomFromSlider(this.value,true)"/>
+            <span style="font-size:14px;color:var(--text3)">A</span>
+          </div>
+          <div class="size-slider-labels">
+            <span>80%</span><span>100%</span><span>125%</span><span>150%</span>
+          </div>
+          <div class="size-preview" id="cfg-sizePreviewLabel">100% — Default</div>
         </div>
       </div>
       <div class="field">
@@ -1093,11 +1204,17 @@ select.input{cursor:pointer;appearance:none;}
     <div style="font-size:10px;color:var(--text3);font-family:var(--mono);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:10px;">Assign colours to labels — events auto-match</div>
     <div id="labelColourList"></div>
     <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
-      <div style="font-size:10px;color:var(--text3);font-family:var(--mono);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:8px;">Text Size</div>
-      <div class="size-mode-toggle">
-        <button class="size-btn active" id="size-small" onclick="setFontSize('small')">Small</button>
-        <button class="size-btn" id="size-medium" onclick="setFontSize('medium')">Medium</button>
-        <button class="size-btn" id="size-large" onclick="setFontSize('large')">Large</button>
+      <div style="font-size:10px;color:var(--text3);font-family:var(--mono);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:10px;">Text & UI Size</div>
+      <div class="size-slider-wrap">
+        <div class="size-slider-row">
+          <span style="font-size:10px;color:var(--text3)">A</span>
+          <input type="range" class="size-slider" id="fontSizeSlider" min="80" max="150" step="5" value="100" oninput="applyZoomFromSlider(this.value)"/>
+          <span style="font-size:14px;color:var(--text3)">A</span>
+        </div>
+        <div class="size-slider-labels">
+          <span>80%</span><span>100%</span><span>125%</span><span>150%</span>
+        </div>
+        <div class="size-preview" id="sizePreviewLabel">100% — Default</div>
       </div>
     </div>
   </div>
@@ -1323,6 +1440,7 @@ select.input{cursor:pointer;appearance:none;}
     <div class="sidebar-footer">
       <button class="footer-btn" onclick="openColourPanel()" title="Label Colours &amp; Text Size">🎨</button>
       <button class="footer-btn" onclick="openSearch()" title="Search (Ctrl+K)">🔍</button>
+      <button class="footer-btn" onclick="authSignOut()" title="Sign out" style="margin-left:auto">↩</button>
       <button class="footer-btn" id="darkModeBtn" onclick="toggleDarkMode()">🌙</button>
       <button class="footer-btn" onclick="exportData()">⬇</button>
       <button class="footer-btn" onclick="document.getElementById('importFile').click()">⬆</button>
@@ -1872,95 +1990,336 @@ function hasGroq(){return !!CFG.GROQ;}
 function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
 
 function completeSetup(){
-  const g=document.getElementById('setup-groq').value.trim();
-  if(g) localStorage.setItem('dd_groq',g);
-  document.getElementById('setup-screen').style.display='none';
-  document.getElementById('mainApp').style.display='grid';
-  document.getElementById('fab').style.display='flex';
-  if(typeof initTheme==='function')initTheme();
-  initApp();
+  // Collect all keys from step 2
+  var groqKey = (document.getElementById('setup-groq')||{}).value;
+  groqKey = groqKey ? groqKey.trim() : '';
+  var gcalId = (document.getElementById('setup-gcal-id')||{}).value;
+  gcalId = gcalId ? gcalId.trim() : '';
+  var name = (document.getElementById('setup-name')||{}).value;
+  name = name ? name.trim() : '';
+  var subtitle = (document.getElementById('setup-subtitle')||{}).value;
+  subtitle = subtitle ? subtitle.trim() : '';
+
+  // Save Groq key locally and in cloud config
+  if(groqKey) localStorage.setItem('dd_groq', groqKey);
+
+  // Save everything to cloud appConfig so other devices get it automatically
+  var s = getS();
+  var cfg = Object.assign({}, s.appConfig||{}, {
+    groqKey: groqKey||s.appConfig&&s.appConfig.groqKey||'',
+    gcalClientId: gcalId||s.appConfig&&s.appConfig.gcalClientId||'',
+    name: name||s.appConfig&&s.appConfig.name||'',
+    subtitle: subtitle||s.appConfig&&s.appConfig.subtitle||''
+  });
+  saveS({appConfig: cfg});
+
+  // Init Google Calendar if ID provided
+  if(gcalId){
+    GCAL_CLIENT_ID = gcalId;
+    localStorage.setItem('dd_gcal_client_id', gcalId);
+    setTimeout(initGCalTokenClient, 500);
+  }
+
+  launchApp();
 }
-function skipSetup(){
-  document.getElementById('setup-screen').style.display='none';
-  document.getElementById('mainApp').style.display='grid';
-  document.getElementById('fab').style.display='flex';
-  if(typeof initTheme==='function')initTheme();
-  initApp();
-}
+
+function skipSetup(){ completeSetup(); }
 
 // ═══════════════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════════════
 // ═══════════════════════════════════════════════
-// SUPABASE CONFIG
+// SUPABASE CONFIG + AUTH
 // ═══════════════════════════════════════════════
 var SUPA_URL = 'https://gctpgclvhungaknktjye.supabase.co';
 var SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdjdHBnY2x2aHVuZ2Frbmt0anllIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4OTc0NTMsImV4cCI6MjA5MjQ3MzQ1M30.i59tJQpc1YBwgKKH8uXHQ5kiD-Z6Xd2DFqTWDxES5CQ';
 var _syncTimer = null;
-var _syncStatus = 'idle'; // idle | syncing | error
+var _syncStatus = 'idle';
+var _authSession = null; // Supabase session {access_token, user}
+var _userId = null;      // Set after login — user's UUID from Supabase Auth
+var _realtimeTimer = null;
+var _lastSyncedAt = null;
 
-function supaHeaders(){
+// Restore session from localStorage on boot
+(function(){
+  try{
+    var saved = JSON.parse(localStorage.getItem('dd_session')||'null');
+    if(saved && saved.access_token && saved.user){
+      _authSession = saved;
+      _userId = saved.user.id;
+    }
+  }catch(e){}
+})();
+
+function supaHeaders(useAuthToken){
+  var token = (useAuthToken && _authSession) ? _authSession.access_token : SUPA_KEY;
   return {
     'apikey': SUPA_KEY,
-    'Authorization': 'Bearer ' + SUPA_KEY,
+    'Authorization': 'Bearer ' + token,
     'Content-Type': 'application/json',
     'Prefer': 'return=minimal'
   };
 }
 
-// Per-device user ID — ensures each user/device has isolated cloud data
-var _userId = (function(){
-  var id = localStorage.getItem('dd_uid');
-  if(!id){ id = 'u' + Math.random().toString(36).slice(2,10) + Date.now().toString(36); localStorage.setItem('dd_uid', id); }
-  return id;
-})();
+// ── AUTH UI HELPERS ──────────────────────────────
 
-// Push state to Supabase — upsert so first-time write creates the row
-function pushToSupabase(data){
-  clearTimeout(_syncTimer);
-  _syncTimer = setTimeout(function(){
-    _syncStatus = 'syncing';
-    updateSyncIndicator();
-    fetch(SUPA_URL + '/rest/v1/app_data', {
-      method: 'POST',
-      headers: Object.assign({}, supaHeaders(), {'Prefer':'resolution=merge-duplicates,return=minimal'}),
-      body: JSON.stringify({id: _userId, data: data, updated_at: new Date().toISOString()})
-    }).then(function(r){
-      _syncStatus = r.ok ? 'idle' : 'error';
-      updateSyncIndicator();
-    }).catch(function(){
-      _syncStatus='error';
-      updateSyncIndicator();
-    });
-  }, 2000);
+function showSetupStep(step){
+  document.getElementById('step-account').style.display = step===1 ? 'block':'none';
+  document.getElementById('step-apikeys').style.display = step===2 ? 'block':'none';
+  document.getElementById('dot1').style.background = step===1?'var(--accent)':'var(--border)';
+  document.getElementById('dot2').style.background = step===2?'var(--accent)':'var(--border)';
 }
 
-// Pull latest state from Supabase
-async function pullFromSupabase(){
+function showAuthLogin(){
+  document.getElementById('authLoginForm').style.display='block';
+  document.getElementById('authSignUpForm').style.display='none';
+  showSetupStep(1);
+}
+
+function showAuthSignUp(){
+  document.getElementById('authLoginForm').style.display='none';
+  document.getElementById('authSignUpForm').style.display='block';
+  showSetupStep(1);
+}
+
+function validateSetupGroq(){
+  var val=document.getElementById('setup-groq').value.trim();
+  var el=document.getElementById('groqStatus');
+  if(el)el.textContent=val?'✓ Added':'Optional';
+  if(el)el.style.color=val?'var(--green)':'var(--text3)';
+}
+
+function validateSetupGcal(){
+  var val=document.getElementById('setup-gcal-id').value.trim();
+  var el=document.getElementById('gcalStatus');
+  if(el)el.textContent=val?'✓ Added':'Optional';
+  if(el)el.style.color=val?'var(--green)':'var(--text3)';
+}
+
+async function authSignIn(){
+  var email = document.getElementById('auth-email').value.trim();
+  var pass = document.getElementById('auth-password').value;
+  var errEl = document.getElementById('authError');
+  var btn = document.getElementById('authSignInBtn');
+  if(!email||!pass){errEl.textContent='Please enter your email and password.';errEl.style.display='block';return;}
+  btn.textContent='Signing in…';btn.disabled=true;errEl.style.display='none';
   try{
-    var r = await fetch(SUPA_URL + '/rest/v1/app_data?id=eq.' + encodeURIComponent(_userId) + '&select=data', {
-      headers: supaHeaders()
+    var r = await fetch(SUPA_URL+'/auth/v1/token?grant_type=password',{
+      method:'POST',
+      headers:{'apikey':SUPA_KEY,'Content-Type':'application/json'},
+      body:JSON.stringify({email:email,password:pass})
     });
-    var rows = await r.json();
-    if(rows && rows[0] && rows[0].data && Object.keys(rows[0].data).length > 0){
-      // Merge: Supabase wins over local for conflicts
-      var remote = rows[0].data;
-      localStorage.setItem('dd_v2', JSON.stringify(remote));
-      return remote;
-    }
-  } catch(e){
-    console.warn('Supabase pull failed, using local cache:', e.message);
+    var data = await r.json();
+    if(!r.ok) throw new Error(data.error_description||data.msg||'Sign in failed. Check your email and password.');
+    _authSession=data; _userId=data.user.id;
+    localStorage.setItem('dd_session',JSON.stringify(data));
+    // Pull existing data and go straight to app — skip setup step 2
+    var remote = await pullFromSupabase();
+    if(remote){localStorage.setItem('dd_v2',JSON.stringify(remote));_lastSyncedAt=new Date().toISOString();}
+    // Load saved API keys from cloud data
+    loadApiKeysFromCloud();
+    launchApp();
+  }catch(e){
+    errEl.textContent=e.message;errEl.style.display='block';
+    btn.textContent='Sign In →';btn.disabled=false;
   }
+}
+
+async function authSignUp(){
+  var email = document.getElementById('signup-email').value.trim();
+  var pass = document.getElementById('signup-password').value;
+  var name = document.getElementById('signup-name').value.trim();
+  var errEl = document.getElementById('signupError');
+  var btn = document.getElementById('authSignUpBtn');
+  if(!email||!pass){errEl.textContent='Please enter your email and password.';errEl.style.display='block';return;}
+  if(pass.length<6){errEl.textContent='Password must be at least 6 characters.';errEl.style.display='block';return;}
+  btn.textContent='Creating account…';btn.disabled=true;errEl.style.display='none';
+  try{
+    var r = await fetch(SUPA_URL+'/auth/v1/signup',{
+      method:'POST',
+      headers:{'apikey':SUPA_KEY,'Content-Type':'application/json'},
+      body:JSON.stringify({email:email,password:pass})
+    });
+    var data = await r.json();
+    if(!r.ok) throw new Error(data.error_description||data.msg||'Sign up failed.');
+    if(data.access_token){
+      _authSession=data;_userId=data.user.id;
+      localStorage.setItem('dd_session',JSON.stringify(data));
+      // Pre-fill name from signup
+      if(name){document.getElementById('setup-name').value=name;}
+      // Go to step 2 — API keys
+      showSetupStep(2);
+    } else {
+      // Email confirmation required
+      errEl.style.color='var(--green)';
+      errEl.textContent='Account created! Check your email to confirm it, then sign in.';
+      errEl.style.display='block';
+      btn.textContent='Create Account →';btn.disabled=false;
+      setTimeout(showAuthLogin, 2000);
+    }
+  }catch(e){
+    errEl.textContent=e.message;errEl.style.display='block';
+    btn.textContent='Create Account →';btn.disabled=false;
+  }
+}
+
+function onAuthSuccess(){
+  // Legacy — not used in new flow
+}
+
+function loadApiKeysFromCloud(){
+  // Load Groq key from cloud appConfig into localStorage for hasGroq() check
+  var s=getS();
+  var cfg=s.appConfig||{};
+  if(cfg.groqKey){localStorage.setItem('dd_groq',cfg.groqKey);}
+  if(cfg.gcalClientId){
+    GCAL_CLIENT_ID=cfg.gcalClientId;
+    localStorage.setItem('dd_gcal_client_id',cfg.gcalClientId);
+    initGCalTokenClient();
+  }
+  // Restore saved GCal token if still valid
+  var savedToken=localStorage.getItem('dd_gcal_token');
+  var savedExpiry=parseInt(localStorage.getItem('dd_gcal_token_expiry')||'0');
+  if(savedToken && Date.now()<savedExpiry){
+    GCAL_TOKEN=savedToken;GCAL_TOKEN_EXPIRY=savedExpiry;
+  }
+}
+
+function launchApp(){
+  document.getElementById('setup-screen').style.display='none';
+  document.getElementById('mainApp').style.display='grid';
+  document.getElementById('fab').style.display='flex';
+  initTheme();
+  initApp();
+}
+
+function authSignOut(){
+  if(_authSession){
+    fetch(SUPA_URL+'/auth/v1/logout',{
+      method:'POST',
+      headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+_authSession.access_token}
+    }).catch(function(){});
+  }
+  _authSession=null;_userId=null;
+  localStorage.removeItem('dd_session');
+  clearInterval(_realtimeTimer);
+  document.getElementById('mainApp').style.display='none';
+  document.getElementById('fab').style.display='none';
+  document.getElementById('setup-screen').style.display='flex';
+  showAuthLogin();
+  showToast('Signed out','info');
+}
+
+// Refresh token before it expires (tokens last 1 hour)
+async function refreshAuthToken(){
+  if(!_authSession||!_authSession.refresh_token)return;
+  try{
+    var r=await fetch(SUPA_URL+'/auth/v1/token?grant_type=refresh_token',{
+      method:'POST',
+      headers:{'apikey':SUPA_KEY,'Content-Type':'application/json'},
+      body:JSON.stringify({refresh_token:_authSession.refresh_token})
+    });
+    if(!r.ok)return;
+    var data=await r.json();
+    _authSession=data;_userId=data.user.id;
+    localStorage.setItem('dd_session',JSON.stringify(data));
+  }catch(e){}
+}
+// Refresh token every 45 minutes
+setInterval(refreshAuthToken, 45*60*1000);
+
+// ── DATA SYNC ───────────────────────────────────
+
+function pushToSupabase(data){
+  if(!_userId) return;
+  clearTimeout(_syncTimer);
+  _syncTimer = setTimeout(async function(){
+    _syncStatus = 'syncing';
+    updateSyncIndicator();
+    try{
+      var r = await fetch(SUPA_URL+'/rest/v1/app_data',{
+        method:'POST',
+        headers:Object.assign({},supaHeaders(true),{'Prefer':'resolution=merge-duplicates,return=minimal'}),
+        body:JSON.stringify({id:_userId, data:data, updated_at:new Date().toISOString()})
+      });
+      _syncStatus = r.ok ? 'idle' : 'error';
+    }catch(e){_syncStatus='error';}
+    updateSyncIndicator();
+  }, 1500);
+}
+
+async function pullFromSupabase(){
+  if(!_userId) return null;
+  try{
+    var r = await fetch(SUPA_URL+'/rest/v1/app_data?id=eq.'+encodeURIComponent(_userId)+'&select=data,updated_at',{
+      headers:supaHeaders(true)
+    });
+    if(!r.ok) return null;
+    var rows = await r.json();
+    if(rows&&rows[0]&&rows[0].data&&Object.keys(rows[0].data).length>0){
+      _lastSyncedAt = rows[0].updated_at;
+      return rows[0].data;
+    }
+  }catch(e){console.warn('Supabase pull failed:',e.message);}
   return null;
+}
+
+// Poll every 30 seconds — if remote is newer, merge and re-render current view
+function startRealtimePolling(){
+  clearInterval(_realtimeTimer);
+  _realtimeTimer = setInterval(async function(){
+    if(!_userId||document.hidden) return; // don't poll when tab is hidden
+    try{
+      var r = await fetch(SUPA_URL+'/rest/v1/app_data?id=eq.'+encodeURIComponent(_userId)+'&select=updated_at',{
+        headers:supaHeaders(true)
+      });
+      if(!r.ok) return;
+      var rows = await r.json();
+      if(!rows||!rows[0]) return;
+      var remoteTime = rows[0].updated_at;
+      // Only pull full data if remote is newer than our last push
+      if(_lastSyncedAt && remoteTime <= _lastSyncedAt) return;
+      var full = await pullFromSupabase();
+      if(full){
+        var local = getS();
+        // Merge: take whichever is newer per-key by comparing arrays lengths/content
+        // For safety, remote wins — user is editing on another device
+        localStorage.setItem('dd_v2', JSON.stringify(full));
+        _lastSyncedAt = remoteTime;
+        // Re-render current view silently
+        refreshCurrentView();
+        updateSyncIndicator();
+      }
+    }catch(e){}
+  }, 30000);
+}
+
+function refreshCurrentView(){
+  var renders={
+    morning:function(){if(typeof renderMorning==='function')renderMorning();},
+    calendar:function(){if(typeof renderCalendar==='function')renderCalendar();},
+    tasks:function(){if(typeof renderTasks==='function')renderTasks();},
+    habits:function(){if(typeof renderHabits==='function')renderHabits();},
+    notes:function(){if(typeof renderNotes==='function')renderNotes();},
+    vault:function(){if(typeof renderVault==='function')renderVault();},
+    gpa:function(){if(typeof renderGPA==='function')renderGPA();},
+    expenses:function(){if(typeof renderExpenses==='function')renderExpenses();},
+    captures:function(){if(typeof renderCaptures==='function')renderCaptures();},
+    analytics:function(){if(typeof renderAnalytics==='function')renderAnalytics();},
+    reading:function(){if(typeof renderReadingList==='function')renderReadingList();}
+  };
+  var fn=renders[currentView];
+  if(fn)fn();
+  updateSidebarStats();
 }
 
 function updateSyncIndicator(){
   var el = document.getElementById('syncIndicator');
   if(!el) return;
   var icons = {idle:'☁️', syncing:'⟳', error:'⚠️'};
-  var tips = {idle:'Synced to cloud', syncing:'Syncing...', error:'Sync error — data saved locally'};
-  el.textContent = icons[_syncStatus];
-  el.title = tips[_syncStatus];
+  var tips = {idle:'Synced · '+(_authSession?_authSession.user.email:''), syncing:'Syncing…', error:'Sync error — saved locally'};
+  el.textContent = icons[_syncStatus]||'☁️';
+  el.title = tips[_syncStatus]||'';
   el.style.color = _syncStatus==='error'?'var(--red)':_syncStatus==='syncing'?'var(--gold)':'var(--green)';
 }
 
@@ -4840,7 +5199,6 @@ function initApp(){
   applyAppConfig();
   updateSyncIndicator();
 
-  // Render immediately from local cache (fast)
   checkStreak();
   setTimeout(checkDeadlineCountdown, 2000);
   updateSidebarStats();
@@ -4851,20 +5209,25 @@ function initApp(){
   }
   renderMorning();
 
-  // Then pull from Supabase in background and refresh if newer data found
-  _syncStatus = 'syncing';
-  updateSyncIndicator();
-  pullFromSupabase().then(function(remote){
-    if(remote){
-      renderNav();
-      applyAppConfig();
-      updateSidebarStats();
-      if(currentView==='morning')renderMorning();
-      showToast('☁️ Synced from cloud', 'success');
-    }
-    _syncStatus = 'idle';
+  // Pull from Supabase then refresh
+  if(_userId){
+    _syncStatus='syncing';
     updateSyncIndicator();
-  });
+    pullFromSupabase().then(function(remote){
+      if(remote){
+        localStorage.setItem('dd_v2',JSON.stringify(remote));
+        _lastSyncedAt=new Date().toISOString();
+        renderNav();applyAppConfig();updateSidebarStats();
+        if(currentView==='morning')renderMorning();
+      }
+      _syncStatus='idle';
+      updateSyncIndicator();
+    });
+    // Start 30-second polling for real-time cross-device sync
+    startRealtimePolling();
+    // Auto-sync GCal events if connected
+    if(GCAL_TOKEN) setTimeout(fetchGCalEvents, 3000);
+  }
 }
 
 
@@ -5301,168 +5664,226 @@ function switchToDayPlanner(dateStr) {
 // ═══════════════════════════════════════════════
 // GOOGLE CALENDAR INTEGRATION
 // ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════════
+// GOOGLE CALENDAR — GSI Token Client (works from static HTML)
+// ═══════════════════════════════════════════════
+// SETUP: You need a Google Cloud project with Calendar API enabled.
+// Create OAuth 2.0 credentials (Web application type).
+// Add your app URL to "Authorised JavaScript origins".
+// Paste your Client ID below.
 var GCAL_CLIENT_ID = localStorage.getItem('dd_gcal_client_id') || '';
 var GCAL_TOKEN = localStorage.getItem('dd_gcal_token') || '';
+var GCAL_TOKEN_EXPIRY = parseInt(localStorage.getItem('dd_gcal_token_expiry')||'0');
+var _gcalTokenClient = null;
+var _gcalSyncInterval = null;
 
-function isGCalConnected() {
-  return !!GCAL_TOKEN;
+function isGCalConnected(){
+  return !!GCAL_TOKEN && Date.now() < GCAL_TOKEN_EXPIRY;
 }
 
-function connectGoogleCalendar() {
-  var clientId = prompt('Enter your Google OAuth Client ID:\n(See setup instructions in the app)');
-  if (!clientId) return;
-  localStorage.setItem('dd_gcal_client_id', clientId);
-  GCAL_CLIENT_ID = clientId;
-
-  var redirectUri = window.location.origin + window.location.pathname;
-  var scope = 'https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/calendar.events';
-  var authUrl = 'https://accounts.google.com/o/oauth2/v2/auth' +
-    '?client_id=' + encodeURIComponent(clientId) +
-    '&redirect_uri=' + encodeURIComponent(redirectUri) +
-    '&response_type=token' +
-    '&scope=' + encodeURIComponent(scope) +
-    '&prompt=consent';
-  window.location.href = authUrl;
-}
-
-function disconnectGCal() {
-  localStorage.removeItem('dd_gcal_token');
-  localStorage.removeItem('dd_gcal_client_id');
-  GCAL_TOKEN = '';
-  GCAL_CLIENT_ID = '';
-  showToast('Google Calendar disconnected', 'info');
-  if (currentView === 'calendar') renderCalendar();
-}
-
-// Handle OAuth redirect token
-function handleGCalRedirect() {
-  var hash = window.location.hash;
-  if (hash && hash.includes('access_token')) {
-    var params = new URLSearchParams(hash.slice(1));
-    var token = params.get('access_token');
-    if (token) {
-      localStorage.setItem('dd_gcal_token', token);
-      GCAL_TOKEN = token;
-      window.location.hash = '';
-      showToast('Google Calendar connected!', 'success');
+function initGCalTokenClient(){
+  if(!GCAL_CLIENT_ID) return;
+  if(typeof google === 'undefined' || !google.accounts) return;
+  _gcalTokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: GCAL_CLIENT_ID,
+    scope: 'https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/calendar.events',
+    callback: function(response){
+      if(response.error){showToast('Google Calendar auth failed: '+response.error,'error');return;}
+      GCAL_TOKEN = response.access_token;
+      // Tokens last 1 hour
+      GCAL_TOKEN_EXPIRY = Date.now() + (response.expires_in||3600)*1000;
+      localStorage.setItem('dd_gcal_token', GCAL_TOKEN);
+      localStorage.setItem('dd_gcal_token_expiry', String(GCAL_TOKEN_EXPIRY));
+      updateGCalUI();
+      showToast('Google Calendar connected!','success');
       fetchGCalEvents();
+      startGCalAutoSync();
+    }
+  });
+}
+
+function connectGoogleCalendar(){
+  if(!GCAL_CLIENT_ID){
+    var clientId = prompt('Paste your Google OAuth 2.0 Client ID:\n\nGet it from console.cloud.google.com → APIs & Services → Credentials\nCreate "OAuth 2.0 Client ID" (Web application type)\nAdd your app URL to Authorised JavaScript origins');
+    if(!clientId||!clientId.trim()) return;
+    GCAL_CLIENT_ID = clientId.trim();
+    localStorage.setItem('dd_gcal_client_id', GCAL_CLIENT_ID);
+    initGCalTokenClient();
+  }
+  if(!_gcalTokenClient){initGCalTokenClient();}
+  if(!_gcalTokenClient){showToast('Google sign-in library not loaded yet. Try again in a moment.','error');return;}
+  _gcalTokenClient.requestAccessToken({prompt: 'consent'});
+}
+
+function disconnectGCal(){
+  if(GCAL_TOKEN && typeof google!=='undefined' && google.accounts){
+    google.accounts.oauth2.revoke(GCAL_TOKEN, function(){});
+  }
+  GCAL_TOKEN=''; GCAL_TOKEN_EXPIRY=0;
+  localStorage.removeItem('dd_gcal_token');
+  localStorage.removeItem('dd_gcal_token_expiry');
+  clearInterval(_gcalSyncInterval);
+  // Remove GCal events from local store
+  var s=getS();
+  saveS({events:(s.events||[]).filter(function(e){return !e.fromGCal;})});
+  showToast('Google Calendar disconnected','info');
+  updateGCalUI();
+  if(currentView==='calendar') renderCalendar();
+}
+
+function handleGCalRedirect(){
+  // Legacy handler — no-op in new GSI flow
+  // GSI handles the token exchange in the callback above
+}
+
+async function fetchGCalEvents(){
+  if(!GCAL_TOKEN) return;
+  // If token expired, try to refresh silently
+  if(Date.now() > GCAL_TOKEN_EXPIRY - 60000){
+    if(_gcalTokenClient){
+      _gcalTokenClient.requestAccessToken({prompt:''});
+      return; // callback will re-call fetchGCalEvents
     }
   }
-}
-
-async function fetchGCalEvents() {
-  if (!GCAL_TOKEN) return;
-  try {
+  try{
+    showToast('Syncing Google Calendar…','info');
     var now = new Date().toISOString();
-    var end = new Date(Date.now() + 365 * 86400000).toISOString();
-
-    // Step 1: fetch all calendars the user has access to
+    var end = new Date(Date.now() + 365*86400000).toISOString();
+    // Fetch calendar list
     var calListRes = await fetch(
       'https://www.googleapis.com/calendar/v3/users/me/calendarList?minAccessRole=reader',
-      {headers: {Authorization: 'Bearer ' + GCAL_TOKEN}}
+      {headers:{Authorization:'Bearer '+GCAL_TOKEN}}
     );
-    if (calListRes.status === 401) {
-      localStorage.removeItem('dd_gcal_token');
-      GCAL_TOKEN = '';
-      showToast('Google Calendar session expired. Please reconnect.', 'error');
+    if(calListRes.status===401){
+      GCAL_TOKEN=''; localStorage.removeItem('dd_gcal_token');
+      updateGCalUI();
+      showToast('Google Calendar session expired — please reconnect','error');
       return;
     }
     var calListData = await calListRes.json();
-    var calendars = calListData.items || [];
+    var calendars = calListData.items||[];
 
-    // Step 2: fetch events from every calendar in parallel
-    var allGcalEvents = [];
-    await Promise.all(calendars.map(async function(cal) {
-      try {
+    // Fetch events from all calendars in parallel
+    var allGcalEvents=[];
+    await Promise.all(calendars.map(async function(cal){
+      try{
         var res = await fetch(
-          'https://www.googleapis.com/calendar/v3/calendars/' + encodeURIComponent(cal.id) +
-          '/events?timeMin=' + encodeURIComponent(now) +
-          '&timeMax=' + encodeURIComponent(end) +
+          'https://www.googleapis.com/calendar/v3/calendars/'+encodeURIComponent(cal.id)+
+          '/events?timeMin='+encodeURIComponent(now)+
+          '&timeMax='+encodeURIComponent(end)+
           '&singleEvents=true&orderBy=startTime&maxResults=250',
-          {headers: {Authorization: 'Bearer ' + GCAL_TOKEN}}
+          {headers:{Authorization:'Bearer '+GCAL_TOKEN}}
         );
-        if (!res.ok) return;
+        if(!res.ok) return;
         var data = await res.json();
-        (data.items || []).forEach(function(item) {
-          var start = item.start.dateTime || item.start.date;
-          var startDate = start ? start.slice(0, 10) : '';
-          var startTime = item.start.dateTime ? item.start.dateTime.slice(11, 16) : '';
-          var endTime = item.end && item.end.dateTime ? item.end.dateTime.slice(11, 16) : '';
+        (data.items||[]).forEach(function(item){
+          if(item.status==='cancelled') return;
+          var start = item.start.dateTime||item.start.date;
+          var startDate = start?start.slice(0,10):'';
+          // Parse time in local timezone
+          var startTime='', endTime='';
+          if(item.start.dateTime){
+            var sd = new Date(item.start.dateTime);
+            startTime = sd.getHours().toString().padStart(2,'0')+':'+sd.getMinutes().toString().padStart(2,'0');
+          }
+          if(item.end&&item.end.dateTime){
+            var ed = new Date(item.end.dateTime);
+            endTime = ed.getHours().toString().padStart(2,'0')+':'+ed.getMinutes().toString().padStart(2,'0');
+          }
           allGcalEvents.push({
-            id: 'gcal_' + item.id,
-            title: item.summary || '(No title)',
-            date: startDate,
-            time: startTime,
-            endtime: endTime,
-            location: item.location || '',
-            notes: item.description || '',
-            calendarName: cal.summary || '',
-            color: cal.backgroundColor || '',
-            labelId: '',
-            fromGCal: true
+            id:'gcal_'+item.id,
+            title:item.summary||'(No title)',
+            date:startDate,
+            time:startTime,
+            endtime:endTime,
+            location:item.location||'',
+            notes:item.description||'',
+            calendarName:cal.summary||'',
+            colour:cal.backgroundColor||'',
+            labelId:'',
+            fromGCal:true,
+            gcalCalendarId:cal.id,
+            gcalEventId:item.id
           });
         });
-      } catch(e) { /* skip calendars that fail */ }
+      }catch(e){}
     }));
 
-    var s = getS();
-    var existing = (s.events || []).filter(function(e) { return !e.fromGCal; });
-    saveS({events: [...existing, ...allGcalEvents]});
-    showToast('Synced ' + allGcalEvents.length + ' events from ' + calendars.length + ' calendars', 'success');
-    if (currentView === 'calendar') renderCalendar();
-  } catch(e) {
-    showToast('Could not fetch Google Calendar events', 'error');
+    var s=getS();
+    var localEvents=(s.events||[]).filter(function(e){return !e.fromGCal;});
+    saveS({events:[...localEvents,...allGcalEvents]});
+    showToast('✓ Synced '+allGcalEvents.length+' events from '+calendars.length+' Google calendar'+(calendars.length!==1?'s':''),'success');
+    if(currentView==='calendar') renderCalendar();
+  }catch(e){
+    showToast('Could not sync Google Calendar: '+e.message,'error');
   }
 }
 
-async function addEventToGCal(ev) {
-  if (!GCAL_TOKEN) return;
-  try {
-    var startDateTime = ev.date + (ev.time ? 'T' + ev.time + ':00' : '');
-    var endDateTime = ev.date + (ev.endtime ? 'T' + ev.endtime + ':00' : ev.time ? 'T' + ev.time + ':00' : '');
-    var body = {
-      summary: ev.title,
-      location: ev.location || '',
-      description: ev.notes || '',
-      start: ev.time ? {dateTime: startDateTime, timeZone: 'Asia/Kuala_Lumpur'} : {date: ev.date},
-      end: ev.time ? {dateTime: endDateTime, timeZone: 'Asia/Kuala_Lumpur'} : {date: ev.date}
+// Auto-sync GCal every 15 minutes while app is open
+function startGCalAutoSync(){
+  clearInterval(_gcalSyncInterval);
+  if(!isGCalConnected()) return;
+  _gcalSyncInterval = setInterval(function(){
+    if(!document.hidden && isGCalConnected()) fetchGCalEvents();
+  }, 15*60*1000);
+}
+
+async function addEventToGCal(ev){
+  if(!GCAL_TOKEN) return;
+  try{
+    var MY_TZ = Intl.DateTimeFormat().resolvedOptions().timeZone||'Asia/Kuala_Lumpur';
+    var startDT = ev.date+(ev.time?'T'+ev.time+':00':'');
+    var endDT = ev.date+(ev.endtime?'T'+ev.endtime+':00':ev.time?'T'+ev.time+':00':'');
+    var body={
+      summary:ev.title,
+      location:ev.location||'',
+      description:ev.notes||'',
+      start:ev.time?{dateTime:startDT,timeZone:MY_TZ}:{date:ev.date},
+      end:ev.time?{dateTime:endDT,timeZone:MY_TZ}:{date:ev.date}
     };
-    await fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events', {
-      method: 'POST',
-      headers: {'Authorization': 'Bearer ' + GCAL_TOKEN, 'Content-Type': 'application/json'},
-      body: JSON.stringify(body)
+    var r=await fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events',{
+      method:'POST',
+      headers:{'Authorization':'Bearer '+GCAL_TOKEN,'Content-Type':'application/json'},
+      body:JSON.stringify(body)
     });
-    showToast('Added to Google Calendar!', 'success');
-  } catch(e) {
-    showToast('Could not add to Google Calendar', 'error');
-  }
+    if(r.ok) showToast('Added to Google Calendar!','success');
+    else showToast('Could not add to Google Calendar','error');
+  }catch(e){showToast('Error: '+e.message,'error');}
 }
 
-
-function handleGCalBtn() {
-  if (isGCalConnected()) {
-    if (confirm('Google Calendar is connected. Disconnect?')) disconnectGCal();
+function handleGCalBtn(){
+  if(isGCalConnected()){
+    if(confirm('Google Calendar is connected. Disconnect?')) disconnectGCal();
   } else {
     connectGoogleCalendar();
   }
 }
 
-function updateGCalUI() {
-  var btn = document.getElementById('gcalBtn');
-  var sync = document.getElementById('gcalSync');
-  if (!btn) return;
-  if (isGCalConnected()) {
-    btn.textContent = '☁️ Connected';
-    btn.style.color = 'var(--green)';
-    btn.style.borderColor = 'var(--green)';
-    if (sync) sync.style.display = 'inline-flex';
+function updateGCalUI(){
+  var btn=document.getElementById('gcalBtn');
+  var sync=document.getElementById('gcalSync');
+  if(!btn) return;
+  if(isGCalConnected()){
+    btn.textContent='☁️ GCal ✓';
+    btn.style.color='var(--green)';
+    btn.style.borderColor='var(--green)';
+    if(sync)sync.style.display='inline-flex';
   } else {
-    btn.textContent = '☁️ Google Cal';
-    btn.style.color = '';
-    btn.style.borderColor = '';
-    if (sync) sync.style.display = 'none';
+    btn.textContent='☁️ Google Cal';
+    btn.style.color='';
+    btn.style.borderColor='';
+    if(sync)sync.style.display='none';
   }
 }
+
+// Init GSI after page loads
+window.addEventListener('load', function(){
+  setTimeout(function(){
+    if(GCAL_CLIENT_ID) initGCalTokenClient();
+    if(isGCalConnected()) startGCalAutoSync();
+    updateGCalUI();
+  }, 1000);
+});
 
 
 
@@ -6298,20 +6719,21 @@ function saveSettings() {
   var accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#b85c38';
   var sidebarWidth = document.getElementById('cfg-sidebar-width').value;
 
-  if (groq) localStorage.setItem('dd_groq', groq);
+  if(groq) localStorage.setItem('dd_groq', groq);
 
   var s = getS();
-  var cfg = Object.assign({}, s.appConfig || {}, {
-    name: name, subtitle: subtitle, accent: accent, sidebarWidth: parseInt(sidebarWidth)
+  var cfg = Object.assign({}, s.appConfig||{}, {
+    name: name, subtitle: subtitle, accent: accent,
+    sidebarWidth: parseInt(sidebarWidth),
+    groqKey: groq||s.appConfig&&s.appConfig.groqKey||''
   });
   saveS({appConfig: cfg});
 
-  // Apply name/subtitle
-  if (name) { var bn = document.querySelector('.brand-name'); if(bn) bn.textContent = name + "'s Dashboard"; }
-  if (subtitle) { var bs = document.querySelector('.brand-sub'); if(bs) bs.textContent = subtitle; }
+  if(name){var bn=document.querySelector('.brand-name');if(bn)bn.textContent=name+"'s Dashboard";}
+  if(subtitle){var bs=document.querySelector('.brand-sub');if(bs)bs.textContent=subtitle;}
 
   closeModal('settingsModal');
-  showToast('Settings saved!', 'success');
+  showToast('Settings saved to your account!','success');
 }
 
 function applyAppConfig() {
@@ -6376,12 +6798,13 @@ async function deletePdfFromSupabase(pdfId){
 function openColourPanel(){
   renderLabelColourList();
   document.getElementById('colourPanel').classList.add('open');
+  // Sync slider to saved zoom
   var s=getS();
-  var sz=(s.appConfig||{}).fontSize||'small';
-  ['small','medium','large'].forEach(function(m){
-    var btn=document.getElementById('size-'+m);
-    if(btn)btn.classList.toggle('active',m===sz);
-  });
+  var zoom=(s.appConfig||{}).fontZoom||100;
+  var sl=document.getElementById('fontSizeSlider');
+  if(sl)sl.value=zoom;
+  var lbl=document.getElementById('sizePreviewLabel');
+  if(lbl)lbl.textContent=zoomLabel(zoom);
 }
 
 function closeColourPanel(){
@@ -6417,31 +6840,59 @@ function updateLabelColour(lblId, newColour){
   showToast('Colour updated!','success');
 }
 
-function setFontSize(mode){
-  ['small','medium','large'].forEach(function(m){
-    var btn=document.getElementById('size-'+m);
-    if(btn)btn.classList.toggle('active',m===mode);
-    var btn2=document.getElementById('cfg-size-'+m);
-    if(btn2)btn2.classList.toggle('active',m===mode);
-  });
-  // small = default (no overrides), medium/large apply CSS
-  document.body.setAttribute('data-size', mode==='small'?'':mode);
+function zoomLabel(pct){
+  pct=parseInt(pct);
+  if(pct<=85)return pct+'% — Very Small';
+  if(pct<=95)return pct+'% — Small';
+  if(pct<=105)return pct+'% — Default';
+  if(pct<=115)return pct+'% — Medium';
+  if(pct<=125)return pct+'% — Large';
+  if(pct<=135)return pct+'% — Extra Large';
+  return pct+'% — Maximum';
+}
+
+function applyZoomFromSlider(val, fromSettings){
+  val=parseInt(val);
+  // Apply zoom to the entire app wrapper
+  var app=document.getElementById('mainApp');
+  var body=document.body;
+  // Use zoom on body — scales everything uniformly
+  body.style.zoom=(val/100);
+  // Sync both sliders
+  var s1=document.getElementById('fontSizeSlider');
+  var s2=document.getElementById('cfg-fontSizeSlider');
+  if(s1)s1.value=val;
+  if(s2)s2.value=val;
+  // Update labels
+  var lbl=zoomLabel(val);
+  var l1=document.getElementById('sizePreviewLabel');
+  var l2=document.getElementById('cfg-sizePreviewLabel');
+  if(l1)l1.textContent=lbl;
+  if(l2)l2.textContent=lbl;
+  // Persist
   var s=getS();
-  var cfg=Object.assign({},s.appConfig||{},{fontSize:mode});
+  var cfg=Object.assign({},s.appConfig||{},{fontZoom:val});
   saveS({appConfig:cfg});
 }
 
 function applyFontSize(){
   var s=getS();
-  var mode=(s.appConfig||{}).fontSize||'small';
-  document.body.setAttribute('data-size', mode==='small'?'':mode);
-  ['small','medium','large'].forEach(function(m){
-    var btn=document.getElementById('size-'+m);
-    if(btn)btn.classList.toggle('active',m===mode);
-    var btn2=document.getElementById('cfg-size-'+m);
-    if(btn2)btn2.classList.toggle('active',m===mode);
-  });
+  var zoom=(s.appConfig||{}).fontZoom||100;
+  document.body.style.zoom=(zoom/100);
+  // Sync sliders
+  var s1=document.getElementById('fontSizeSlider');
+  var s2=document.getElementById('cfg-fontSizeSlider');
+  if(s1)s1.value=zoom;
+  if(s2)s2.value=zoom;
+  var lbl=zoomLabel(zoom);
+  var l1=document.getElementById('sizePreviewLabel');
+  var l2=document.getElementById('cfg-sizePreviewLabel');
+  if(l1)l1.textContent=lbl;
+  if(l2)l2.textContent=lbl;
 }
+
+// Keep setFontSize as no-op for any remaining legacy calls
+function setFontSize(mode){}
 
 // ═══════════════════════════════════════════════
 // FOCUS TIMER ALARM SOUND
@@ -7482,16 +7933,21 @@ function renderMorning(){
   renderMoodForToday();
 }
 
-// Boot — always launch the app. Show setup screen as first-time welcome if no Groq key yet.
+// Boot — check for existing auth session first
 initTheme();
 applyFontSize();
-if(!hasGroq()){
-  document.getElementById('setup-screen').style.display='flex';
-} else {
+if(_authSession && _userId){
+  // Already logged in — load API keys from cloud and go straight to app
   document.getElementById('setup-screen').style.display='none';
   document.getElementById('mainApp').style.display='grid';
   document.getElementById('fab').style.display='flex';
+  loadApiKeysFromCloud();
   initApp();
+} else {
+  // Show login screen
+  document.getElementById('setup-screen').style.display='flex';
+  showAuthLogin();
+  showSetupStep(1);
 }
 </script>
 </body>
