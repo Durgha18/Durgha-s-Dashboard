@@ -6846,8 +6846,21 @@ function renderLabelColourList(){
       '<span class="label-colour-icon">'+(lbl.icon||'🏷️')+'</span>'+
       '<span class="label-colour-name">'+esc(lbl.name)+'</span>'+
       '<input type="color" class="label-colour-input" value="'+col+'" title="Pick colour for '+esc(lbl.name)+'" onchange="updateLabelColour(\''+lbl.id+'\',this.value)"/>'+
+      '<button onclick="deleteLabel(\''+lbl.id+'\')" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:13px;padding:2px 6px;border-radius:4px;transition:all 0.15s" title="Delete label" onmouseover="this.style.color=\'var(--red)\'" onmouseout="this.style.color=\'var(--text3)\'">✕</button>'+
     '</div>';
   }).join('');
+}
+
+function deleteLabel(id){
+  var s=getS();
+  var lbl=s.labels.find(function(l){return l.id===id;});
+  if(!lbl)return;
+  if(!confirm('Delete label "'+lbl.name+'"?\n\nEvents using this label will keep their colour but lose the label tag.'))return;
+  saveS({labels:s.labels.filter(function(l){return l.id!==id;})});
+  renderLabelColourList();
+  if(currentView==='calendar')renderCalendar();
+  if(currentView==='tasks')renderTasks();
+  showToast('Label deleted','info');
 }
 
 function updateLabelColour(lblId, newColour){
