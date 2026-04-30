@@ -3390,9 +3390,10 @@ function openEditEvent(id){
 function saveEditEvent(){
   const id=document.getElementById('edit-ev-id').value;
   const s=getS();
+  var updatedEv=null;
   const events=s.events.map(function(e){
     if(e.id!==id)return e;
-    return Object.assign({},e,{
+    updatedEv=Object.assign({},e,{
       title:document.getElementById('edit-ev-title').value.trim(),
       date:document.getElementById('edit-ev-date').value,
       time:document.getElementById('edit-ev-time').value,
@@ -3401,10 +3402,19 @@ function saveEditEvent(){
       location:document.getElementById('edit-ev-location').value,
       notes:document.getElementById('edit-ev-notes').value
     });
+    return updatedEv;
   });
   saveS({events:events});
   closeModal('editEventModal');
   showToast('Event updated!','success');
+  // Push to Google Calendar if connected and this is a local event
+  if(isGCalConnected()&&updatedEv&&!updatedEv.fromGCal){
+    if(updatedEv.gcalEventId){
+      updateGCalEvent(updatedEv);
+    } else {
+      addEventToGCal(updatedEv);
+    }
+  }
   if(currentView==='calendar')renderCalendar();
 }
 
@@ -3802,6 +3812,8 @@ function saveEvent(){
   document.getElementById('ev-recurring-end-wrap').style.display='none';
   window._evChosenColour=null;
   showToast('Event added!','success');
+  // Push to Google Calendar if connected
+  if(isGCalConnected()) addEventToGCal(ev);
   if(currentView==='calendar')renderCalendar();
 }
 
@@ -5701,9 +5713,39 @@ async function addEventToGCal(ev){
       headers:{'Authorization':'Bearer '+GCAL_TOKEN,'Content-Type':'application/json'},
       body:JSON.stringify(body)
     });
-    if(r.ok) showToast('Added to Google Calendar!','success');
-    else showToast('Could not add to Google Calendar','error');
-  }catch(e){showToast('Error: '+e.message,'error');}
+    if(r.ok){
+      var created=await r.json();
+      // Save GCal event ID back to local event so future edits can update it
+      var s=getS();
+      var events=s.events.map(function(e){
+        return e.id===ev.id?Object.assign({},e,{gcalEventId:created.id}):e;
+      });
+      saveS({events:events});
+    } else {
+      showToast('Could not add to Google Calendar','error');
+    }
+  }catch(e){showToast('Error syncing to GCal: '+e.message,'error');}
+}
+
+async function updateGCalEvent(ev){
+  if(!GCAL_TOKEN||!ev.gcalEventId) return;
+  try{
+    var MY_TZ=Intl.DateTimeFormat().resolvedOptions().timeZone||'Asia/Kuala_Lumpur';
+    var startDT=ev.date+(ev.time?'T'+ev.time+':00':'');
+    var endDT=ev.date+(ev.endtime?'T'+ev.endtime+':00':ev.time?'T'+ev.time+':00':'');
+    var body={
+      summary:ev.title,
+      location:ev.location||'',
+      description:ev.notes||'',
+      start:ev.time?{dateTime:startDT,timeZone:MY_TZ}:{date:ev.date},
+      end:ev.time?{dateTime:endDT,timeZone:MY_TZ}:{date:ev.date}
+    };
+    await fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events/'+encodeURIComponent(ev.gcalEventId),{
+      method:'PATCH',
+      headers:{'Authorization':'Bearer '+GCAL_TOKEN,'Content-Type':'application/json'},
+      body:JSON.stringify(body)
+    });
+  }catch(e){console.warn('GCal update failed:',e.message);}
 }
 
 function showGCalExpiredBanner(){
