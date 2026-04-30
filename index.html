@@ -2195,21 +2195,22 @@ function onAuthSuccess(){
 }
 
 function loadApiKeysFromCloud(){
-  // Load Groq key from cloud appConfig into localStorage for hasGroq() check
   var s=getS();
   var cfg=s.appConfig||{};
   if(cfg.groqKey){localStorage.setItem('dd_groq',cfg.groqKey);}
   if(cfg.gcalClientId){
     GCAL_CLIENT_ID=cfg.gcalClientId;
     localStorage.setItem('dd_gcal_client_id',cfg.gcalClientId);
-    initGCalTokenClient();
   }
   // Restore saved GCal token if still valid
   var savedToken=localStorage.getItem('dd_gcal_token');
   var savedExpiry=parseInt(localStorage.getItem('dd_gcal_token_expiry')||'0');
   if(savedToken && Date.now()<savedExpiry){
-    GCAL_TOKEN=savedToken;GCAL_TOKEN_EXPIRY=savedExpiry;
+    GCAL_TOKEN=savedToken;
+    GCAL_TOKEN_EXPIRY=savedExpiry;
   }
+  // Always init token client — it retries until GSI is ready
+  if(GCAL_CLIENT_ID) initGCalTokenClient();
 }
 
 function launchApp(){
@@ -5547,16 +5548,23 @@ function isGCalConnected(){
   return !!GCAL_TOKEN && Date.now() < GCAL_TOKEN_EXPIRY;
 }
 
+// Retry GSI init until google.accounts is available (async defer can load late)
 function initGCalTokenClient(){
   if(!GCAL_CLIENT_ID) return;
-  if(typeof google === 'undefined' || !google.accounts) return;
+  if(typeof google === 'undefined' || !google.accounts || !google.accounts.oauth2){
+    // GSI not ready yet — retry in 500ms
+    setTimeout(initGCalTokenClient, 500);
+    return;
+  }
   _gcalTokenClient = google.accounts.oauth2.initTokenClient({
     client_id: GCAL_CLIENT_ID,
     scope: 'https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/calendar.events',
     callback: function(response){
-      if(response.error){showToast('Google Calendar auth failed: '+response.error,'error');return;}
+      if(response.error){
+        showToast('Google Calendar: '+response.error,'error');
+        return;
+      }
       GCAL_TOKEN = response.access_token;
-      // Tokens last 1 hour
       GCAL_TOKEN_EXPIRY = Date.now() + (response.expires_in||3600)*1000;
       localStorage.setItem('dd_gcal_token', GCAL_TOKEN);
       localStorage.setItem('dd_gcal_token_expiry', String(GCAL_TOKEN_EXPIRY));
@@ -5566,6 +5574,11 @@ function initGCalTokenClient(){
       startGCalAutoSync();
     }
   });
+  // If we already have a valid token, just update UI and start auto-sync
+  if(isGCalConnected()){
+    updateGCalUI();
+    startGCalAutoSync();
+  }
 }
 
 function connectGoogleCalendar(){
@@ -5574,11 +5587,25 @@ function connectGoogleCalendar(){
     if(!clientId||!clientId.trim()) return;
     GCAL_CLIENT_ID = clientId.trim();
     localStorage.setItem('dd_gcal_client_id', GCAL_CLIENT_ID);
-    initGCalTokenClient();
   }
-  if(!_gcalTokenClient){initGCalTokenClient();}
-  if(!_gcalTokenClient){showToast('Google sign-in library not loaded yet. Try again in a moment.','error');return;}
-  _gcalTokenClient.requestAccessToken({prompt: 'consent'});
+  // If token client not ready yet, init it first then retry
+  if(!_gcalTokenClient){
+    initGCalTokenClient();
+    // Wait for init then open popup
+    var attempts=0;
+    var wait=setInterval(function(){
+      attempts++;
+      if(_gcalTokenClient){
+        clearInterval(wait);
+        _gcalTokenClient.requestAccessToken({prompt:'consent'});
+      } else if(attempts>20){
+        clearInterval(wait);
+        showToast('Google sign-in library not ready. Try again in a moment.','error');
+      }
+    },300);
+    return;
+  }
+  _gcalTokenClient.requestAccessToken({prompt:'consent'});
 }
 
 function disconnectGCal(){
@@ -5603,13 +5630,17 @@ function handleGCalRedirect(){
 }
 
 async function fetchGCalEvents(){
-  if(!GCAL_TOKEN) return;
-  // If token expired, try to refresh silently
-  if(Date.now() > GCAL_TOKEN_EXPIRY - 60000){
-    if(_gcalTokenClient){
-      _gcalTokenClient.requestAccessToken({prompt:''});
-      return; // callback will re-call fetchGCalEvents
-    }
+  if(!GCAL_TOKEN){
+    showToast('Connect Google Calendar first','error');
+    return;
+  }
+  // If token expired, show reconnect banner instead of silent fail
+  if(Date.now() > GCAL_TOKEN_EXPIRY){
+    GCAL_TOKEN='';
+    localStorage.removeItem('dd_gcal_token');
+    updateGCalUI();
+    showGCalExpiredBanner();
+    return;
   }
   try{
     showToast('Syncing Google Calendar…','info');
@@ -5786,12 +5817,10 @@ function updateGCalUI(){
 }
 
 // Init GSI after page loads
+// Start GCal init as soon as possible — initGCalTokenClient retries until GSI is ready
 window.addEventListener('load', function(){
-  setTimeout(function(){
-    if(GCAL_CLIENT_ID) initGCalTokenClient();
-    if(isGCalConnected()) startGCalAutoSync();
-    updateGCalUI();
-  }, 1000);
+  if(GCAL_CLIENT_ID) initGCalTokenClient();
+  updateGCalUI();
 });
 
 
