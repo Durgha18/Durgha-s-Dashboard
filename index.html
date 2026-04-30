@@ -422,6 +422,10 @@ select.input{cursor:pointer;appearance:none;}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
 
 /* ── TEXT SIZE SLIDER (replaces old data-size modes) ── */
+/* Modals and overlays inherit zoom from mainApp via CSS variable */
+.modal-overlay,.colour-panel,.detail-page,.focus-overlay,.flashcard-overlay,.lecture-mode-overlay,.pdf-overlay{
+  zoom:var(--app-zoom,1);
+}
 .size-slider-wrap{display:flex;flex-direction:column;gap:6px;}
 .size-slider-row{display:flex;align-items:center;gap:10px;}
 .size-slider{-webkit-appearance:none;appearance:none;width:100%;height:4px;border-radius:2px;background:var(--border);outline:none;cursor:pointer;}
@@ -6886,9 +6890,26 @@ function zoomLabel(pct){
 
 function applyZoomFromSlider(val, fromSettings){
   val=parseInt(val);
-  // Use font-size on :root so rem units scale everything — works in all browsers including Safari
-  document.documentElement.style.fontSize=(val/100*16)+'px';
-  // Sync both sliders
+  document.documentElement.style.setProperty('--app-zoom', scale);
+  var app=document.getElementById('mainApp');
+  if(app){
+    // zoom works on non-body elements in all browsers including Safari
+    app.style.zoom=scale;
+    // transform scale fallback for any browser that doesn't support zoom
+    app.style.transform='scale('+scale+')';
+    app.style.transformOrigin='top left';
+    app.style.width=(100/scale)+'%';
+    app.style.height=(100/scale)+'vh';
+    // Reset if zoom is supported (cleaner rendering)
+    if('zoom' in app.style){
+      app.style.transform='';
+      app.style.width='';
+      app.style.height='';
+    }
+  }
+  // Also set root font-size for any rem-based elements
+  document.documentElement.style.fontSize=(scale*16)+'px';
+  // Sync sliders
   var s1=document.getElementById('fontSizeSlider');
   var s2=document.getElementById('cfg-fontSizeSlider');
   if(s1)s1.value=val;
@@ -6906,7 +6927,23 @@ function applyZoomFromSlider(val, fromSettings){
 function applyFontSize(){
   var s=getS();
   var zoom=(s.appConfig||{}).fontZoom||100;
-  document.documentElement.style.fontSize=(zoom/100*16)+'px';
+  var scale=zoom/100;
+  document.documentElement.style.setProperty('--app-zoom', scale);
+  var app=document.getElementById('mainApp');
+  if(app){
+    app.style.zoom=scale;
+    if('zoom' in app.style){
+      app.style.transform='';
+      app.style.width='';
+      app.style.height='';
+    } else {
+      app.style.transform='scale('+scale+')';
+      app.style.transformOrigin='top left';
+      app.style.width=(100/scale)+'%';
+      app.style.height=(100/scale)+'vh';
+    }
+  }
+  document.documentElement.style.fontSize=(scale*16)+'px';
   var s1=document.getElementById('fontSizeSlider');
   var s2=document.getElementById('cfg-fontSizeSlider');
   if(s1)s1.value=zoom;
