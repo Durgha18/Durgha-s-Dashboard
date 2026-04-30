@@ -40,10 +40,10 @@
 html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--sans);overflow:hidden;font-size:14px;}
 
 /* ── LAYOUT ── */
-.app{display:grid;grid-template-columns:220px 1fr;height:100vh;overflow:hidden;}
+.app{display:grid;grid-template-columns:220px 1fr;height:100%;overflow:hidden;}
 
 /* ── SIDEBAR ── */
-.sidebar{background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
+.sidebar{background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;overflow-x:hidden;min-height:0;height:100%;}
 .brand{padding:20px 18px 14px;border-bottom:1px solid var(--border);}
 .brand-name{font-family:var(--serif);font-size:15px;font-weight:700;color:var(--accent);}
 .brand-sub{font-size:9px;color:var(--text3);font-family:var(--mono);letter-spacing:0.08em;text-transform:uppercase;margin-top:2px;}
@@ -58,8 +58,10 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 .stat-label{font-size:8px;color:var(--text3);font-family:var(--mono);letter-spacing:0.05em;text-transform:uppercase;margin-top:2px;}
 
 /* Nav */
-.nav{flex:1;padding:8px 10px;overflow-y:auto;scrollbar-width:none;}
-.nav::-webkit-scrollbar{display:none;}
+.nav{flex:1;padding:8px 10px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--border2) transparent;}
+.nav::-webkit-scrollbar{width:4px;}
+.nav::-webkit-scrollbar-track{background:transparent;}
+.nav::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
 .nav-section{font-family:var(--mono);font-size:8px;letter-spacing:0.14em;text-transform:uppercase;color:var(--text3);padding:10px 8px 4px;}
 .nav-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:500;color:var(--text2);transition:all 0.15s;position:relative;margin-bottom:1px;user-select:none;}
 .nav-item:hover{background:var(--bg);color:var(--text);}
@@ -75,10 +77,10 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 .footer-btn:hover{border-color:var(--accent);color:var(--accent);}
 
 /* ── MAIN ── */
-.main{overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;scrollbar-color:var(--border2) transparent;background:var(--bg);}
+.main{overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;scrollbar-color:var(--border2) transparent;background:var(--bg);height:100%;min-height:0;}
 .main::-webkit-scrollbar{width:3px;}
 .main::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
-.view{display:none;min-height:100%;animation:fadeIn 0.2s ease both;}
+.view{display:none;min-height:100%;animation:fadeIn 0.2s ease both;padding-bottom:40px;}
 .view.active{display:block;}
 
 /* ── TOPBAR ── */
@@ -6890,38 +6892,28 @@ function zoomLabel(pct){
 
 function applyZoomFromSlider(val, fromSettings){
   val=parseInt(val);
+  var scale=val/100;
   document.documentElement.style.setProperty('--app-zoom', scale);
+  document.documentElement.style.fontSize=(scale*16)+'px';
   var app=document.getElementById('mainApp');
   if(app){
-    // zoom works on non-body elements in all browsers including Safari
-    app.style.zoom=scale;
-    // transform scale fallback for any browser that doesn't support zoom
-    app.style.transform='scale('+scale+')';
-    app.style.transformOrigin='top left';
-    app.style.width=(100/scale)+'%';
-    app.style.height=(100/scale)+'vh';
-    // Reset if zoom is supported (cleaner rendering)
-    if('zoom' in app.style){
-      app.style.transform='';
-      app.style.width='';
-      app.style.height='';
+    if(scale===1){
+      app.style.zoom=''; app.style.width=''; app.style.height='';
+    } else {
+      app.style.zoom=scale;
+      app.style.width=(100/scale)+'%';
+      app.style.height=(100/scale)+'vh';
     }
   }
-  // Also set root font-size for any rem-based elements
-  document.documentElement.style.fontSize=(scale*16)+'px';
-  // Sync sliders
   var s1=document.getElementById('fontSizeSlider');
   var s2=document.getElementById('cfg-fontSizeSlider');
-  if(s1)s1.value=val;
-  if(s2)s2.value=val;
+  if(s1)s1.value=val; if(s2)s2.value=val;
   var lbl=zoomLabel(val);
   var l1=document.getElementById('sizePreviewLabel');
   var l2=document.getElementById('cfg-sizePreviewLabel');
-  if(l1)l1.textContent=lbl;
-  if(l2)l2.textContent=lbl;
+  if(l1)l1.textContent=lbl; if(l2)l2.textContent=lbl;
   var s=getS();
-  var cfg=Object.assign({},s.appConfig||{},{fontZoom:val});
-  saveS({appConfig:cfg});
+  saveS({appConfig:Object.assign({},s.appConfig||{},{fontZoom:val})});
 }
 
 function applyFontSize(){
@@ -6929,33 +6921,28 @@ function applyFontSize(){
   var zoom=(s.appConfig||{}).fontZoom||100;
   var scale=zoom/100;
   document.documentElement.style.setProperty('--app-zoom', scale);
+  document.documentElement.style.fontSize=(scale*16)+'px';
   var app=document.getElementById('mainApp');
   if(app){
-    app.style.zoom=scale;
-    if('zoom' in app.style){
-      app.style.transform='';
-      app.style.width='';
-      app.style.height='';
+    if(scale===1){
+      app.style.zoom=''; app.style.width=''; app.style.height='';
     } else {
-      app.style.transform='scale('+scale+')';
-      app.style.transformOrigin='top left';
+      app.style.zoom=scale;
       app.style.width=(100/scale)+'%';
       app.style.height=(100/scale)+'vh';
     }
   }
-  document.documentElement.style.fontSize=(scale*16)+'px';
   var s1=document.getElementById('fontSizeSlider');
   var s2=document.getElementById('cfg-fontSizeSlider');
-  if(s1)s1.value=zoom;
-  if(s2)s2.value=zoom;
+  if(s1)s1.value=zoom; if(s2)s2.value=zoom;
   var lbl=zoomLabel(zoom);
   var l1=document.getElementById('sizePreviewLabel');
   var l2=document.getElementById('cfg-sizePreviewLabel');
-  if(l1)l1.textContent=lbl;
-  if(l2)l2.textContent=lbl;
+  if(l1)l1.textContent=lbl; if(l2)l2.textContent=lbl;
 }
 
 function setFontSize(mode){}
+
 
 // ═══════════════════════════════════════════════
 // FOCUS TIMER ALARM SOUND
