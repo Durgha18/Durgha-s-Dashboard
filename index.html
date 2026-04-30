@@ -1653,15 +1653,6 @@ select.input{cursor:pointer;appearance:none;}
             </div>
           </div>
         </div>
-
-        <!-- Daily quiz -->
-        <div class="card" id="morningQuizCard" style="display:none">
-          <div class="card-header">
-            <div class="card-title">📝 Daily Quiz</div>
-            <span style="font-size:10px;color:var(--text3);font-family:var(--mono)">Based on yesterday's reading</span>
-          </div>
-          <div id="morningQuizContent"></div>
-        </div>
       </div>
     </div>
 
@@ -1853,44 +1844,6 @@ select.input{cursor:pointer;appearance:none;}
     </div>
 
     <!-- DAILY BRIEF -->
-    <div class="view" id="view-brief">
-      <div class="topbar">
-        <div class="topbar-left">
-          <div class="topbar-title">Daily Brief</div>
-          <div class="topbar-sub">Deep analysis — not just headlines</div>
-        </div>
-      </div>
-      <div class="content">
-        <div style="display:flex;gap:5px;margin-bottom:16px;flex-wrap:wrap">
-          <button class="space-tab active" onclick="loadBriefTab('world',this)">🌍 World</button>
-          <button class="space-tab" onclick="loadBriefTab('finance',this)">📊 Finance</button>
-          <button class="space-tab" onclick="loadBriefTab('geo',this)">🌐 Geopolitics</button>
-        </div>
-        <div id="briefContent"></div>
-      </div>
-    </div>
-
-    <!-- RESEARCH -->
-    <div class="view" id="view-research">
-      <div class="topbar">
-        <div class="topbar-left">
-          <div class="topbar-title">Deep Research</div>
-          <div class="topbar-sub">Comprehensive answers, not Google snippets</div>
-        </div>
-      </div>
-      <div class="content">
-        <div style="display:flex;gap:8px;margin-bottom:16px">
-          <input class="input" id="researchInput" placeholder="Ask anything — 'What is WACC?', 'Explain DCF valuation', 'What is happening with US tariffs'..." onkeydown="if(event.key==='Enter')doResearch()"/>
-          <button class="btn btn-primary" onclick="doResearch()">Research →</button>
-        </div>
-        <div id="researchSuggestions">
-          <div class="card-label" style="margin-bottom:8px">Suggested for A&amp;F Year 2</div>
-          <div style="display:flex;flex-wrap:wrap;gap:6px" id="suggestionBtns"></div>
-        </div>
-        <div id="researchResult"></div>
-      </div>
-    </div>
-
     <!-- EXPENSES -->
     <div class="view" id="view-expenses">
       <div class="topbar">
@@ -2578,9 +2531,9 @@ function nav(view){
   const renders={
     morning:renderMorning,calendar:renderCalendar,tasks:renderTasks,
     habits:renderHabits,vault:renderVault,notes:renderNotes,
-    focus:renderFocus,gpa:renderGPA,brief:()=>loadBriefTab('world',document.querySelector('#view-brief .space-tab')),
+    focus:renderFocus,gpa:renderGPA,
     expenses:renderExpenses,captures:renderCaptures,
-    research:renderResearch,analytics:renderAnalytics,reading:renderReadingList
+    analytics:renderAnalytics,reading:renderReadingList
   };
   renders['planning'] = renderPlanning;
   if(renders[view])renders[view]();
@@ -2594,8 +2547,14 @@ function openModal(id){
   if(id==='eventModal'){populateLabelSelect('ev-label');document.getElementById('ev-date').value=new Date().toISOString().slice(0,10);}
   if(id==='labelModal'){renderColourOptions();}
   if(id==='noteModal'){populateNoteSubjectSelect();}
-  if(id==='gradePredModal'){/* populated by openGradePredictor */}
-  document.getElementById(id).classList.add('show');
+  var el=document.getElementById(id);
+  if(!el){console.warn('Modal not found:',id);return;}
+  el.classList.add('show');
+  // Auto-focus first input
+  setTimeout(function(){
+    var first=el.querySelector('input:not([type=hidden]):not([type=checkbox]):not([type=color])');
+    if(first)first.focus();
+  },80);
 }
 function closeModal(id){document.getElementById(id).classList.remove('show');}
 document.querySelectorAll('.modal-overlay').forEach(m=>m.addEventListener('click',function(e){if(e.target===this)this.classList.remove('show');}));
@@ -2766,10 +2725,11 @@ function renderMorning(){
     ?caps.map(function(c){return '<div style="padding:7px 0;border-bottom:1px solid var(--border);font-size:12px;color:var(--text2);line-height:1.5">'+c.text.slice(0,70)+(c.text.length>70?'...':'')+'</div>';}).join('')
     :'<div class="empty" style="padding:12px"><div class="empty-text">No captures yet</div></div>';
 
-  // Daily quiz
-  renderMorningQuiz();
   updateSidebarStats();
   renderWhatsNext();
+  renderDailyNoteButton();
+  renderExamCountdown();
+  renderMoodForToday();
 }
 
 function planTask(id){
@@ -3219,6 +3179,8 @@ function insertTableFromPicker(rows,cols){
 // ── AUTOSAVE ──
 var _autosaveTimer=null;
 function triggerAutosave(){
+  var ed=document.getElementById('richEditor');
+  if(ed)evalTableCalc(ed);
   clearTimeout(_autosaveTimer);
   _autosaveTimer=setTimeout(function(){
     saveDetailContent();
@@ -3348,6 +3310,7 @@ function handleEditorInput(){
   }
 
   triggerAutosave();
+  updateWordCount();
 }
 
 // ── BACKLINK PICKER ──
@@ -4559,10 +4522,12 @@ function toggleFocus(){
           focusPhase='break';focusSeconds=BREAK_TIME*60;
           document.getElementById('focusPhaseLabel').textContent='BREAK';
           document.getElementById('focusSub').textContent='Take a '+BREAK_TIME+' minute break — you earned it!';
-          showToast('🍅 Session done! Take a break.','success');
+          playAlarm();
+          sendBrowserNotif('🍅 Pomodoro done!','Time for a '+BREAK_TIME+'-minute break.');
         } else {
           focusPhase='work';focusSeconds=focusDuration*60;
           document.getElementById('focusPhaseLabel').textContent='FOCUS';
+          playAlarm();
         }
         document.getElementById('focusPlayBtn').textContent='▶ Start';
       }
@@ -4778,280 +4743,6 @@ async function askGroq(prompt,system){
   const res=await fetch('https://api.groq.com/openai/v1/chat/completions',{method:'POST',headers:{'Authorization':'Bearer '+CFG.GROQ,'Content-Type':'application/json'},body:JSON.stringify(body)});
   if(!res.ok)throw new Error('Groq error '+res.status);
   return (await res.json()).choices[0].message.content;
-}
-
-// RSS feeds - always current, no API key needed
-var RSS_FEEDS = {
-  world: [
-    'https://feeds.bbci.co.uk/news/world/rss.xml',
-    'https://rss.nytimes.com/services/xml/rss/nyt/World.xml',
-    'https://feeds.reuters.com/reuters/worldNews'
-  ],
-  finance: [
-    'https://feeds.bloomberg.com/markets/news.rss',
-    'https://www.ft.com/rss/home/uk',
-    'https://feeds.reuters.com/reuters/businessNews'
-  ],
-  geo: [
-    'https://feeds.bbci.co.uk/news/world/rss.xml',
-    'https://feeds.reuters.com/Reuters/worldNews'
-  ],
-  learn: [
-    'https://feeds.reuters.com/reuters/businessNews',
-    'https://feeds.bbci.co.uk/news/business/rss.xml'
-  ]
-};
-
-async function fetchRSS(url) {
-  // Use allorigins to bypass CORS
-  var proxy = 'https://api.allorigins.win/get?url=' + encodeURIComponent(url);
-  var r = await fetch(proxy);
-  var d = await r.json();
-  var parser = new DOMParser();
-  var xml = parser.parseFromString(d.contents, 'text/xml');
-  var items = Array.from(xml.querySelectorAll('item')).slice(0, 6);
-  return items.map(function(item) {
-    var title = item.querySelector('title') ? item.querySelector('title').textContent : '';
-    var pubDate = item.querySelector('pubDate') ? item.querySelector('pubDate').textContent : '';
-    var source = xml.querySelector('channel > title') ? xml.querySelector('channel > title').textContent : 'RSS';
-    var pub = pubDate ? new Date(pubDate) : new Date();
-    var age = Math.floor((Date.now() - pub) / 3600000); // hours
-    var ageLabel = age < 1 ? 'just now' : age < 24 ? age + 'h ago' : Math.floor(age/24) + 'd ago';
-    return '- [' + ageLabel + '] ' + title.trim() + ' (' + source.trim() + ', ' + pub.toLocaleDateString('en-MY',{day:'numeric',month:'short'}) + ')';
-  }).filter(function(s) { return s.length > 10; }).join('\n');
-}
-
-async function fetchNews(topic, n) {
-  n = n || 6;
-  var feeds = RSS_FEEDS[topic] || RSS_FEEDS.world;
-  var results = [];
-
-  // Try feeds in order, combine results
-  for (var i = 0; i < feeds.length && results.length < n; i++) {
-    try {
-      var items = await fetchRSS(feeds[i]);
-      if (items && items.trim()) {
-        results.push(items);
-        break; // one feed is usually enough
-      }
-    } catch(e) {
-      // try next feed
-    }
-  }
-
-  if (results.length === 0) {
-    // Final fallback: use Groq's own knowledge with a date prompt
-    return '- No live feed available. Use AI knowledge for context.';
-  }
-  return results.join('\n');
-}
-
-// ═══════════════════════════════════════════════
-// DAILY BRIEF
-// ═══════════════════════════════════════════════
-var briefTabData={};
-var currentBriefTab='world';
-
-var BRIEF_CFG={
-  world:{label:'World News',q:'world news',sys:'You are a sharp analyst writing for a smart Malaysian student. Give deep context, not just headlines. Explain WHY things matter and the underlying forces at play.'},
-  finance:{label:'Finance',q:'financial markets economy stocks',sys:'You are a finance educator writing for a Year 2 Accounting & Finance student at Sunway University Malaysia. Connect market events to concepts they study. Make it relevant to their degree.'},
-  geo:{label:'Geopolitics',q:'geopolitics diplomacy international relations',sys:'You are a geopolitics analyst. Go beyond what happened — explain the power dynamics, historical context, and what it means for the region. Be analytical, not just descriptive.'}
-};
-
-async function renderBrief(){
-  loadBriefTab('world',document.querySelector('#view-brief .space-tab'));
-}
-
-async function loadBriefTab(tab,el){
-  document.querySelectorAll('#view-brief .space-tab').forEach(function(t){t.classList.remove('active');});
-  if(el)el.classList.add('active');
-  currentBriefTab=tab;
-  if(briefTabData[tab]){document.getElementById('briefContent').innerHTML=briefTabData[tab];return;}
-  document.getElementById('briefContent').innerHTML='<div class="loading"><div class="spinner"></div><div class="loading-text">Fetching '+BRIEF_CFG[tab].label+'...</div></div>';
-  try{
-    if(!hasGroq()){document.getElementById('briefContent').innerHTML=noKeyHtml();return;}
-    const news=await fetchNews(tab,6);
-    const today=new Date().toLocaleDateString('en-MY',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
-    const prompt='Today is '+today+'.\n\nHere are today\'s headlines:\n'+news+'\n\n'+
-      (tab==='world'?'Write a deep analysis of the 3 most important world stories. For each: background context (2-3 sentences), what just happened, why it matters beyond the headline, what to watch next. Use <h3> for story titles. Do NOT just summarise headlines — give me the analysis I cannot get from a Google search.':'')+
-      (tab==='finance'?'Write a finance briefing for a Year 2 A&F student. Cover: (1) what moved in markets today and the real reason why, (2) one macroeconomic concept illustrated by today\'s news, (3) what this means for Malaysia and the ringgit. Go deep. Use <h3> for sections.':'')+
-      (tab==='geo'?'Write a geopolitics briefing. Cover 2-3 major developments. For each: the situation, historical context, the competing interests at play, what each side wants and why, what it means for Southeast Asia. Use <h3> for each topic.':'');
-    const content=await askGroq(prompt,BRIEF_CFG[tab].sys);
-    var sources = [];
-    news.split('\n').forEach(function(line) { var m = line.match(/\(([^,)]+),/); if (m && !sources.includes(m[1].trim())) sources.push(m[1].trim()); });
-    var sourceStr = sources.length ? sources.slice(0,4).join(' · ') : 'RSS';
-    const html='<div class="card">'+
-      '<div class="card-label" style="margin-bottom:4px">'+BRIEF_CFG[tab].label+' · '+today+'</div>'+
-      '<div style="font-size:13px;line-height:1.85;color:var(--text2)">'+content+'</div>'+
-      '<div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border)">'+
-        '<div style="font-size:10px;color:var(--text3);font-family:var(--mono);margin-bottom:10px">📰 Sources: '+sourceStr+'</div>'+
-        '<div style="display:flex;gap:8px">'+
-          '<button class="btn btn-ghost btn-sm" onclick="saveArticleAsNote(\''+tab+'\')" >Save to Notes</button>'+
-        '</div>'+
-      '</div>'+
-    '</div>';
-    briefTabData[tab]=html;
-    document.getElementById('briefContent').innerHTML=html;
-    const s=getS();
-    saveS({articlesRead:(s.articlesRead||0)+1});
-    updateSidebarStats();
-  } catch(e){
-    document.getElementById('briefContent').innerHTML='<div class="card"><p style="color:var(--red)">'+e.message+'</p></div>';
-  }
-}
-
-function saveArticleAsNote(tab){
-  const content=briefTabData[tab];
-  if(!content)return;
-  const s=getS();
-  const note={id:'n'+Date.now(),title:BRIEF_CFG[tab].label+' — '+new Date().toLocaleDateString(),subject:'general',content:content,created:new Date().toISOString(),updated:new Date().toISOString()};
-  saveS({notes:[note,...s.notes]});
-  showToast('Saved to Notes!','success');
-}
-
-// ═══════════════════════════════════════════════
-// DAILY QUIZ
-// ═══════════════════════════════════════════════
-var quizData=[];
-var quizIndex=0;
-var quizScore=0;
-
-async function renderMorningQuiz(){
-  const s=getS();
-  const today=new Date().toDateString();
-  const card=document.getElementById('morningQuizCard');
-  if(!card)return;
-
-  if(Object.keys(briefTabData).length===0){
-    card.style.display='none';return;
-  }
-
-  if(s.lastQuizDate===today&&s.quizCache){
-    card.style.display='block';
-    if(s.quizDoneToday){
-      document.getElementById('morningQuizContent').innerHTML='<div style="font-size:13px;color:var(--green);padding:12px 0">Quiz complete for today! Score: '+s.quizScore+'/5 ✓</div>';
-    } else {
-      quizData=s.quizCache;quizIndex=0;quizScore=0;
-      showQuizQuestion();
-    }
-    return;
-  }
-
-  if(s.lastQuizDate===today){card.style.display='none';return;}
-
-  // Generate quiz from yesterday's concept or brief
-  card.style.display='block';
-  document.getElementById('morningQuizContent').innerHTML='<div class="loading" style="padding:16px"><div class="spinner"></div><div class="loading-text">Generating quiz from your reading...</div></div>';
-
-  const topics=(s.learnedTopics||[]).slice(-5).join(', ')||'accounting and finance fundamentals';
-  try{
-    const raw=await askGroq(
-      'Generate 5 quiz questions based on these A&F topics: '+topics+'.\n\nReturn ONLY valid JSON array, no markdown:\n[{"question":"...","options":["A) ...","B) ...","C) ...","D) ..."],"correct":0,"explanation":"..."}]\n\ncorrect is 0-indexed. Make questions genuinely test understanding, not just recall. Mix difficulty.',
-      'You are an A&F exam question writer. Write clear, unambiguous questions.'
-    );
-    const clean=raw.replace(/```json|```/g,'').trim();
-    quizData=JSON.parse(clean);
-    quizIndex=0;quizScore=0;
-    saveS({quizCache:quizData,lastQuizDate:today,quizDoneToday:false});
-    showQuizQuestion();
-  } catch(e){
-    document.getElementById('morningQuizContent').innerHTML='<div style="font-size:12px;color:var(--text3);padding:12px 0">Quiz unavailable today — keep reading to unlock tomorrow\'s quiz.</div>';
-  }
-}
-
-function showQuizQuestion(){
-  if(quizIndex>=quizData.length){
-    const s=getS();
-    saveS({quizDoneToday:true,quizScore:quizScore});
-    document.getElementById('morningQuizContent').innerHTML=
-      '<div style="text-align:center;padding:16px">'+
-        '<div style="font-family:var(--serif);font-size:28px;font-weight:700;color:var(--accent);margin-bottom:6px">'+Math.round(quizScore/quizData.length*100)+'%</div>'+
-        '<div style="font-size:13px;color:var(--text2)">'+quizScore+' of '+quizData.length+' correct</div>'+
-        (quizScore===quizData.length?'<div style="margin-top:8px;font-size:12px;color:var(--green)">Perfect score! 🏆</div>':'')+
-      '</div>';
-    return;
-  }
-  const q=quizData[quizIndex];
-  const progress=Array.from({length:quizData.length},function(_,i){
-    return '<div style="flex:1;height:3px;border-radius:2px;background:'+(i<quizIndex?'var(--green)':i===quizIndex?'var(--accent)':'var(--border)')+'"></div>';
-  }).join('');
-
-  document.getElementById('morningQuizContent').innerHTML=
-    '<div style="display:flex;gap:4px;margin-bottom:12px">'+progress+'</div>'+
-    '<div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:10px;line-height:1.5">'+q.question+'</div>'+
-    '<div id="quizOpts">'+
-      q.options.map(function(opt,i){
-        return '<div onclick="answerQuiz('+i+')" style="padding:9px 12px;border:1px solid var(--border);border-radius:7px;cursor:pointer;font-size:12px;color:var(--text2);margin-bottom:6px;transition:all 0.15s" onmouseover="this.style.borderColor=\'var(--accent)\'" onmouseout="if(!this.classList.contains(\'answered\'))this.style.borderColor=\'var(--border)\'">'+opt+'</div>';
-      }).join('')+
-    '</div>'+
-    '<div id="quizExp" style="display:none"></div>';
-}
-
-function answerQuiz(chosen){
-  const q=quizData[quizIndex];
-  const opts=document.querySelectorAll('#quizOpts > div');
-  opts.forEach(function(o){o.style.pointerEvents='none';o.classList.add('answered');});
-  opts[q.correct].style.background='rgba(58,125,90,0.1)';opts[q.correct].style.borderColor='var(--green)';opts[q.correct].style.color='var(--green)';
-  if(chosen!==q.correct){opts[chosen].style.background='rgba(192,64,64,0.08)';opts[chosen].style.borderColor='var(--red)';opts[chosen].style.color='var(--red)';}
-  else quizScore++;
-  const expEl=document.getElementById('quizExp');
-  expEl.style.display='block';
-  expEl.innerHTML='<div style="background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:10px 12px;margin-top:8px;font-size:12px;color:var(--text2);line-height:1.6">'+q.explanation+'</div>'+
-    '<div style="margin-top:8px"><button class="btn btn-primary btn-sm" onclick="quizIndex++;showQuizQuestion()">'+(quizIndex+1<quizData.length?'Next →':'See Results →')+'</button></div>';
-}
-
-// ═══════════════════════════════════════════════
-// RESEARCH
-// ═══════════════════════════════════════════════
-var SUGGESTIONS=['How does a Leveraged Buyout work?','What is DCF valuation?','How do comps work in M&A?','What is EBITDA?','Explain MECE and issue trees','How does Goldman Sachs make money?','What is a hedge fund strategy?','How does private equity work?','What is the carry trade?','What is an IPO process?','How does short selling work?','What is a credit default swap?','Explain the BCG matrix','What is yield curve inversion?','How does a McKinsey engagement work?'];
-
-function renderResearch(){
-  const btnEl=document.getElementById('suggestionBtns');
-  if(btnEl)btnEl.innerHTML=SUGGESTIONS.map(function(s){return '<button class="space-tab" style="font-size:11px;margin-bottom:4px" onclick="quickResearch(\''+s+'\')">'+s+'</button>';}).join('');
-}
-
-async function doResearch(){
-  const q=document.getElementById('researchInput').value.trim();
-  if(!q)return;
-  quickResearch(q);
-}
-
-async function quickResearch(q){
-  if(document.getElementById('researchInput'))document.getElementById('researchInput').value=q;
-  const sug=document.getElementById('researchSuggestions');
-  if(sug)sug.style.display='none';
-  const res=document.getElementById('researchResult');
-  res.innerHTML='<div class="loading"><div class="spinner"></div><div class="loading-text">Researching "'+q+'"...</div></div>';
-  if(currentView!=='research')nav('research');
-  try{
-    if(!hasGroq()){res.innerHTML=noKeyHtml();if(sug)sug.style.display='block';return;}
-    const s=getS();
-    const content=await askGroq(
-      context+'\n\nGive a comprehensive deep-dive on: "'+q+'" for a Year 2 Accounting & Finance student at Sunway University Malaysia.\n\nHTML structure:\n<h3>What it is</h3><p>Clear definition. Simple analogy first.</p>\n<h3>The full picture</h3><p>Complete explanation — history, mechanics, key players. Go deep. This should be better than anything they would find on Google.</p>\n<h3>Malaysian and ASEAN context</h3><p>How this applies locally. Specific examples.</p>\n<h3>Degree relevance</h3><p>Which modules, how it appears in exams, how it connects to other concepts.</p>\n<h3>What experts actually debate</h3><p>The non-obvious disagreements or nuances that show real understanding.</p>\n<h3>Key terms to know</h3><p>5-7 essential terms defined precisely.</p>',
-      'You are a world-class A&F educator. Be genuinely comprehensive. Never be superficial. Use Malaysian examples. Make this the best explanation available anywhere.'
-    );
-    res.innerHTML='<div class="card">'+
-      '<div class="card-label" style="margin-bottom:4px">Deep Research · '+new Date().toLocaleDateString()+'</div>'+
-      '<div class="card-title" style="margin-bottom:14px">'+q+'</div>'+
-      '<div style="font-size:13px;line-height:1.85;color:var(--text2)">'+content+'</div>'+
-      '<div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border);display:flex;gap:8px">'+
-        '<button class="btn btn-ghost btn-sm" onclick="if(document.getElementById(\'researchSuggestions\'))document.getElementById(\'researchSuggestions\').style.display=\'block\';document.getElementById(\'researchResult\').innerHTML=\'\';document.getElementById(\'researchInput\').value=\'\'">New Search</button>'+
-        '<button class="btn btn-secondary btn-sm" onclick="saveResearchAsNote(\''+q+'\')">Save to Notes</button>'+
-      '</div>'+
-    '</div>';
-  } catch(e){
-    res.innerHTML='<div class="card"><p style="color:var(--red)">'+e.message+'</p></div>';
-    if(sug)sug.style.display='block';
-  }
-}
-
-function saveResearchAsNote(q){
-  const content=document.getElementById('researchResult').innerHTML;
-  if(!content)return;
-  const s=getS();
-  const note={id:'n'+Date.now(),title:'Research: '+q,subject:'general',content:content,created:new Date().toISOString(),updated:new Date().toISOString()};
-  saveS({notes:[note,...s.notes]});
-  showToast('Saved to Notes!','success');
 }
 
 // ═══════════════════════════════════════════════
@@ -5425,21 +5116,6 @@ function openReading(title, html) {
 
 function closeReading() {
   document.getElementById('readingMode').style.display = 'none';
-}
-
-function saveReadingAsNote() {
-  var s = getS();
-  var note = {
-    id: 'n' + Date.now(),
-    title: readingTitle,
-    subject: 'general',
-    content: readingContent,
-    created: new Date().toISOString(),
-    updated: new Date().toISOString()
-  };
-  saveS({notes: [note, ...s.notes]});
-  showToast('Saved to Notes!', 'success');
-  closeReading();
 }
 
 // ═══════════════════════════════════════════════
@@ -6408,18 +6084,6 @@ document.addEventListener('keydown', function(e) {
   if(e.key==='f'){nav('focus');return;}
 });
 
-// Auto-focus first input when modal opens
-var _origOpenModal=openModal;
-function openModal(id){
-  _origOpenModal(id);
-  setTimeout(function(){
-    var modal=document.getElementById(id);
-    if(!modal)return;
-    var first=modal.querySelector('input:not([type=hidden]):not([type=checkbox]):not([type=color])');
-    if(first)first.focus();
-  },80);
-}
-
 // ═══════════════════════════════════════════════
 // DARK MODE
 // ═══════════════════════════════════════════════
@@ -6792,8 +6456,6 @@ var DEFAULT_NAV_ITEMS = [
   {id:'notes',    icon:'📝', label:'All Notes',   section:'Study',   visible:true,  special:null},
   {id:'focus',    icon:'⏱️', label:'Focus Mode',  section:'Study',   visible:true,  special:null},
   {id:'gpa',      icon:'🎓', label:'GPA',         section:'Study',   visible:true,  special:null},
-  {id:'brief',    icon:'📰', label:'Daily Brief', section:'More',    visible:true,  special:null},
-  {id:'research', icon:'🔍', label:'Research',    section:'More',    visible:true,  special:null},
   {id:'expenses', icon:'💸', label:'Expenses',    section:'More',    visible:true,  special:null},
   {id:'analytics',icon:'📊', label:'Analytics',   section:'More',    visible:true,  special:null},
   {id:'reading',  icon:'📖', label:'Reading List', section:'More',    visible:true,  special:null},
@@ -6803,9 +6465,11 @@ var DEFAULT_NAV_ITEMS = [
 
 function getNavItems() {
   var s = getS();
+  // IDs that no longer exist - always filter these out
+  var removed = new Set(['brief','research','concept','planning']);
   if (s.navItems && s.navItems.length > 0) {
-    // Merge: add any new default items not yet in saved list
-    var saved = s.navItems;
+    var saved = s.navItems.filter(function(x){ return !removed.has(x.id); });
+    // Add any new defaults not yet in saved list
     DEFAULT_NAV_ITEMS.forEach(function(def) {
       if (!saved.find(function(x) { return x.id === def.id; })) {
         saved.push(def);
@@ -7150,39 +6814,6 @@ function showNotifBanner(msg){
   setTimeout(function(){el.classList.remove('show');},6000);
 }
 
-// Patch toggleFocus to call playAlarm when work phase ends
-var _origToggleFocus=toggleFocus;
-function toggleFocus(){
-  if(focusRunning){
-    clearInterval(focusInterval);focusRunning=false;
-    document.getElementById('focusPlayBtn').textContent='▶ Resume';
-  } else {
-    focusRunning=true;
-    document.getElementById('focusPlayBtn').textContent='⏸ Pause';
-    focusInterval=setInterval(function(){
-      focusSeconds--;
-      updateFocusDisplay();
-      if(focusSeconds<=0){
-        clearInterval(focusInterval);focusRunning=false;
-        if(focusPhase==='work'){
-          focusPomos++;
-          document.getElementById('focusPomosLabel').textContent='🍅 '+focusPomos+' session'+(focusPomos!==1?'s':'')+' completed';
-          focusPhase='break';focusSeconds=BREAK_TIME*60;
-          document.getElementById('focusPhaseLabel').textContent='BREAK';
-          document.getElementById('focusSub').textContent='Take a '+BREAK_TIME+' minute break — you earned it!';
-          playAlarm();
-          sendBrowserNotif('🍅 Pomodoro done!','Time for a '+BREAK_TIME+'-minute break.');
-        } else {
-          focusPhase='work';focusSeconds=focusDuration*60;
-          document.getElementById('focusPhaseLabel').textContent='FOCUS';
-          playAlarm();
-        }
-        document.getElementById('focusPlayBtn').textContent='▶ Start';
-      }
-    },1000);
-  }
-}
-
 // ═══════════════════════════════════════════════
 // BROWSER PUSH NOTIFICATIONS
 // ═══════════════════════════════════════════════
@@ -7220,65 +6851,6 @@ function checkUpcomingNotifs(){
   });
 }
 setInterval(checkUpcomingNotifs,60000);
-
-// ═══════════════════════════════════════════════
-// DAILY BRIEF LOCK-IN (cache per day)
-// ═══════════════════════════════════════════════
-// briefTabData already exists — patch loadBriefTab to use daily date key
-var _briefDate=new Date().toDateString();
-
-// Patch: clear briefTabData if it's a new day
-(function(){
-  var savedDate=localStorage.getItem('dd_brief_date');
-  var today=new Date().toDateString();
-  if(savedDate!==today){
-    localStorage.removeItem('dd_brief_cache');
-    localStorage.setItem('dd_brief_date',today);
-  } else {
-    try{var cached=JSON.parse(localStorage.getItem('dd_brief_cache')||'{}');if(Object.keys(cached).length)briefTabData=cached;}catch(e){}
-  }
-})();
-
-// Override loadBriefTab to also persist to localStorage
-var _origLoadBriefTab=loadBriefTab;
-async function loadBriefTab(tab,el){
-  document.querySelectorAll('#view-brief .space-tab').forEach(function(t){t.classList.remove('active');});
-  if(el)el.classList.add('active');
-  currentBriefTab=tab;
-  if(briefTabData[tab]){document.getElementById('briefContent').innerHTML=briefTabData[tab];return;}
-  document.getElementById('briefContent').innerHTML='<div class="loading"><div class="spinner"></div><div class="loading-text">Fetching '+BRIEF_CFG[tab].label+'...</div></div>';
-  try{
-    if(!hasGroq()){document.getElementById('briefContent').innerHTML=noKeyHtml();return;}
-    const news=await fetchNews(tab,6);
-    const today=new Date().toLocaleDateString('en-MY',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
-    const prompt='Today is '+today+'.\n\nHere are today\'s headlines:\n'+news+'\n\n'+
-      (tab==='world'?'Write a deep analysis of the 3 most important world stories. For each: background context (2-3 sentences), what just happened, why it matters beyond the headline, what to watch next. Use <h3> for story titles. Do NOT just summarise headlines — give me the analysis I cannot get from a Google search.':'')+
-      (tab==='finance'?'Write a finance briefing for a Year 2 A&F student. Cover: (1) what moved in markets today and the real reason why, (2) one macroeconomic concept illustrated by today\'s news, (3) what this means for Malaysia and the ringgit. Go deep. Use <h3> for sections.':'')+
-      (tab==='geo'?'Write a geopolitics briefing. Cover 2-3 major developments. For each: the situation, historical context, the competing interests at play, what each side wants and why, what it means for Southeast Asia. Use <h3> for each topic.':'');
-    const content=await askGroq(prompt,BRIEF_CFG[tab].sys);
-    var sources=[];
-    news.split('\n').forEach(function(line){var m=line.match(/\(([^,)]+),/);if(m&&!sources.includes(m[1].trim()))sources.push(m[1].trim());});
-    var sourceStr=sources.length?sources.slice(0,4).join(' · '):'RSS';
-    const html='<div class="card">'+
-      '<div class="card-label" style="margin-bottom:4px">'+BRIEF_CFG[tab].label+' · '+today+'</div>'+
-      '<div style="font-size:13px;line-height:1.85;color:var(--text2)">'+content+'</div>'+
-      '<div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border)">'+
-        '<div style="font-size:10px;color:var(--text3);font-family:var(--mono);margin-bottom:10px">📰 Sources: '+sourceStr+'</div>'+
-        '<div style="display:flex;gap:8px">'+
-          '<button class="btn btn-ghost btn-sm" onclick="saveArticleAsNote(\''+tab+'\')">Save to Notes</button>'+
-        '</div>'+
-      '</div>'+
-    '</div>';
-    briefTabData[tab]=html;
-    try{localStorage.setItem('dd_brief_cache',JSON.stringify(briefTabData));}catch(e){}
-    document.getElementById('briefContent').innerHTML=html;
-    const s=getS();
-    saveS({articlesRead:(s.articlesRead||0)+1});
-    updateSidebarStats();
-  }catch(e){
-    document.getElementById('briefContent').innerHTML='<div class="card"><p style="color:var(--red)">'+e.message+'</p></div>';
-  }
-}
 
 // ═══════════════════════════════════════════════
 // MOOD LOG
@@ -7796,13 +7368,6 @@ function updateWordCount(){
   if(lwc)lwc.textContent=words+' words';
 }
 
-// Patch handleEditorInput to also update word count
-var _origHandleEditorInput=handleEditorInput;
-function handleEditorInput(){
-  _origHandleEditorInput();
-  updateWordCount();
-}
-
 // ═══════════════════════════════════════════════
 // IMAGE PASTE INTO EDITOR
 // ═══════════════════════════════════════════════
@@ -8025,13 +7590,6 @@ function evalTableCalc(ed){
 }
 
 // Run table calc whenever editor content changes
-var _origTriggerAutosave=triggerAutosave;
-function triggerAutosave(){
-  var ed=document.getElementById('richEditor');
-  if(ed)evalTableCalc(ed);
-  _origTriggerAutosave();
-}
-
 // ═══════════════════════════════════════════════
 // READING LIST
 // ═══════════════════════════════════════════════
@@ -8215,14 +7773,6 @@ async function migrateOldSupabaseData(){
     showToast('Old data merged!','success');
     refreshCurrentView();updateSidebarStats();
   }catch(e){if(statusEl)statusEl.textContent='Error: '+e.message;}
-}
-
-var _origRenderMorning2=renderMorning;
-function renderMorning(){
-  _origRenderMorning2();
-  renderDailyNoteButton();
-  renderExamCountdown();
-  renderMoodForToday();
 }
 
 // Boot — check for existing auth session first
