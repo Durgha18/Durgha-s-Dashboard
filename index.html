@@ -5251,6 +5251,8 @@ function initApp(){
         renderNav();applyAppConfig();updateSidebarStats();
         if(currentView==='morning')renderMorning();
       }
+      // Seed AFTER remote data is loaded so it isn't overwritten
+      seedClassEvents();
       _syncStatus='idle';
       updateSyncIndicator();
     });
@@ -5258,6 +5260,9 @@ function initApp(){
     startRealtimePolling();
     // Auto-sync GCal events if connected
     if(GCAL_TOKEN) setTimeout(fetchGCalEvents, 3000);
+  } else {
+    // No cloud sync — seed immediately
+    seedClassEvents();
   }
 }
 
@@ -8087,12 +8092,12 @@ async function migrateOldSupabaseData(){
 }
 
 // ═══════════════════════════════════════════════
-// SEED TIMETABLE — stored as weekly recurring events
-// so they appear in the calendar grid and are editable
+// SEED CLASS EVENTS — stored as weekly recurring events
+// Called after Supabase sync so cloud data can't overwrite it
 // ═══════════════════════════════════════════════
-(function seedTimetable(){
+function seedClassEvents(){
   var s = getS();
-  // Already seeded as events? skip (check by id prefix)
+  // Already seeded? skip
   if((s.events||[]).some(function(e){ return e.id && e.id.indexOf('tt-') === 0; })) return;
 
   // Labels
@@ -8107,33 +8112,31 @@ async function migrateOldSupabaseData(){
   var MON = '2026-05-04', TUE = '2026-05-05', WED = '2026-05-06', FRI = '2026-05-08';
 
   var classes = [
-    // Financial Accounting (ACC 2014)
     {id:'tt-fa-w', title:'Financial Accounting — Workshop',  date:TUE, time:'12:00', endtime:'13:00', location:'Q-Lecture Theatre 360', labelId:PHYS},
     {id:'tt-fa-l', title:'Financial Accounting — Lecture',   date:WED, time:'12:00', endtime:'14:00', location:'Online Class',           labelId:ONLN},
     {id:'tt-fa-t', title:'Financial Accounting — Tutorial',  date:MON, time:'10:00', endtime:'11:00', location:'Q-4-5',                  labelId:PHYS},
-    // Principles of Auditing (ACC 2034)
     {id:'tt-au-l', title:'Principles of Auditing — Lecture',  date:TUE, time:'14:00', endtime:'16:00', location:'Online Class',           labelId:ONLN},
     {id:'tt-au-w', title:'Principles of Auditing — Workshop', date:FRI, time:'16:30', endtime:'17:30', location:'Q-Lecture Theatre 360',  labelId:PHYS},
     {id:'tt-au-t', title:'Principles of Auditing — Tutorial', date:MON, time:'12:00', endtime:'13:00', location:'Q-6-12',                 labelId:PHYS},
-    // Communication Skills (ENG2044)
     {id:'tt-cs-l', title:'Communication Skills — Lecture',    date:WED, time:'08:00', endtime:'10:00', location:'Uni Lecture Theatre 3',  labelId:PHYS},
     {id:'tt-cs-t', title:'Communication Skills — Tutorial',   date:FRI, time:'10:00', endtime:'12:00', location:'Q-3-3',                  labelId:PHYS},
-    // Financial Institutions & Markets (FIN 2024)
-    {id:'tt-fi-t', title:'Fin. Institutions & Markets — Tutorial',  date:MON, time:'09:00', endtime:'10:00', location:'Q-6-2',       labelId:PHYS},
-    {id:'tt-fi-w', title:'Fin. Institutions & Markets — Workshop',  date:TUE, time:'08:00', endtime:'09:00', location:'JC 1',         labelId:PHYS},
-    {id:'tt-fi-l', title:'Fin. Institutions & Markets — Lecture',   date:FRI, time:'08:00', endtime:'10:00', location:'Online Class',  labelId:ONLN},
+    {id:'tt-fi-t', title:'Fin. Institutions & Markets — Tutorial', date:MON, time:'09:00', endtime:'10:00', location:'Q-6-2',       labelId:PHYS},
+    {id:'tt-fi-w', title:'Fin. Institutions & Markets — Workshop', date:TUE, time:'08:00', endtime:'09:00', location:'JC 1',         labelId:PHYS},
+    {id:'tt-fi-l', title:'Fin. Institutions & Markets — Lecture',  date:FRI, time:'08:00', endtime:'10:00', location:'Online Class',  labelId:ONLN},
   ];
 
   var newEvents = classes.map(function(c){
     return Object.assign({}, c, {recurring:'weekly', recurringEnd:null});
   });
 
-  // Also clear any old timetable array entries from previous seeding
+  // Clean up old isTimetable timetable array entries
   var cleanTimetable = (s.timetable||[]).filter(function(t){ return !t.id || t.id.indexOf('tt-') !== 0; });
 
   saveS({events:[...(s.events||[]),...newEvents], labels:labels, timetable:cleanTimetable});
   showToast('📅 Classes added to calendar!', 'success');
-})();
+  if(typeof renderCalendar === 'function' && currentView === 'calendar') renderCalendar();
+  if(typeof renderMorning === 'function') renderMorning();
+}
 
 applyFontSize();
 // Fix mobile display on resize / orientation change
