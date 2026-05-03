@@ -403,13 +403,20 @@ select.input{cursor:pointer;appearance:none;}
   }
 
   /* ── TOPBAR ── */
-  .topbar{padding:12px 14px;gap:8px;flex-wrap:wrap;}
+  .topbar{padding:12px 14px;gap:8px;flex-wrap:nowrap;align-items:flex-start;}
   .topbar-title{font-size:16px;}
   .topbar-sub{font-size:9px;}
-  .topbar-actions{gap:5px;flex-wrap:wrap;}
-  .topbar-actions .btn{padding:6px 10px;font-size:11px;}
-  .topbar-left{flex-direction:row;align-items:center;gap:10px;}
+  .topbar-left{flex-direction:row;align-items:center;gap:10px;flex-shrink:0;}
   .topbar-left .mobile-menu-btn{flex-shrink:0;}
+  .topbar-actions{gap:5px;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:2px;max-width:100%;}
+  .topbar-actions .btn{padding:6px 10px;font-size:11px;white-space:nowrap;flex-shrink:0;}
+  .topbar-actions .cal-view-toggle{flex-shrink:0;}
+  /* Hide secondary calendar actions on mobile to reduce clutter */
+  .topbar-actions .btn-ghost[onclick*="Exam"],
+  .topbar-actions .btn-ghost[onclick*="taskModal"],
+  .topbar-actions .btn-ghost[onclick*="GCal"],
+  .topbar-actions .btn-ghost[onclick*="gcal"],
+  .topbar-actions #gcalSync{display:none;}
 
   /* ── CONTENT ── */
   .content{padding:12px 14px;}
@@ -3788,14 +3795,6 @@ function renderCalendar(){
       if(e.date===dateStr) return true;
       if(!e.recurring||e.recurring==='none') return false;
       return isRecurringOnDate(e,dateStr);
-    });
-    // ── Also include timetable classes ──
-    const dayOfWeekCal=new Date(dateStr+'T00:00:00').getDay();
-    (s.timetable||[]).forEach(function(t){
-      if(t.days&&t.days.includes(dayOfWeekCal)){
-        if(t.startDate&&dateStr<t.startDate) return;
-        dayEvents.push(Object.assign({},t,{isTimetable:true}));
-      }
     });
     // Tasks due this day
     const dayTasks=s.tasks.filter(function(t){return t.due===dateStr&&!t.done;});
