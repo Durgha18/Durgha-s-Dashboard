@@ -408,6 +408,8 @@ select.input{cursor:pointer;appearance:none;}
   .topbar-sub{font-size:9px;}
   .topbar-actions{gap:5px;flex-wrap:wrap;}
   .topbar-actions .btn{padding:6px 10px;font-size:11px;}
+  .topbar-left{flex-direction:row;align-items:center;gap:10px;}
+  .topbar-left .mobile-menu-btn{flex-shrink:0;}
 
   /* ── CONTENT ── */
   .content{padding:12px 14px;}
@@ -1783,6 +1785,7 @@ select.input{cursor:pointer;appearance:none;}
     <div class="view" id="view-planning">
       <div class="topbar">
         <div class="topbar-left">
+          <button class="mobile-menu-btn" onclick="openMobileMenu()">☰</button>
           <div class="topbar-title">Planning</div>
           <div class="topbar-sub">Daily focus · Weekly priorities</div>
         </div>
@@ -1794,6 +1797,7 @@ select.input{cursor:pointer;appearance:none;}
     <div class="view" id="view-calendar">
       <div class="topbar">
         <div class="topbar-left">
+          <button class="mobile-menu-btn" onclick="openMobileMenu()">☰</button>
           <div class="topbar-title">Calendar</div>
           <div class="topbar-sub">Events &amp; deadlines in one place</div>
         </div>
@@ -1830,6 +1834,7 @@ select.input{cursor:pointer;appearance:none;}
     <div class="view" id="view-tasks">
       <div class="topbar">
         <div class="topbar-left">
+          <button class="mobile-menu-btn" onclick="openMobileMenu()">☰</button>
           <div class="topbar-title">Tasks</div>
           <div class="topbar-sub">All projects · sort, filter, click for details</div>
         </div>
@@ -1863,6 +1868,7 @@ select.input{cursor:pointer;appearance:none;}
     <div class="view" id="view-habits">
       <div class="topbar">
         <div class="topbar-left">
+          <button class="mobile-menu-btn" onclick="openMobileMenu()">☰</button>
           <div class="topbar-title">Habits</div>
           <div class="topbar-sub">Build consistency, one tick at a time</div>
         </div>
@@ -1918,6 +1924,7 @@ select.input{cursor:pointer;appearance:none;}
     <div class="view" id="view-focus">
       <div class="topbar">
         <div class="topbar-left">
+          <button class="mobile-menu-btn" onclick="openMobileMenu()">☰</button>
           <div class="topbar-title">Focus Mode</div>
           <div class="topbar-sub">Pomodoro timer linked to your tasks</div>
         </div>
@@ -1955,6 +1962,7 @@ select.input{cursor:pointer;appearance:none;}
     <div class="view" id="view-gpa">
       <div class="topbar">
         <div class="topbar-left">
+          <button class="mobile-menu-btn" onclick="openMobileMenu()">☰</button>
           <div class="topbar-title">GPA Calculator</div>
           <div class="topbar-sub">Full semester history &amp; CGPA tracking</div>
         </div>
@@ -1970,6 +1978,7 @@ select.input{cursor:pointer;appearance:none;}
     <div class="view" id="view-expenses">
       <div class="topbar">
         <div class="topbar-left">
+          <button class="mobile-menu-btn" onclick="openMobileMenu()">☰</button>
           <div class="topbar-title">Expenses</div>
           <div class="topbar-sub">Track your money in RM</div>
         </div>
@@ -1984,6 +1993,7 @@ select.input{cursor:pointer;appearance:none;}
     <div class="view" id="view-captures">
       <div class="topbar">
         <div class="topbar-left">
+          <button class="mobile-menu-btn" onclick="openMobileMenu()">☰</button>
           <div class="topbar-title">Quick Notes</div>
           <div class="topbar-sub">Your inbox of thoughts</div>
         </div>
@@ -1998,6 +2008,7 @@ select.input{cursor:pointer;appearance:none;}
     <div class="view" id="view-reading">
       <div class="topbar">
         <div class="topbar-left">
+          <button class="mobile-menu-btn" onclick="openMobileMenu()">☰</button>
           <div class="topbar-title">Reading List</div>
           <div class="topbar-sub">Articles, papers and links to revisit</div>
         </div>
@@ -2012,6 +2023,7 @@ select.input{cursor:pointer;appearance:none;}
     <div class="view" id="view-analytics">
       <div class="topbar">
         <div class="topbar-left">
+          <button class="mobile-menu-btn" onclick="openMobileMenu()">☰</button>
           <div class="topbar-title">Analytics</div>
           <div class="topbar-sub">Your study patterns, focus, and progress</div>
         </div>
@@ -8058,8 +8070,50 @@ async function migrateOldSupabaseData(){
   }catch(e){if(statusEl)statusEl.textContent='Error: '+e.message;}
 }
 
-// Boot — check for existing auth session first
-initTheme();
+// ═══════════════════════════════════════════════
+// SEED TIMETABLE — Durgha's class schedule
+// Runs once; skips if timetable already has entries
+// ═══════════════════════════════════════════════
+(function seedTimetable(){
+  var s = getS();
+  if((s.timetable||[]).length > 0) return; // already seeded
+
+  // Add Physical + Online labels if not already there
+  var labels = s.labels || [];
+  var hasPhys  = labels.some(function(l){ return l.id === 'lbl-physical'; });
+  var hasOnline = labels.some(function(l){ return l.id === 'lbl-online'; });
+  if(!hasPhys)  labels = labels.concat([{id:'lbl-physical', name:'Physical Class', colour:'#3a7d5a', icon:'🏫'}]);
+  if(!hasOnline) labels = labels.concat([{id:'lbl-online',  name:'Online Class',   colour:'#3a6b8a', icon:'💻'}]);
+
+  // Days: 0=Sun 1=Mon 2=Tue 3=Wed 4=Thu 5=Fri 6=Sat
+  var PHYS  = 'lbl-physical';
+  var ONLN  = 'lbl-online';
+
+  var timetable = [
+    // ── Financial Accounting (ACC 2014) ──
+    {id:'tt-fa-w',  title:'Financial Accounting — Workshop',  days:[2], time:'12:00', endtime:'13:00', location:'Q-Lecture Theatre 360', labelId:PHYS, isTimetable:true},
+    {id:'tt-fa-l',  title:'Financial Accounting — Lecture',   days:[3], time:'12:00', endtime:'14:00', location:'Online Class',           labelId:ONLN, isTimetable:true},
+    {id:'tt-fa-t',  title:'Financial Accounting — Tutorial',  days:[1], time:'10:00', endtime:'11:00', location:'Q-4-5',                  labelId:PHYS, isTimetable:true},
+
+    // ── Principles of Auditing (ACC 2034) ──
+    {id:'tt-au-l',  title:'Principles of Auditing — Lecture',  days:[2], time:'14:00', endtime:'16:00', location:'Online Class',            labelId:ONLN, isTimetable:true},
+    {id:'tt-au-w',  title:'Principles of Auditing — Workshop', days:[5], time:'16:30', endtime:'17:30', location:'Q-Lecture Theatre 360',   labelId:PHYS, isTimetable:true},
+    {id:'tt-au-t',  title:'Principles of Auditing — Tutorial', days:[1], time:'12:00', endtime:'13:00', location:'Q-6-12',                  labelId:PHYS, isTimetable:true},
+
+    // ── Communication Skills (ENG2044) ──
+    {id:'tt-cs-l',  title:'Communication Skills — Lecture',    days:[3], time:'08:00', endtime:'10:00', location:'Uni Lecture Theatre 3',   labelId:PHYS, isTimetable:true},
+    {id:'tt-cs-t',  title:'Communication Skills — Tutorial',   days:[5], time:'10:00', endtime:'12:00', location:'Q-3-3',                   labelId:PHYS, isTimetable:true},
+
+    // ── Financial Institutions & Markets (FIN 2024) ──
+    {id:'tt-fi-t',  title:'Fin. Institutions & Markets — Tutorial',  days:[1], time:'09:00', endtime:'10:00', location:'Q-6-2',     labelId:PHYS, isTimetable:true},
+    {id:'tt-fi-w',  title:'Fin. Institutions & Markets — Workshop',  days:[2], time:'08:00', endtime:'09:00', location:'JC 1',       labelId:PHYS, isTimetable:true},
+    {id:'tt-fi-l',  title:'Fin. Institutions & Markets — Lecture',   days:[5], time:'08:00', endtime:'10:00', location:'Online Class',labelId:ONLN, isTimetable:true},
+  ];
+
+  saveS({timetable: timetable, labels: labels});
+  showToast('📅 Timetable loaded!', 'success');
+})();
+
 applyFontSize();
 if(_authSession && _userId){
   // Already logged in — load API keys from cloud and go straight to app
