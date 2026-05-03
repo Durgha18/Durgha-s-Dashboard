@@ -3789,6 +3789,14 @@ function renderCalendar(){
       if(!e.recurring||e.recurring==='none') return false;
       return isRecurringOnDate(e,dateStr);
     });
+    // ── Also include timetable classes ──
+    const dayOfWeekCal=new Date(dateStr+'T00:00:00').getDay();
+    (s.timetable||[]).forEach(function(t){
+      if(t.days&&t.days.includes(dayOfWeekCal)){
+        if(t.startDate&&dateStr<t.startDate) return;
+        dayEvents.push(Object.assign({},t,{isTimetable:true}));
+      }
+    });
     // Tasks due this day
     const dayTasks=s.tasks.filter(function(t){return t.due===dateStr&&!t.done;});
 
@@ -5452,6 +5460,7 @@ function getEventsForDate(dateStr) {
   var dayOfWeek = new Date(dateStr + 'T00:00:00').getDay();
   timetable.forEach(function(t) {
     if (t.days && t.days.includes(dayOfWeek)) {
+      if (t.startDate && dateStr < t.startDate) return;
       all.push(Object.assign({}, t, {id: t.id, isTimetable: true}));
     }
   });
@@ -8072,42 +8081,44 @@ async function migrateOldSupabaseData(){
 
 // ═══════════════════════════════════════════════
 // SEED TIMETABLE — Durgha's class schedule
-// Runs once; skips if timetable already has entries
+// Re-seeds if startDate is missing (one-time upgrade)
 // ═══════════════════════════════════════════════
 (function seedTimetable(){
   var s = getS();
-  if((s.timetable||[]).length > 0) return; // already seeded
+  var existing = s.timetable || [];
+  // Skip if already seeded with startDate
+  if(existing.length > 0 && existing[0].startDate) return;
 
   // Add Physical + Online labels if not already there
   var labels = s.labels || [];
-  var hasPhys  = labels.some(function(l){ return l.id === 'lbl-physical'; });
-  var hasOnline = labels.some(function(l){ return l.id === 'lbl-online'; });
-  if(!hasPhys)  labels = labels.concat([{id:'lbl-physical', name:'Physical Class', colour:'#3a7d5a', icon:'🏫'}]);
-  if(!hasOnline) labels = labels.concat([{id:'lbl-online',  name:'Online Class',   colour:'#3a6b8a', icon:'💻'}]);
+  if(!labels.some(function(l){ return l.id === 'lbl-physical'; }))
+    labels = labels.concat([{id:'lbl-physical', name:'Physical Class', colour:'#3a7d5a', icon:'🏫'}]);
+  if(!labels.some(function(l){ return l.id === 'lbl-online'; }))
+    labels = labels.concat([{id:'lbl-online',  name:'Online Class',   colour:'#3a6b8a', icon:'💻'}]);
 
-  // Days: 0=Sun 1=Mon 2=Tue 3=Wed 4=Thu 5=Fri 6=Sat
+  var START = '2026-05-03';
   var PHYS  = 'lbl-physical';
   var ONLN  = 'lbl-online';
 
   var timetable = [
     // ── Financial Accounting (ACC 2014) ──
-    {id:'tt-fa-w',  title:'Financial Accounting — Workshop',  days:[2], time:'12:00', endtime:'13:00', location:'Q-Lecture Theatre 360', labelId:PHYS, isTimetable:true},
-    {id:'tt-fa-l',  title:'Financial Accounting — Lecture',   days:[3], time:'12:00', endtime:'14:00', location:'Online Class',           labelId:ONLN, isTimetable:true},
-    {id:'tt-fa-t',  title:'Financial Accounting — Tutorial',  days:[1], time:'10:00', endtime:'11:00', location:'Q-4-5',                  labelId:PHYS, isTimetable:true},
+    {id:'tt-fa-w', title:'Financial Accounting — Workshop',  days:[2], time:'12:00', endtime:'13:00', location:'Q-Lecture Theatre 360', labelId:PHYS, startDate:START, isTimetable:true},
+    {id:'tt-fa-l', title:'Financial Accounting — Lecture',   days:[3], time:'12:00', endtime:'14:00', location:'Online Class',           labelId:ONLN, startDate:START, isTimetable:true},
+    {id:'tt-fa-t', title:'Financial Accounting — Tutorial',  days:[1], time:'10:00', endtime:'11:00', location:'Q-4-5',                  labelId:PHYS, startDate:START, isTimetable:true},
 
     // ── Principles of Auditing (ACC 2034) ──
-    {id:'tt-au-l',  title:'Principles of Auditing — Lecture',  days:[2], time:'14:00', endtime:'16:00', location:'Online Class',            labelId:ONLN, isTimetable:true},
-    {id:'tt-au-w',  title:'Principles of Auditing — Workshop', days:[5], time:'16:30', endtime:'17:30', location:'Q-Lecture Theatre 360',   labelId:PHYS, isTimetable:true},
-    {id:'tt-au-t',  title:'Principles of Auditing — Tutorial', days:[1], time:'12:00', endtime:'13:00', location:'Q-6-12',                  labelId:PHYS, isTimetable:true},
+    {id:'tt-au-l', title:'Principles of Auditing — Lecture',  days:[2], time:'14:00', endtime:'16:00', location:'Online Class',           labelId:ONLN, startDate:START, isTimetable:true},
+    {id:'tt-au-w', title:'Principles of Auditing — Workshop', days:[5], time:'16:30', endtime:'17:30', location:'Q-Lecture Theatre 360',  labelId:PHYS, startDate:START, isTimetable:true},
+    {id:'tt-au-t', title:'Principles of Auditing — Tutorial', days:[1], time:'12:00', endtime:'13:00', location:'Q-6-12',                 labelId:PHYS, startDate:START, isTimetable:true},
 
     // ── Communication Skills (ENG2044) ──
-    {id:'tt-cs-l',  title:'Communication Skills — Lecture',    days:[3], time:'08:00', endtime:'10:00', location:'Uni Lecture Theatre 3',   labelId:PHYS, isTimetable:true},
-    {id:'tt-cs-t',  title:'Communication Skills — Tutorial',   days:[5], time:'10:00', endtime:'12:00', location:'Q-3-3',                   labelId:PHYS, isTimetable:true},
+    {id:'tt-cs-l', title:'Communication Skills — Lecture',    days:[3], time:'08:00', endtime:'10:00', location:'Uni Lecture Theatre 3',  labelId:PHYS, startDate:START, isTimetable:true},
+    {id:'tt-cs-t', title:'Communication Skills — Tutorial',   days:[5], time:'10:00', endtime:'12:00', location:'Q-3-3',                  labelId:PHYS, startDate:START, isTimetable:true},
 
     // ── Financial Institutions & Markets (FIN 2024) ──
-    {id:'tt-fi-t',  title:'Fin. Institutions & Markets — Tutorial',  days:[1], time:'09:00', endtime:'10:00', location:'Q-6-2',     labelId:PHYS, isTimetable:true},
-    {id:'tt-fi-w',  title:'Fin. Institutions & Markets — Workshop',  days:[2], time:'08:00', endtime:'09:00', location:'JC 1',       labelId:PHYS, isTimetable:true},
-    {id:'tt-fi-l',  title:'Fin. Institutions & Markets — Lecture',   days:[5], time:'08:00', endtime:'10:00', location:'Online Class',labelId:ONLN, isTimetable:true},
+    {id:'tt-fi-t', title:'Fin. Institutions & Markets — Tutorial',  days:[1], time:'09:00', endtime:'10:00', location:'Q-6-2',      labelId:PHYS, startDate:START, isTimetable:true},
+    {id:'tt-fi-w', title:'Fin. Institutions & Markets — Workshop',  days:[2], time:'08:00', endtime:'09:00', location:'JC 1',        labelId:PHYS, startDate:START, isTimetable:true},
+    {id:'tt-fi-l', title:'Fin. Institutions & Markets — Lecture',   days:[5], time:'08:00', endtime:'10:00', location:'Online Class', labelId:ONLN, startDate:START, isTimetable:true},
   ];
 
   saveS({timetable: timetable, labels: labels});
