@@ -1591,9 +1591,50 @@ select.input{cursor:pointer;appearance:none;}
     </div>
     <div class="field"><div class="input-label">Location (optional)</div><input class="input" id="edit-ev-location" placeholder="Room, building..."/></div>
     <div class="field"><div class="input-label">Notes (optional)</div><input class="input" id="edit-ev-notes" placeholder="Extra details..."/></div>
+    <div class="field">
+      <div class="input-label">Recurring</div>
+      <select class="input" id="edit-ev-recurring" onchange="toggleEditRecurringEnd()">
+        <option value="none">Not recurring (one-time)</option>
+        <option value="daily">Every day</option>
+        <option value="weekly">Every week (same day)</option>
+        <option value="biweekly">Every 2 weeks</option>
+        <option value="monthly">Every month (same date)</option>
+      </select>
+    </div>
+    <div class="field" id="edit-ev-recurring-end-wrap" style="display:none">
+      <div class="input-label">Repeat Until</div>
+      <input class="input" type="date" id="edit-ev-recurring-end"/>
+    </div>
     <div class="modal-footer">
       <button class="btn btn-ghost btn-sm" onclick="closeModal('editEventModal')">Cancel</button>
       <button class="btn btn-primary btn-sm" onclick="saveEditEvent()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Recurring Event Modal -->
+<div class="modal-overlay" id="deleteRecurringModal">
+  <div class="modal" style="max-width:380px">
+    <div class="modal-title">🗑️ Delete Recurring Event</div>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:16px;line-height:1.6">This is a recurring event. How would you like to delete it?</p>
+    <input type="hidden" id="del-rec-id"/>
+    <input type="hidden" id="del-rec-date"/>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <button class="btn btn-secondary" style="justify-content:flex-start;text-align:left" onclick="deleteRecurringOne()">
+        <span style="font-size:16px">📅</span>
+        <span><strong>This occurrence only</strong><br/><span style="font-size:10px;font-weight:400;color:var(--text3)">Remove just this date, keep the rest</span></span>
+      </button>
+      <button class="btn btn-secondary" style="justify-content:flex-start;text-align:left" onclick="deleteRecurringFuture()">
+        <span style="font-size:16px">⏩</span>
+        <span><strong>This and all future events</strong><br/><span style="font-size:10px;font-weight:400;color:var(--text3)">End the series from this date onwards</span></span>
+      </button>
+      <button class="btn btn-danger" style="justify-content:flex-start;text-align:left" onclick="deleteRecurringAll()">
+        <span style="font-size:16px">🗑️</span>
+        <span><strong>All occurrences</strong><br/><span style="font-size:10px;font-weight:400;color:var(--text3)">Permanently remove the entire series</span></span>
+      </button>
+    </div>
+    <div class="modal-footer" style="margin-top:12px">
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('deleteRecurringModal')">Cancel</button>
     </div>
   </div>
 </div>
@@ -3523,15 +3564,29 @@ function openEditEvent(id){
   document.getElementById('edit-ev-endtime').value=ev.endtime||'';
   document.getElementById('edit-ev-location').value=ev.location||'';
   document.getElementById('edit-ev-notes').value=ev.notes||'';
+  // Recurring fields
+  var recSel=document.getElementById('edit-ev-recurring');
+  if(recSel)recSel.value=ev.recurring||'none';
+  var recEnd=document.getElementById('edit-ev-recurring-end');
+  if(recEnd)recEnd.value=ev.recurringEnd||'';
+  var recEndWrap=document.getElementById('edit-ev-recurring-end-wrap');
+  if(recEndWrap)recEndWrap.style.display=(ev.recurring&&ev.recurring!=='none')?'':'none';
   populateLabelSelect('edit-ev-label');
   setTimeout(function(){document.getElementById('edit-ev-label').value=ev.labelId||'';},30);
   openModal('editEventModal');
+}
+
+function toggleEditRecurringEnd(){
+  var val=document.getElementById('edit-ev-recurring').value;
+  document.getElementById('edit-ev-recurring-end-wrap').style.display=val!=='none'?'':'none';
 }
 
 function saveEditEvent(){
   const id=document.getElementById('edit-ev-id').value;
   const s=getS();
   var updatedEv=null;
+  const newRecurring=document.getElementById('edit-ev-recurring').value;
+  const newRecurringEnd=document.getElementById('edit-ev-recurring-end').value||null;
   const events=s.events.map(function(e){
     if(e.id!==id)return e;
     updatedEv=Object.assign({},e,{
@@ -3541,7 +3596,11 @@ function saveEditEvent(){
       endtime:document.getElementById('edit-ev-endtime').value,
       labelId:document.getElementById('edit-ev-label').value,
       location:document.getElementById('edit-ev-location').value,
-      notes:document.getElementById('edit-ev-notes').value
+      notes:document.getElementById('edit-ev-notes').value,
+      recurring:newRecurring,
+      recurringEnd:newRecurring!=='none'?newRecurringEnd:null,
+      // Clear exceptions if recurrence settings changed
+      exceptions:newRecurring!==e.recurring?[]:e.exceptions
     });
     return updatedEv;
   });
@@ -3868,7 +3927,7 @@ function renderDayPanel(dateStr){
         '</div>'+
         (!e.isTimetable?
           '<button onclick="openEditEvent(\''+e.id+'\')" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:12px;padding:3px 6px" title="Edit">✏️</button>'+
-          '<button onclick="deleteEvent(\''+e.id+'\')" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:12px;padding:3px 6px" title="Delete">✕</button>':'')+
+          '<button onclick="deleteEvent(\''+e.id+'\',\''+dateStr+'\')" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:12px;padding:3px 6px" title="Delete">✕</button>':'')+
       '</div>';
     }).join(''):'')+
 
@@ -3958,11 +4017,64 @@ function saveEvent(){
   if(currentView==='calendar')renderCalendar();
 }
 
-function deleteEvent(id){
+function deleteEvent(id,dateStr){
   const s=getS();
+  const ev=s.events.find(function(e){return e.id===id;});
+  if(!ev)return;
+  // If recurring and called from a specific day, show choice modal
+  if(ev.recurring&&ev.recurring!=='none'&&dateStr){
+    document.getElementById('del-rec-id').value=id;
+    document.getElementById('del-rec-date').value=dateStr;
+    openModal('deleteRecurringModal');
+    return;
+  }
+  // Non-recurring: delete directly
   saveS({events:s.events.filter(function(e){return e.id!==id;})});
   if(currentView==='calendar')renderCalendar();
   showToast('Event removed','info');
+}
+
+function deleteRecurringOne(){
+  var id=document.getElementById('del-rec-id').value;
+  var dateStr=document.getElementById('del-rec-date').value;
+  var s=getS();
+  var events=s.events.map(function(e){
+    if(e.id!==id)return e;
+    var exc=(e.exceptions||[]).slice();
+    if(!exc.includes(dateStr))exc.push(dateStr);
+    return Object.assign({},e,{exceptions:exc});
+  });
+  saveS({events:events});
+  closeModal('deleteRecurringModal');
+  if(currentView==='calendar')renderCalendar();
+  showToast('Occurrence removed','info');
+}
+
+function deleteRecurringFuture(){
+  var id=document.getElementById('del-rec-id').value;
+  var dateStr=document.getElementById('del-rec-date').value;
+  // Set recurringEnd to the day before this occurrence
+  var d=new Date(dateStr+'T00:00:00');
+  d.setDate(d.getDate()-1);
+  var endDate=d.toISOString().slice(0,10);
+  var s=getS();
+  var events=s.events.map(function(e){
+    if(e.id!==id)return e;
+    return Object.assign({},e,{recurringEnd:endDate});
+  });
+  saveS({events:events});
+  closeModal('deleteRecurringModal');
+  if(currentView==='calendar')renderCalendar();
+  showToast('Future events removed','info');
+}
+
+function deleteRecurringAll(){
+  var id=document.getElementById('del-rec-id').value;
+  var s=getS();
+  saveS({events:s.events.filter(function(e){return e.id!==id;})});
+  closeModal('deleteRecurringModal');
+  if(currentView==='calendar')renderCalendar();
+  showToast('All occurrences removed','info');
 }
 
 // ═══════════════════════════════════════════════
@@ -5444,6 +5556,8 @@ function checkDeadlineCountdown() {
 // ═══════════════════════════════════════════════
 function isRecurringOnDate(ev, dateStr) {
   if (!ev.recurring || ev.recurring === 'none' || !ev.date) return false;
+  // Check if this date has been individually deleted
+  if (ev.exceptions && ev.exceptions.includes(dateStr)) return false;
   var origin = new Date(ev.date + 'T00:00:00');
   var target = new Date(dateStr + 'T00:00:00');
   if (target < origin) return false;
