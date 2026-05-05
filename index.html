@@ -2151,7 +2151,7 @@ select.input{cursor:pointer;appearance:none;}
       <button class="exp-type-btn income" id="expTypeIncome" onclick="setExpType('income')">+ Income</button>
     </div>
     <input type="hidden" id="expTypeVal" value="expense"/>
-    <div class="field"><div class="input-label">Amount (RM)</div><input class="input" id="exp-amount" type="number" step="0.01" placeholder="0.00"/></div>
+    <div class="field"><div class="input-label">Amount</div><input class="input" id="exp-amount" type="number" step="0.01" placeholder="0.00"/></div>
     <div class="field"><div class="input-label">Description</div><input class="input" id="exp-desc" placeholder="e.g. Lunch at mamak..."/></div>
     <div class="field">
       <div class="input-label">Category</div>
@@ -5448,7 +5448,7 @@ function renderPlanning() {
     '<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">' +
       '<button class="btn btn-ghost btn-sm" onclick="shiftPlannerDay(-1)">← Prev</button>' +
       '<div style="flex:1;text-align:center;font-family:var(--serif);font-size:15px;font-weight:700;color:var(--text)">' +
-        displayDate.toLocaleDateString("en-MY",{weekday:"long",day:"numeric",month:"long"}) +
+        displayDate.toLocaleDateString("default",{weekday:"long",day:"numeric",month:"long"}) +
         (plannerDate===todayStr ? ' <span style="font-size:10px;color:var(--accent);font-family:var(--mono)">(TODAY)</span>' : '') +
       '</div>' +
       '<button class="btn btn-ghost btn-sm" onclick="shiftPlannerDay(1)">Next →</button>' +
@@ -5457,6 +5457,8 @@ function renderPlanning() {
     '<div class="card" style="margin-bottom:14px">' +
       '<div class="card-title" style="margin-bottom:10px">Daily Intention</div>' +
       '<input class="input" id="dp-intention" value="' + (dailyData.intention||'').replace(/"/g,'&quot;') + '" placeholder="What matters most today"/>' +
+      '<div class="input-label" style="margin-top:10px;margin-bottom:4px">Notes for Today</div>' +
+      '<textarea class="input" id="dp-notes" rows="3" placeholder="Any notes for the day...">' + (dailyData.notes||'') + '</textarea>' +
       '<div class="input-label" style="margin-top:10px;margin-bottom:8px">Top 3 Tasks for Today</div>' +
       [0,1,2].map(function(i) {
         var taskId = dailyData.topTasks&&dailyData.topTasks[i]?dailyData.topTasks[i]:'';
@@ -5500,7 +5502,7 @@ function getWeekStart() {
   var day = d.getDay();
   var diff = d.getDate() - day + (day === 0 ? -6 : 1);
   var monday = new Date(d.setDate(diff));
-  return monday.toLocaleDateString("en-MY", {day: "numeric", month: "long"});
+  return monday.toLocaleDateString("default", {day: "numeric", month: "long"});
 }
 
 function saveDailyPlan() {
@@ -6858,7 +6860,7 @@ var DEFAULT_NAV_ITEMS = [
 function getNavItems() {
   var s = getS();
   // IDs that no longer exist - always filter these out
-  var removed = new Set(['brief','research','concept','planning']);
+  var removed = new Set(['brief','research','concept']);
   if (s.navItems && s.navItems.length > 0) {
     var saved = s.navItems.filter(function(x){ return !removed.has(x.id); });
     // Add any new defaults not yet in saved list
