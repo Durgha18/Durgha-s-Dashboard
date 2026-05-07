@@ -744,6 +744,38 @@ select.input{cursor:pointer;appearance:none;}
 .rich-editor img{max-width:100%;border-radius:6px;margin:8px 0;display:block;}
 .rich-editor img.selected{outline:2px solid var(--accent);}
 
+/* ── DAY PLANNER ── */
+.planner-wrap{display:flex;gap:14px;align-items:flex-start;}
+.planner-timeline{flex:1;min-width:0;position:relative;}
+.planner-sidebar{width:200px;flex-shrink:0;}
+.planner-hour-row{display:flex;gap:0;min-height:56px;border-bottom:1px solid var(--border);position:relative;transition:background 0.1s;}
+.planner-hour-row.drag-over{background:var(--accent-soft);border:1px dashed var(--accent);}
+.planner-hour-row.current-hour{background:rgba(184,92,56,0.04);}
+.planner-time-label{width:52px;flex-shrink:0;padding:8px 8px 0 0;font-family:var(--mono);font-size:10px;color:var(--text3);text-align:right;border-right:2px solid var(--border);}
+.planner-time-label.current-hour-label{color:var(--accent);font-weight:700;}
+.planner-slot{flex:1;padding:4px 8px;display:flex;flex-direction:column;gap:3px;}
+.planner-block{border-radius:5px;padding:5px 9px;font-size:11px;font-weight:500;display:flex;align-items:center;gap:6px;cursor:grab;border:1px solid transparent;user-select:none;}
+.planner-block:active{cursor:grabbing;opacity:0.8;}
+.planner-block.done-block{opacity:0.45;text-decoration:line-through;}
+.planner-block-check{width:14px;height:14px;border-radius:3px;border:1.5px solid currentColor;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:9px;transition:all 0.1s;}
+.planner-block-check.checked{background:currentColor;color:#fff;}
+.planner-block-duration{font-size:9px;opacity:0.65;margin-left:auto;font-family:var(--mono);white-space:nowrap;}
+.planner-block-del{opacity:0;background:none;border:none;cursor:pointer;color:currentColor;font-size:11px;padding:0 2px;transition:opacity 0.15s;}
+.planner-block:hover .planner-block-del{opacity:0.5;}
+.planner-quick-input{border:none;background:transparent;font-size:12px;color:var(--text2);outline:none;width:100%;padding:3px 0;font-family:var(--sans);border-bottom:1px dashed transparent;transition:border-color 0.15s;}
+.planner-quick-input:focus{border-bottom-color:var(--accent);}
+.current-time-line{position:absolute;left:54px;right:0;height:2px;background:var(--red);z-index:5;pointer-events:none;}
+.current-time-line::before{content:'';width:8px;height:8px;border-radius:50%;background:var(--red);position:absolute;left:-4px;top:-3px;}
+.plan-task-item{padding:8px 10px;background:var(--surface);border:1px solid var(--border);border-radius:7px;margin-bottom:5px;font-size:11px;font-weight:500;color:var(--text2);cursor:grab;display:flex;align-items:center;gap:7px;transition:border-color 0.15s;user-select:none;}
+.plan-task-item:hover{border-color:var(--accent);}
+.plan-task-item:active{cursor:grabbing;opacity:0.7;}
+.plan-task-item.done-task{text-decoration:line-through;opacity:0.4;}
+.plan-custom-item{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);}
+.duration-popup{position:fixed;z-index:600;background:var(--surface);border:1px solid var(--border2);border-radius:10px;padding:12px;box-shadow:var(--shadow-lg);display:none;}
+.duration-popup.show{display:block;}
+.dur-btn{padding:5px 12px;border-radius:6px;border:1px solid var(--border);background:none;cursor:pointer;font-size:11px;font-family:var(--sans);transition:all 0.12s;margin:2px;}
+.dur-btn:hover{background:var(--accent);color:#fff;border-color:var(--accent);}
+
 /* ── DARK MODE ── */
 [data-theme="dark"]{
   --bg:#1a1410;--surface:#231c15;--surface2:#2d231a;
@@ -1476,6 +1508,22 @@ select.input{cursor:pointer;appearance:none;}
       <button class="btn btn-primary btn-sm" onclick="saveReadingItem()">Add to List</button>
     </div>
   </div>
+</div>
+
+<!-- DURATION PICKER POPUP -->
+<div class="duration-popup" id="durationPopup">
+  <div style="font-size:10px;color:var(--text3);font-family:var(--mono);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px">How long?</div>
+  <div style="display:flex;flex-wrap:wrap;gap:2px;max-width:200px">
+    <button class="dur-btn" onclick="confirmDrop(15)">15m</button>
+    <button class="dur-btn" onclick="confirmDrop(30)">30m</button>
+    <button class="dur-btn" onclick="confirmDrop(45)">45m</button>
+    <button class="dur-btn" onclick="confirmDrop(60)">1h</button>
+    <button class="dur-btn" onclick="confirmDrop(90)">1.5h</button>
+    <button class="dur-btn" onclick="confirmDrop(120)">2h</button>
+    <button class="dur-btn" onclick="confirmDrop(180)">3h</button>
+    <button class="dur-btn" onclick="confirmDrop(0)">All day</button>
+  </div>
+  <button class="btn btn-ghost btn-xs" onclick="cancelDrop()" style="margin-top:8px;width:100%">Cancel</button>
 </div>
 
 <!-- NOTIFICATION BANNER -->
@@ -5733,62 +5781,251 @@ function deleteTimetableEntry(idx) {
   showToast('Class removed', 'info');
 }
 
+
 // ═══════════════════════════════════════════════
-// DAY PLANNER (Time Slots) — used in Planning page
+// DAY PLANNER — drag-drop, custom tasks, check off
 // ═══════════════════════════════════════════════
+var _draggedPlanItem = null;
+var _pendingDrop = null;
+
 function renderDayPlanner(dateStr) {
   var s = getS();
-  dateStr = dateStr || new Date().toISOString().slice(0, 10);
-  var hours = [];
-  for (var h = 6; h <= 23; h++) hours.push(h);
+  dateStr = dateStr || new Date().toISOString().slice(0,10);
+  var hours = []; for (var h = 6; h <= 23; h++) hours.push(h);
   var events = getEventsForDate(dateStr);
-  var dayPlan = s.dayTimePlans && s.dayTimePlans[dateStr] ? s.dayTimePlans[dateStr] : {};
+  var dayPlan = (s.dayTimePlans && s.dayTimePlans[dateStr]) ? s.dayTimePlans[dateStr] : {};
+  var now = new Date();
+  var isToday = dateStr === now.toISOString().slice(0,10);
+  var nowMins = now.getHours()*60 + now.getMinutes();
+  var slotH = 56;
 
-  var html = '<div style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:12px;letter-spacing:0.06em;text-transform:uppercase">' +
-    new Date(dateStr + 'T00:00:00').toLocaleDateString('en-MY', {weekday:'long', day:'numeric', month:'long'}) + '</div>';
+  var customTasks = (s.plannerCustomTasks && s.plannerCustomTasks[dateStr]) || [];
+  var pendingTasks = s.tasks.filter(function(t){ return !t.done; });
 
-  html += '<div style="position:relative">';
+  var html = '<div class="planner-wrap">';
+
+  // ── Timeline ──────────────────────────────────
+  html += '<div class="planner-timeline" style="position:relative">';
+  if (isToday && nowMins >= 360 && nowMins <= 1380) {
+    var topPx = ((nowMins - 360) / 60) * slotH;
+    html += '<div class="current-time-line" style="top:' + topPx + 'px"></div>';
+  }
+
   hours.forEach(function(h) {
-    var timeStr = String(h).padStart(2, '0') + ':00';
-    var slotKey = timeStr;
-    var slotContent = dayPlan[slotKey] || '';
+    var timeStr = String(h).padStart(2,'0') + ':00';
+    var blocks = Array.isArray(dayPlan[timeStr]) ? dayPlan[timeStr] : [];
+    var isCurrentHour = isToday && now.getHours() === h;
+    var slotEvents = events.filter(function(e){ return e.time && parseInt(e.time.split(':')[0]) === h; });
 
-    // Find events at this hour
-    var slotEvents = events.filter(function(e) {
-      if (!e.time) return false;
-      var eHour = parseInt(e.time.split(':')[0]);
-      return eHour === h;
+    var rowAttrs = ' ondragover="plannerDragOver(event)"' +
+      ' ondragleave="plannerDragLeave(event)"' +
+      ' ondrop="plannerDrop(event,\'' + dateStr + '\',' + h + ')"';
+
+    html += '<div class="planner-hour-row' + (isCurrentHour ? ' current-hour' : '') + '"' + rowAttrs + '>';
+    html += '<div class="planner-time-label' + (isCurrentHour ? ' current-hour-label' : '') + '">' + timeStr + '</div>';
+    html += '<div class="planner-slot">';
+
+    // Calendar events (read-only)
+    slotEvents.forEach(function(e) {
+      var lbl = getLabelById(e.labelId);
+      var col = e.colour || (lbl ? lbl.colour : 'var(--accent)');
+      html += '<div class="planner-block" style="background:' + col + '18;color:' + col + ';border-color:' + col + '44">' +
+        '<span>📅</span><span style="flex:1">' + esc(e.title) + (e.location ? ' · 📍' + esc(e.location) : '') + '</span>' +
+        (e.endtime ? '<span class="planner-block-duration">' + e.time + '–' + e.endtime + '</span>' : '') +
+        '</div>';
     });
 
-    html += '<div style="display:flex;gap:0;min-height:52px;border-bottom:1px solid var(--border)">' +
-      '<div style="width:52px;flex-shrink:0;padding:8px 8px 0 0;font-family:var(--mono);font-size:10px;color:var(--text3);text-align:right;border-right:2px solid var(--border)">' + timeStr + '</div>' +
-      '<div style="flex:1;padding:4px 8px;position:relative;display:flex;flex-direction:column;gap:3px">' +
-        slotEvents.map(function(e) {
-          var lbl = getLabelById(e.labelId);
-          var col = lbl ? lbl.colour : (e.isTimetable ? 'var(--blue)' : 'var(--accent)');
-          return '<div style="background:' + col + '22;border-left:3px solid ' + col + ';border-radius:0 4px 4px 0;padding:3px 8px;font-size:11px;color:' + col + ';font-weight:500">' +
-            e.title + (e.location ? ' · 📍' + e.location : '') + (e.endtime ? ' – ' + e.endtime : '') +
-          '</div>';
-        }).join('') +
-        '<input value="' + slotContent.replace(/"/g, '&quot;') + '" placeholder="Add plan..." onchange="saveDayTimeSlot(\'' + dateStr + '\',\'' + slotKey + '\',this.value)" style="border:none;background:transparent;font-size:12px;color:var(--text2);outline:none;width:100%;padding:2px 0;font-family:var(--sans)" />' +
-      '</div>' +
-    '</div>';
+    // Planned blocks
+    blocks.forEach(function(block, bi) {
+      var col = block.color || 'var(--accent)';
+      var checkOnclick = 'togglePlanBlock(\'' + dateStr + '\',\'' + timeStr + '\',' + bi + ')';
+      var delOnclick = 'deletePlanBlock(\'' + dateStr + '\',\'' + timeStr + '\',' + bi + ')';
+      var dragStart = 'plannerBlockDragStart(event,\'' + dateStr + '\',\'' + timeStr + '\',' + bi + ')';
+      html += '<div class="planner-block' + (block.done ? ' done-block' : '') + '"' +
+        ' draggable="true" ondragstart="' + dragStart + '"' +
+        ' style="background:' + col + '18;color:' + col + ';border-color:' + col + '44">' +
+        '<div class="planner-block-check' + (block.done ? ' checked' : '') + '" onclick="' + checkOnclick + '">' + (block.done ? '✓' : '') + '</div>' +
+        '<span style="flex:1">' + esc(block.title) + '</span>' +
+        (block.duration ? '<span class="planner-block-duration">' + formatDuration(block.duration) + '</span>' : '') +
+        '<button class="planner-block-del" onclick="' + delOnclick + '">✕</button>' +
+        '</div>';
+    });
+
+    // Quick-add input
+    var qaOnkey = 'plannerQuickAdd(event,\'' + dateStr + '\',\'' + timeStr + '\')';
+    html += '<input class="planner-quick-input" placeholder="+ type and Enter..." onkeydown="' + qaOnkey + '" />';
+    html += '</div></div>';
   });
-  html += '</div>';
+
+  html += '</div>'; // end timeline
+
+  // ── Sidebar ───────────────────────────────────
+  var custOnkey = 'addPlannerCustomTask(event,\'' + dateStr + '\')';
+  html += '<div class="planner-sidebar">';
+  html += '<div style="font-size:9px;color:var(--text3);font-family:var(--mono);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px">Drag tasks to timeline →</div>';
+  html += '<input class="input" id="plannerCustomInput" placeholder="+ Custom task (Enter)" style="font-size:11px;padding:6px 10px;margin-bottom:8px" onkeydown="' + custOnkey + '" />';
+
+  if (customTasks.length > 0) {
+    html += '<div style="font-size:9px;color:var(--text3);font-family:var(--mono);text-transform:uppercase;margin-bottom:5px">Custom for today</div>';
+    customTasks.forEach(function(ct, ci) {
+      var ctData = JSON.stringify({title:ct.title,id:'c'+ci,color:'var(--accent)',isCustom:true});
+      var toggleOnclick = 'toggleCustomTask(\'' + dateStr + '\',' + ci + ')';
+      var delOnclick = 'deleteCustomTask(\'' + dateStr + '\',' + ci + ')';
+      html += '<div class="plan-task-item plan-custom-item' + (ct.done ? ' done-task' : '') + '"' +
+        ' draggable="true" ondragstart="sidebarDragStart(event,' + JSON.stringify(ctData) + ')">' +
+        '<div class="planner-block-check' + (ct.done ? ' checked' : '') + '" onclick="' + toggleOnclick + '" style="border-color:var(--accent);flex-shrink:0">' + (ct.done ? '✓' : '') + '</div>' +
+        '<span style="flex:1">' + esc(ct.title) + '</span>' +
+        '<button onclick="' + delOnclick + '" style="background:none;border:none;cursor:pointer;color:var(--accent);font-size:11px;opacity:0.5">✕</button>' +
+        '</div>';
+    });
+  }
+
+  if (pendingTasks.length > 0) {
+    html += '<div style="font-size:9px;color:var(--text3);font-family:var(--mono);text-transform:uppercase;margin:10px 0 5px">From tasks</div>';
+    pendingTasks.slice(0,15).forEach(function(t) {
+      var lbl = getLabelById(t.labelId);
+      var col = lbl ? lbl.colour : 'var(--accent)';
+      var tData = JSON.stringify({title:t.title,id:t.id,color:col,isCustom:false});
+      html += '<div class="plan-task-item" draggable="true" ondragstart="sidebarDragStart(event,' + JSON.stringify(tData) + ')">' +
+        '<div style="width:8px;height:8px;border-radius:50%;background:' + col + ';flex-shrink:0"></div>' +
+        '<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(t.title) + '</span>' +
+        (t.due ? '<span style="font-size:9px;opacity:0.5;font-family:var(--mono)">' + fmtDate(t.due) + '</span>' : '') +
+        '</div>';
+    });
+  }
+
+  html += '</div></div>'; // end sidebar + wrap
   return html;
 }
 
-function saveDayTimeSlot(dateStr, timeKey, value) {
-  var s = getS();
-  var dayTimePlans = s.dayTimePlans || {};
-  dayTimePlans[dateStr] = dayTimePlans[dateStr] || {};
-  dayTimePlans[dateStr][timeKey] = value;
-  saveS({dayTimePlans: dayTimePlans});
+function formatDuration(mins) {
+  if (!mins) return '';
+  if (mins < 60) return mins + 'm';
+  var h = Math.floor(mins/60), m = mins % 60;
+  return h + 'h' + (m ? m + 'm' : '');
 }
 
-// ═══════════════════════════════════════════════
-// WEEKLY PLANNER GRID
-// ═══════════════════════════════════════════════
+function sidebarDragStart(event, itemJson) {
+  _draggedPlanItem = JSON.parse(itemJson);
+  event.dataTransfer.effectAllowed = 'copy';
+}
+
+function plannerBlockDragStart(event, dateStr, timeStr, bi) {
+  var s = getS();
+  var blocks = ((s.dayTimePlans || {})[dateStr] || {})[timeStr];
+  if (!blocks || !blocks[bi]) return;
+  _draggedPlanItem = Object.assign({}, blocks[bi], {_moveFrom: {dateStr: dateStr, timeStr: timeStr, bi: bi}});
+  event.dataTransfer.effectAllowed = 'move';
+}
+
+function plannerDragOver(event) {
+  event.preventDefault();
+  event.currentTarget.classList.add('drag-over');
+}
+
+function plannerDragLeave(event) {
+  event.currentTarget.classList.remove('drag-over');
+}
+
+function plannerDrop(event, dateStr, h) {
+  event.preventDefault();
+  event.currentTarget.classList.remove('drag-over');
+  if (!_draggedPlanItem) return;
+  _pendingDrop = {dateStr: dateStr, hour: h};
+  var popup = document.getElementById('durationPopup');
+  popup.style.top = (event.clientY - 20) + 'px';
+  popup.style.left = (event.clientX + 10) + 'px';
+  popup.classList.add('show');
+}
+
+function confirmDrop(duration) {
+  document.getElementById('durationPopup').classList.remove('show');
+  if (!_draggedPlanItem || !_pendingDrop) return;
+  var timeStr = String(_pendingDrop.hour).padStart(2,'0') + ':00';
+  var s = getS();
+  var dtp = s.dayTimePlans || {};
+  dtp[_pendingDrop.dateStr] = dtp[_pendingDrop.dateStr] || {};
+  dtp[_pendingDrop.dateStr][timeStr] = dtp[_pendingDrop.dateStr][timeStr] || [];
+  if (_draggedPlanItem._moveFrom) {
+    var mf = _draggedPlanItem._moveFrom;
+    if (dtp[mf.dateStr] && dtp[mf.dateStr][mf.timeStr]) dtp[mf.dateStr][mf.timeStr].splice(mf.bi, 1);
+  }
+  dtp[_pendingDrop.dateStr][timeStr].push({
+    id: _draggedPlanItem.id, title: _draggedPlanItem.title,
+    color: _draggedPlanItem.color, isCustom: _draggedPlanItem.isCustom,
+    duration: duration || null, done: false
+  });
+  saveS({dayTimePlans: dtp});
+  _draggedPlanItem = null; _pendingDrop = null;
+  renderPlanning();
+  showToast('Added to ' + timeStr, 'success');
+}
+
+function cancelDrop() {
+  document.getElementById('durationPopup').classList.remove('show');
+  _draggedPlanItem = null; _pendingDrop = null;
+}
+
+function plannerQuickAdd(event, dateStr, timeStr) {
+  if (event.key !== 'Enter') return;
+  var val = event.target.value.trim(); if (!val) return;
+  var s = getS(); var dtp = s.dayTimePlans || {};
+  dtp[dateStr] = dtp[dateStr] || {}; dtp[dateStr][timeStr] = dtp[dateStr][timeStr] || [];
+  dtp[dateStr][timeStr].push({id:'q'+Date.now(), title:val, color:'var(--accent)', isCustom:true, done:false});
+  saveS({dayTimePlans: dtp}); event.target.value = ''; renderPlanning();
+}
+
+function addPlannerCustomTask(event, dateStr) {
+  if (event.key !== 'Enter') return;
+  var input = document.getElementById('plannerCustomInput');
+  var val = input ? input.value.trim() : ''; if (!val) return;
+  var s = getS(); var pct = s.plannerCustomTasks || {};
+  pct[dateStr] = pct[dateStr] || [];
+  pct[dateStr].push({title:val, done:false, id:'c'+Date.now()});
+  saveS({plannerCustomTasks: pct}); if (input) input.value = ''; renderPlanning();
+}
+
+function toggleCustomTask(dateStr, idx) {
+  var s = getS(); var pct = s.plannerCustomTasks || {};
+  var tasks = pct[dateStr] || [];
+  if (tasks[idx]) tasks[idx].done = !tasks[idx].done;
+  pct[dateStr] = tasks; saveS({plannerCustomTasks: pct}); renderPlanning();
+}
+
+function deleteCustomTask(dateStr, idx) {
+  var s = getS(); var pct = s.plannerCustomTasks || {};
+  pct[dateStr] = (pct[dateStr] || []).filter(function(_,i){ return i !== idx; });
+  saveS({plannerCustomTasks: pct}); renderPlanning();
+}
+
+function togglePlanBlock(dateStr, timeStr, bi) {
+  var s = getS(); var dtp = s.dayTimePlans || {};
+  var block = dtp[dateStr] && dtp[dateStr][timeStr] && dtp[dateStr][timeStr][bi];
+  if (!block) return;
+  block.done = !block.done; saveS({dayTimePlans: dtp}); renderPlanning();
+}
+
+function deletePlanBlock(dateStr, timeStr, bi) {
+  var s = getS(); var dtp = s.dayTimePlans || {};
+  if (dtp[dateStr] && dtp[dateStr][timeStr]) {
+    dtp[dateStr][timeStr].splice(bi, 1);
+    saveS({dayTimePlans: dtp}); renderPlanning();
+  }
+}
+
+function saveDayTimeSlot(dateStr, timeKey, value) {
+  var s = getS(); var dtp = s.dayTimePlans || {};
+  dtp[dateStr] = dtp[dateStr] || {};
+  if (!Array.isArray(dtp[dateStr][timeKey])) dtp[dateStr][timeKey] = [];
+  saveS({dayTimePlans: dtp});
+}
+
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('#durationPopup') && !e.target.closest('.planner-hour-row')) {
+    var p = document.getElementById('durationPopup'); if (p) p.classList.remove('show');
+  }
+});
+
 function renderWeekGrid() {
   var today = new Date();
   var startOfWeek = new Date(today);
