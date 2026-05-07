@@ -549,7 +549,7 @@ select.input{cursor:pointer;appearance:none;}
 
 /* ── TEXT SIZE SLIDER (replaces old data-size modes) ── */
 /* Modals and overlays inherit zoom from mainApp via CSS variable */
-.modal-overlay,.colour-panel,.detail-page,.focus-overlay,.flashcard-overlay,.lecture-mode-overlay,.pdf-overlay{
+.modal-overlay,.colour-panel,.detail-page,.focus-overlay,.flashcard-overlay,.lecture-mode-overlay{
   zoom:var(--app-zoom,1);
 }
 .size-slider-wrap{display:flex;flex-direction:column;gap:6px;}
@@ -745,35 +745,35 @@ select.input{cursor:pointer;appearance:none;}
 .rich-editor img.selected{outline:2px solid var(--accent);}
 
 /* ── DAY PLANNER ── */
-.planner-wrap{display:flex;gap:0;min-height:400px;}
-.planner-timeline{flex:1;min-width:0;position:relative;overflow:hidden;}
-.planner-sidebar{width:220px;flex-shrink:0;border-left:1px solid var(--border);padding:14px;overflow-y:auto;max-height:80vh;background:var(--surface);}
-.planner-hour-row{display:flex;min-height:60px;border-bottom:1px solid var(--border);transition:background 0.1s;}
-.planner-hour-row.drag-over{background:var(--accent-soft)!important;border:1.5px dashed var(--accent);}
-.planner-hour-row.is-current{background:rgba(184,92,56,0.04);}
-.planner-time-label{width:56px;flex-shrink:0;padding:8px 8px 0 0;font-family:var(--mono);font-size:10px;color:var(--text3);text-align:right;border-right:2px solid var(--border);}
-.planner-time-label.is-current{color:var(--accent);font-weight:700;}
-.planner-slot{flex:1;padding:4px 8px;display:flex;flex-direction:column;gap:3px;min-height:60px;}
-.planner-block{border-radius:5px;padding:5px 8px;font-size:11px;font-weight:500;display:flex;align-items:center;gap:6px;cursor:grab;border:1px solid transparent;user-select:none;transition:opacity 0.15s;}
-.planner-block:active{cursor:grabbing;opacity:0.7;}
-.planner-block.done{opacity:0.4;text-decoration:line-through;}
-.planner-check{width:14px;height:14px;border-radius:3px;border:1.5px solid currentColor;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:9px;}
-.planner-check.checked{background:currentColor;}
-.planner-dur{font-size:9px;opacity:0.65;margin-left:auto;font-family:var(--mono);white-space:nowrap;flex-shrink:0;}
-.planner-del{opacity:0;background:none;border:none;cursor:pointer;color:inherit;font-size:11px;padding:0 2px;transition:opacity 0.15s;flex-shrink:0;}
-.planner-block:hover .planner-del{opacity:0.6;}
-.planner-quick{border:none;background:transparent;font-size:11px;color:var(--text3);outline:none;width:100%;padding:3px 0;font-family:var(--sans);border-bottom:1px dashed transparent;}
-.planner-quick:focus{border-bottom-color:var(--accent);color:var(--text);}
-.current-time-indicator{position:absolute;left:58px;right:0;height:2px;background:var(--red);z-index:5;pointer-events:none;}
-.current-time-indicator::before{content:'';position:absolute;left:-5px;top:-3px;width:8px;height:8px;border-radius:50%;background:var(--red);}
-.plan-task-pill{padding:7px 10px;background:var(--bg);border:1px solid var(--border);border-radius:7px;margin-bottom:5px;font-size:11px;font-weight:500;color:var(--text2);cursor:grab;display:flex;align-items:center;gap:7px;user-select:none;transition:border-color 0.15s;}
-.plan-task-pill:hover{border-color:var(--accent);}
-.plan-task-pill:active{cursor:grabbing;opacity:0.7;}
-.plan-task-pill.done-pill{text-decoration:line-through;opacity:0.45;}
-.plan-custom-pill{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);}
-.duration-popup{position:fixed;z-index:600;background:var(--surface);border:1px solid var(--border2);border-radius:12px;padding:14px;box-shadow:0 8px 32px rgba(0,0,0,0.2);display:none;min-width:200px;}
+.planner-wrap{display:flex;gap:14px;align-items:flex-start;}
+.planner-timeline{flex:1;min-width:0;position:relative;}
+.planner-sidebar{width:200px;flex-shrink:0;}
+.planner-hour-row{display:flex;gap:0;min-height:56px;border-bottom:1px solid var(--border);position:relative;transition:background 0.1s;}
+.planner-hour-row.drag-over{background:var(--accent-soft);border:1px dashed var(--accent);}
+.planner-hour-row.current-hour{background:rgba(184,92,56,0.04);}
+.planner-time-label{width:52px;flex-shrink:0;padding:8px 8px 0 0;font-family:var(--mono);font-size:10px;color:var(--text3);text-align:right;border-right:2px solid var(--border);}
+.planner-time-label.current-hour-label{color:var(--accent);font-weight:700;}
+.planner-slot{flex:1;padding:4px 8px;display:flex;flex-direction:column;gap:3px;}
+.planner-block{border-radius:5px;padding:5px 9px;font-size:11px;font-weight:500;display:flex;align-items:center;gap:6px;cursor:grab;border:1px solid transparent;user-select:none;}
+.planner-block:active{cursor:grabbing;opacity:0.8;}
+.planner-block.done-block{opacity:0.45;text-decoration:line-through;}
+.planner-block-check{width:14px;height:14px;border-radius:3px;border:1.5px solid currentColor;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:9px;transition:all 0.1s;}
+.planner-block-check.checked{background:currentColor;color:#fff;}
+.planner-block-duration{font-size:9px;opacity:0.65;margin-left:auto;font-family:var(--mono);white-space:nowrap;}
+.planner-block-del{opacity:0;background:none;border:none;cursor:pointer;color:currentColor;font-size:11px;padding:0 2px;transition:opacity 0.15s;}
+.planner-block:hover .planner-block-del{opacity:0.5;}
+.planner-quick-input{border:none;background:transparent;font-size:12px;color:var(--text2);outline:none;width:100%;padding:3px 0;font-family:var(--sans);border-bottom:1px dashed transparent;transition:border-color 0.15s;}
+.planner-quick-input:focus{border-bottom-color:var(--accent);}
+.current-time-line{position:absolute;left:54px;right:0;height:2px;background:var(--red);z-index:5;pointer-events:none;}
+.current-time-line::before{content:'';width:8px;height:8px;border-radius:50%;background:var(--red);position:absolute;left:-4px;top:-3px;}
+.plan-task-item{padding:8px 10px;background:var(--surface);border:1px solid var(--border);border-radius:7px;margin-bottom:5px;font-size:11px;font-weight:500;color:var(--text2);cursor:grab;display:flex;align-items:center;gap:7px;transition:border-color 0.15s;user-select:none;}
+.plan-task-item:hover{border-color:var(--accent);}
+.plan-task-item:active{cursor:grabbing;opacity:0.7;}
+.plan-task-item.done-task{text-decoration:line-through;opacity:0.4;}
+.plan-custom-item{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);}
+.duration-popup{position:fixed;z-index:600;background:var(--surface);border:1px solid var(--border2);border-radius:10px;padding:12px;box-shadow:var(--shadow-lg);display:none;}
 .duration-popup.show{display:block;}
-.dur-btn{padding:6px 12px;border-radius:6px;border:1px solid var(--border);background:none;cursor:pointer;font-size:11px;font-family:var(--sans);transition:all 0.12s;margin:2px;}
+.dur-btn{padding:5px 12px;border-radius:6px;border:1px solid var(--border);background:none;cursor:pointer;font-size:11px;font-family:var(--sans);transition:all 0.12s;margin:2px;}
 .dur-btn:hover{background:var(--accent);color:#fff;border-color:var(--accent);}
 
 /* ── DARK MODE ── */
@@ -804,24 +804,41 @@ select.input{cursor:pointer;appearance:none;}
 .search-empty{padding:24px;text-align:center;font-size:12px;color:var(--text3);}
 
 /* ── PDF VIEWER ── */
-.pdf-overlay{position:fixed;inset:0;background:var(--bg);z-index:400;display:none;flex-direction:column;overflow:hidden;}
+.pdf-overlay{position:fixed;inset:0;background:#525659;z-index:400;display:none;flex-direction:column;overflow:hidden;}
 .pdf-overlay.show{display:flex;}
-.pdf-topbar{display:flex;align-items:center;gap:10px;padding:10px 20px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;}
-.pdf-title{font-family:var(--serif);font-size:14px;font-weight:700;color:var(--text);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.pdf-page-info{font-family:var(--mono);font-size:11px;color:var(--text3);}
-.pdf-tool-btn{padding:5px 10px;border-radius:6px;border:1px solid var(--border);background:none;cursor:pointer;font-size:11px;color:var(--text2);transition:all 0.15s;font-family:var(--sans);}
+.pdf-topbar{display:flex;align-items:center;gap:8px;padding:8px 14px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap;}
+.pdf-title{font-family:var(--serif);font-size:13px;font-weight:700;color:var(--text);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:80px;}
+.pdf-page-info{font-family:var(--mono);font-size:11px;color:var(--text3);white-space:nowrap;}
+.pdf-tool-btn{padding:5px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surface);cursor:pointer;font-size:11px;color:var(--text2);transition:all 0.15s;font-family:var(--sans);}
 .pdf-tool-btn:hover{border-color:var(--accent);color:var(--accent);}
 .pdf-tool-btn.active{background:var(--accent);color:#fff;border-color:var(--accent);}
-.pdf-body{flex:1;overflow:hidden;display:flex;gap:0;min-height:0;}
-.pdf-canvas-wrap{flex:1;overflow:auto;display:flex;flex-direction:column;align-items:center;padding:24px;background:#525659;}
-.pdf-annot-panel{width:260px;border-left:1px solid var(--border);background:var(--surface);overflow-y:auto;padding:14px;flex-shrink:0;}
+.pdf-body{flex:1;overflow:hidden;display:flex;min-height:0;}
+.pdf-canvas-wrap{flex:1;overflow:auto;display:flex;flex-direction:column;align-items:center;padding:24px;background:#525659;position:relative;}
+.pdf-canvas-wrap.tool-pen{cursor:crosshair;}
+.pdf-canvas-wrap.tool-highlight{cursor:text;}
+.pdf-canvas-wrap.tool-note{cursor:cell;}
+.pdf-canvas-wrap.tool-eraser{cursor:cell;}
+/* Canvas container - holds pdf canvas + drawing canvas stacked */
+.pdf-page-container{position:relative;display:inline-block;margin-bottom:16px;box-shadow:0 4px 24px rgba(0,0,0,0.5);}
+.pdf-page-container canvas{display:block;}
+.pdf-draw-canvas{position:absolute;top:0;left:0;pointer-events:none;}
+.pdf-draw-canvas.active{pointer-events:all;}
+.pdf-annot-panel{width:240px;border-left:1px solid var(--border);background:var(--surface);overflow-y:auto;padding:12px;flex-shrink:0;}
 .pdf-annot-title{font-family:var(--mono);font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:10px;}
-.pdf-annot-item{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:8px;font-size:12px;color:var(--text2);line-height:1.5;cursor:pointer;transition:border-color 0.15s;}
+.pdf-annot-item{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:8px;font-size:12px;color:var(--text2);line-height:1.5;cursor:pointer;transition:border-color 0.15s;position:relative;}
 .pdf-annot-item:hover{border-color:var(--accent);}
 .pdf-annot-item .annot-page{font-size:9px;color:var(--text3);font-family:var(--mono);margin-top:4px;}
 .pdf-annot-item .annot-type{display:inline-block;padding:1px 6px;border-radius:10px;font-size:9px;font-weight:600;margin-bottom:4px;}
 .annot-type.highlight{background:#ffeb3b33;color:#c4a000;border:1px solid #c4a00044;}
 .annot-type.note{background:#3a7d5a22;color:var(--green);border:1px solid #3a7d5a44;}
+.annot-type.drawing{background:#3a6b8a22;color:var(--blue);border:1px solid #3a6b8a44;}
+.pdf-sticky-note{position:absolute;background:#ffeb3b;border-radius:4px;padding:6px 8px;font-size:11px;min-width:120px;max-width:200px;box-shadow:2px 2px 8px rgba(0,0,0,0.2);cursor:move;z-index:10;border:none;outline:none;resize:both;overflow:auto;min-height:40px;font-family:var(--sans);}
+/* Mobile PDF */
+@media(max-width:768px){
+  .pdf-annot-panel{display:none;}
+  .pdf-topbar{gap:4px;}
+  .pdf-tool-btn{padding:4px 7px;font-size:10px;}
+}
 
 /* ── FLASHCARDS ── */
 .flashcard-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);backdrop-filter:blur(6px);z-index:600;display:none;align-items:center;justify-content:center;flex-direction:column;gap:20px;}
@@ -1493,10 +1510,10 @@ select.input{cursor:pointer;appearance:none;}
   </div>
 </div>
 
-<!-- DURATION PICKER -->
+<!-- DURATION PICKER POPUP -->
 <div class="duration-popup" id="durationPopup">
-  <div style="font-size:10px;font-weight:600;color:var(--text);margin-bottom:10px">⏱ How long?</div>
-  <div style="display:flex;flex-wrap:wrap;gap:3px">
+  <div style="font-size:10px;color:var(--text3);font-family:var(--mono);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px">How long?</div>
+  <div style="display:flex;flex-wrap:wrap;gap:2px;max-width:200px">
     <button class="dur-btn" onclick="confirmDrop(15)">15m</button>
     <button class="dur-btn" onclick="confirmDrop(30)">30m</button>
     <button class="dur-btn" onclick="confirmDrop(45)">45m</button>
@@ -1504,9 +1521,9 @@ select.input{cursor:pointer;appearance:none;}
     <button class="dur-btn" onclick="confirmDrop(90)">1.5h</button>
     <button class="dur-btn" onclick="confirmDrop(120)">2h</button>
     <button class="dur-btn" onclick="confirmDrop(180)">3h</button>
-    <button class="dur-btn" onclick="confirmDrop(240)">4h</button>
+    <button class="dur-btn" onclick="confirmDrop(0)">All day</button>
   </div>
-  <button class="btn btn-ghost btn-xs" onclick="cancelDrop()" style="margin-top:10px;width:100%">Cancel</button>
+  <button class="btn btn-ghost btn-xs" onclick="cancelDrop()" style="margin-top:8px;width:100%">Cancel</button>
 </div>
 
 <!-- NOTIFICATION BANNER -->
@@ -2149,17 +2166,42 @@ select.input{cursor:pointer;appearance:none;}
 <!-- PDF VIEWER OVERLAY -->
 <div class="pdf-overlay" id="pdfOverlay">
   <div class="pdf-topbar">
-    <button class="btn btn-ghost btn-sm" onclick="closePdfViewer()">← Back</button>
+    <button class="btn btn-ghost btn-sm" onclick="closePdfViewer()" style="flex-shrink:0">← Back</button>
     <div class="pdf-title" id="pdfTitle">Document</div>
-    <button class="pdf-tool-btn" onclick="pdfPrevPage()">← Prev</button>
-    <div class="pdf-page-info" id="pdfPageInfo">1 / 1</div>
-    <button class="pdf-tool-btn" onclick="pdfNextPage()">Next →</button>
-    <button class="pdf-tool-btn" onclick="pdfZoom(0.25)">＋ Zoom</button>
-    <button class="pdf-tool-btn" onclick="pdfZoom(-0.25)">－ Zoom</button>
-    <button class="pdf-tool-btn" onclick="pdfResetZoom()">Reset</button>
+    <!-- Tool buttons -->
+    <div style="display:flex;gap:4px;flex-shrink:0">
+      <button class="pdf-tool-btn" id="pdfToolSelect" onclick="setPdfTool('select')" title="Select / Pan">☞</button>
+      <button class="pdf-tool-btn" id="pdfToolHighlight" onclick="setPdfTool('highlight')" title="Highlight text">🖊</button>
+      <button class="pdf-tool-btn" id="pdfToolPen" onclick="setPdfTool('pen')" title="Freehand pen">✏️</button>
+      <button class="pdf-tool-btn" id="pdfToolNote" onclick="setPdfTool('note')" title="Sticky note">💬</button>
+      <button class="pdf-tool-btn" id="pdfToolEraser" onclick="setPdfTool('eraser')" title="Erase drawing">⌫</button>
+    </div>
+    <!-- Colour picker for pen/highlight -->
+    <div style="display:flex;gap:4px;flex-shrink:0" id="pdfColorPicker">
+      <div onclick="setPdfColor('#ffeb3b')" style="width:18px;height:18px;border-radius:50%;background:#ffeb3b;cursor:pointer;border:2px solid transparent" id="pdfCol_yellow" title="Yellow"></div>
+      <div onclick="setPdfColor('#80cbc4')" style="width:18px;height:18px;border-radius:50%;background:#80cbc4;cursor:pointer;border:2px solid transparent" id="pdfCol_teal" title="Teal"></div>
+      <div onclick="setPdfColor('#ef9a9a')" style="width:18px;height:18px;border-radius:50%;background:#ef9a9a;cursor:pointer;border:2px solid transparent" id="pdfCol_red" title="Pink"></div>
+      <div onclick="setPdfColor('#a5d6a7')" style="width:18px;height:18px;border-radius:50%;background:#a5d6a7;cursor:pointer;border:2px solid transparent" id="pdfCol_green" title="Green"></div>
+      <div onclick="setPdfColor('#1a1a1a')" style="width:18px;height:18px;border-radius:50%;background:#1a1a1a;cursor:pointer;border:2px solid transparent" id="pdfCol_black" title="Black"></div>
+    </div>
+    <!-- Page controls -->
+    <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+      <button class="pdf-tool-btn" onclick="pdfPrevPage()">← Prev</button>
+      <div class="pdf-page-info" id="pdfPageInfo">1 / 1</div>
+      <button class="pdf-tool-btn" onclick="pdfNextPage()">Next →</button>
+      <button class="pdf-tool-btn" onclick="pdfZoom(0.25)">＋</button>
+      <button class="pdf-tool-btn" onclick="pdfZoom(-0.25)">－</button>
+      <button class="pdf-tool-btn" onclick="pdfResetZoom()">Reset</button>
+    </div>
+    <button class="pdf-tool-btn" onclick="clearPageAnnotations()" title="Clear annotations on this page" style="color:var(--red)">🗑 Clear</button>
   </div>
   <div class="pdf-body">
     <div class="pdf-canvas-wrap" id="pdfCanvasWrap"></div>
+    <!-- Annotation sidebar -->
+    <div class="pdf-annot-panel" id="pdfAnnotPanel">
+      <div class="pdf-annot-title">Annotations</div>
+      <div id="pdfAnnotList"></div>
+    </div>
   </div>
 </div>
 
@@ -3923,8 +3965,8 @@ function renderCalendar(){
       '<div class="cal-date">'+d+'</div>'+evHtml+'</div>';
   }
 
-  // Trailing blanks
-  const trailing=6-lastDay.getDay();
+  // Trailing blanks — only add if last day isn't Saturday
+  const trailing = lastDay.getDay() === 6 ? 0 : 6 - lastDay.getDay();
   for(let i=0;i<trailing;i++)html+='<div class="cal-cell other-month"></div>';
 
   grid.innerHTML=html;
@@ -5486,12 +5528,14 @@ function renderPlanning() {
   }
 
   // Daily mode
+  var dayOffset = 0;
   var displayDate = new Date(plannerDate + 'T00:00:00');
   var dailyKey = plannerDate;
-  var dailyData = s.dailyPlans && s.dailyPlans[dailyKey] ? s.dailyPlans[dailyKey] : {intention: s.intention||'', selectedTasks:[], notes:''};
+  var dailyData = s.dailyPlans && s.dailyPlans[dailyKey] ? s.dailyPlans[dailyKey] : {intention: s.intention||'', topTasks:[], notes:''};
+  var pendingTasks = s.tasks.filter(function(t) { return !t.done; });
 
   el.innerHTML = modeHtml +
-    '<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">' +
+    '<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">' +
       '<button class="btn btn-ghost btn-sm" onclick="shiftPlannerDay(-1)">← Prev</button>' +
       '<div style="flex:1;text-align:center;font-family:var(--serif);font-size:15px;font-weight:700;color:var(--text)">' +
         displayDate.toLocaleDateString("default",{weekday:"long",day:"numeric",month:"long"}) +
@@ -5499,11 +5543,31 @@ function renderPlanning() {
       '</div>' +
       '<button class="btn btn-ghost btn-sm" onclick="shiftPlannerDay(1)">Next →</button>' +
     '</div>' +
-    '<div style="display:flex;gap:8px;margin-bottom:12px">' +
-      '<input class="input" id="dp-intention" value="' + (dailyData.intention||'').replace(/"/g,'&quot;') + '" placeholder="🎯 Today\'s intention..." style="flex:1"/>' +
-      '<button class="btn btn-ghost btn-sm" onclick="saveDailyIntention()">Save</button>' +
+
+    '<div class="card" style="margin-bottom:14px">' +
+      '<div class="card-title" style="margin-bottom:10px">Daily Intention</div>' +
+      '<input class="input" id="dp-intention" value="' + (dailyData.intention||'').replace(/"/g,'&quot;') + '" placeholder="What matters most today"/>' +
+      '<div class="input-label" style="margin-top:10px;margin-bottom:4px">Notes for Today</div>' +
+      '<textarea class="input" id="dp-notes" rows="3" placeholder="Any notes for the day...">' + (dailyData.notes||'') + '</textarea>' +
+      '<div class="input-label" style="margin-top:10px;margin-bottom:8px">Top 3 Tasks for Today</div>' +
+      [0,1,2].map(function(i) {
+        var taskId = dailyData.topTasks&&dailyData.topTasks[i]?dailyData.topTasks[i]:'';
+        return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">' +
+          '<div style="width:20px;height:20px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0">' + (i+1) + '</div>' +
+          '<select class="input" id="dp-task-' + i + '">' +
+            '<option value="">No task selected</option>' +
+            pendingTasks.map(function(t) { return '<option value="' + t.id + '"' + (taskId===t.id?' selected':'') + '>' + t.title + '</option>'; }).join('') +
+          '</select>' +
+        '</div>';
+      }).join('') +
+      '<div style="display:flex;gap:8px;margin-top:10px">' +
+        '<button class="btn btn-primary btn-sm" onclick="saveDailyPlan()">Save Plan</button>' +
+        '<button class="btn btn-ghost btn-sm" onclick="nav(\'morning\')">View Morning</button>' +
+      '</div>' +
     '</div>' +
-    '<div class="card" style="padding:0;overflow:hidden">' +
+
+    '<div class="card">' +
+      '<div class="card-title" style="margin-bottom:12px">Hour by Hour</div>' +
       renderDayPlanner(plannerDate) +
     '</div>';
 }
@@ -5531,33 +5595,195 @@ function getWeekStart() {
   return monday.toLocaleDateString("default", {day: "numeric", month: "long"});
 }
 
-function saveDailyIntention() {
-  var el = document.getElementById('dp-intention');
-  var intention = el ? el.value : '';
-  var s = getS();
-  var dailyPlans = s.dailyPlans || {};
-  dailyPlans[plannerDate] = Object.assign({}, dailyPlans[plannerDate]||{}, {intention: intention});
-  saveS({dailyPlans: dailyPlans, intention: intention});
-  showToast('Intention saved', 'success');
-}
+function saveDailyPlan() {
+  var intention = document.getElementById('dp-intention').value;
+  var notes = document.getElementById('dp-notes').value;
+  var topTasks = [0, 1, 2].map(function(i) {
+    var sel = document.getElementById('dp-task-' + i);
+    return sel ? sel.value : '';
+  }).filter(function(v) { return v; });
 
-function saveDailyPlan() { saveDailyIntention(); }
+  var s = getS();
+  var todayStr = new Date().toISOString().slice(0, 10);
+  var dailyPlans = s.dailyPlans || {};
+  dailyPlans[todayStr] = {intention: intention, topTasks: topTasks, notes: notes};
+  saveS({dailyPlans: dailyPlans, intention: intention, plannedTasks: topTasks});
+  showToast('Daily plan saved!', 'success');
+  updateSidebarStats();
+}
 
 function saveWeeklyPlan() {
   var s = getS();
   var weekKey = getWeekKey();
   var weeklyPlans = s.weeklyPlans || {};
   weeklyPlans[weekKey] = {
-    priorities: [0,1,2].map(function(i){ var el=document.getElementById('wp-p'+i); return el?el.value:''; }),
-    reflection: (document.getElementById('wp-reflection')||{}).value||'',
-    nextWeekFocus: (document.getElementById('wp-nextfocus')||{}).value||''
+    priorities: [0, 1, 2].map(function(i) {
+      var el = document.getElementById('wp-p' + i);
+      return el ? el.value : '';
+    }),
+    reflection: (document.getElementById('wp-reflection') || {}).value || '',
+    nextWeekFocus: (document.getElementById('wp-nextfocus') || {}).value || ''
   };
   saveS({weeklyPlans: weeklyPlans});
   showToast('Weekly plan saved!', 'success');
 }
 
 // ═══════════════════════════════════════════════
-// DAY PLANNER — drag-drop, tasks, check-off
+// DEADLINE COUNTDOWN IN TOPBAR
+// ═══════════════════════════════════════════════
+function checkDeadlineCountdown() {
+  var s = getS();
+  var urgent = s.tasks.filter(function(t) { return !t.done && t.due && daysUntil(t.due) <= 2; });
+  if (urgent.length > 0) {
+    var most = urgent.sort(function(a, b) { return new Date(a.due) - new Date(b.due); })[0];
+    var days = daysUntil(most.due);
+    var msg = days <= 0 ? '"' + most.title + '" is due TODAY' : '"' + most.title + '" due tomorrow';
+    showToast('⏰ ' + msg, 'error');
+  }
+}
+
+
+// ═══════════════════════════════════════════════
+// RECURRING EVENTS
+// ═══════════════════════════════════════════════
+function isRecurringOnDate(ev, dateStr) {
+  if (!ev.recurring || ev.recurring === 'none' || !ev.date) return false;
+  // Check if this date has been individually deleted
+  if (ev.exceptions && ev.exceptions.includes(dateStr)) return false;
+  var origin = new Date(ev.date + 'T00:00:00');
+  var target = new Date(dateStr + 'T00:00:00');
+  if (target < origin) return false;
+  if (ev.recurringEnd && target > new Date(ev.recurringEnd + 'T00:00:00')) return false;
+  var diffDays = Math.round((target - origin) / 86400000);
+  if (ev.recurring === 'daily') return diffDays >= 0;
+  if (ev.recurring === 'weekly') return diffDays % 7 === 0;
+  if (ev.recurring === 'biweekly') return diffDays % 14 === 0;
+  if (ev.recurring === 'monthly') {
+    return target.getDate() === origin.getDate();
+  }
+  return false;
+}
+
+function getEventsForDate(dateStr) {
+  var s = getS();
+  var timetable = s.timetable || [];
+  var regular = s.events || [];
+  var all = [];
+  regular.forEach(function(e) {
+    if (e.date === dateStr || (e.recurring && e.recurring !== 'none' && isRecurringOnDate(e, dateStr))) {
+      all.push(e);
+    }
+  });
+  // Add timetable entries for this day of week
+  var dayOfWeek = new Date(dateStr + 'T00:00:00').getDay();
+  timetable.forEach(function(t) {
+    if (t.days && t.days.includes(dayOfWeek)) {
+      if (t.startDate && dateStr < t.startDate) return;
+      all.push(Object.assign({}, t, {id: t.id, isTimetable: true}));
+    }
+  });
+  all.sort(function(a, b) {
+    return (a.time || '00:00').localeCompare(b.time || '00:00');
+  });
+  return all;
+}
+
+// ═══════════════════════════════════════════════
+// TIMETABLE (Class Schedule)
+// ═══════════════════════════════════════════════
+var timetableView = false;
+
+function renderTimetable() {
+  var s = getS();
+  var timetable = s.timetable || [];
+  var days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+  return '<div class="card">' +
+    '<div class="card-header">' +
+      '<div class="card-title">Class Timetable</div>' +
+      '<button class="btn btn-primary btn-sm" onclick="addTimetableEntry()">+ Add Class</button>' +
+    '</div>' +
+    (timetable.length === 0 ?
+      '<div class="empty" style="padding:16px"><div class="empty-text">No classes added yet.<br/>Add your recurring classes here.</div></div>' :
+      '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px">' +
+        '<thead><tr>' +
+          '<th style="padding:8px;border:1px solid var(--border);background:var(--surface2);text-align:left;font-family:var(--mono);font-size:9px;letter-spacing:0.08em;text-transform:uppercase">Class</th>' +
+          days.map(function(d) {
+            return '<th style="padding:8px;border:1px solid var(--border);background:var(--surface2);text-align:center;font-family:var(--mono);font-size:9px;letter-spacing:0.06em;width:40px">' + d + '</th>';
+          }).join('') +
+          '<th style="padding:8px;border:1px solid var(--border);background:var(--surface2);text-align:left;font-family:var(--mono);font-size:9px">Time</th>' +
+          '<th style="padding:8px;border:1px solid var(--border);background:var(--surface2);text-align:left;font-family:var(--mono);font-size:9px">Room</th>' +
+          '<th style="border:1px solid var(--border);background:var(--surface2);width:30px"></th>' +
+        '</tr></thead>' +
+        '<tbody>' +
+          timetable.map(function(t, i) {
+            var lbl = getLabelById(t.labelId);
+            var col = lbl ? lbl.colour : 'var(--accent)';
+            return '<tr>' +
+              '<td style="padding:8px;border:1px solid var(--border);font-weight:500;color:var(--text)">' +
+                '<div style="display:flex;align-items:center;gap:6px">' +
+                  '<div style="width:8px;height:8px;border-radius:50%;background:' + col + ';flex-shrink:0"></div>' +
+                  t.title +
+                '</div>' +
+              '</td>' +
+              days.map(function(_, di) {
+                var active = t.days && t.days.includes(di);
+                return '<td style="padding:8px;border:1px solid var(--border);text-align:center">' +
+                  (active ? '<div style="width:16px;height:16px;border-radius:50%;background:' + col + ';margin:0 auto"></div>' : '') +
+                '</td>';
+              }).join('') +
+              '<td style="padding:8px;border:1px solid var(--border);color:var(--text3);font-family:var(--mono);font-size:10px">' +
+                (t.time || '') + (t.endtime ? ' – ' + t.endtime : '') +
+              '</td>' +
+              '<td style="padding:8px;border:1px solid var(--border);color:var(--text3);font-size:11px">' + (t.location || '') + '</td>' +
+              '<td style="border:1px solid var(--border);text-align:center">' +
+                '<button onclick="deleteTimetableEntry(' + i + ')" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:11px;padding:4px">✕</button>' +
+              '</td>' +
+            '</tr>';
+          }).join('') +
+        '</tbody>' +
+      '</table></div>'
+    ) +
+  '</div>';
+}
+
+function addTimetableEntry() {
+  var title = prompt('Class name (e.g. Financial Accounting):');
+  if (!title) return;
+  var daysInput = prompt('Which days? Enter numbers separated by commas (0=Sun,1=Mon,2=Tue,3=Wed,4=Thu,5=Fri,6=Sat):\ne.g. "1,3" for Mon and Wed');
+  if (!daysInput) return;
+  var days = daysInput.split(',').map(function(d) { return parseInt(d.trim()); }).filter(function(d) { return !isNaN(d) && d >= 0 && d <= 6; });
+  var time = prompt('Start time (e.g. 09:00):') || '';
+  var endtime = prompt('End time (e.g. 11:00):') || '';
+  var location = prompt('Room / Location (e.g. Block A, Room 302):') || '';
+  var s = getS();
+  var timetable = [...(s.timetable || []), {
+    id: 'tt' + Date.now(),
+    title: title,
+    days: days,
+    time: time,
+    endtime: endtime,
+    location: location,
+    labelId: '',
+    isTimetable: true
+  }];
+  saveS({timetable: timetable});
+  if (currentView === 'calendar') renderCalendar();
+  showToast('Class added to timetable!', 'success');
+}
+
+function deleteTimetableEntry(idx) {
+  var s = getS();
+  var timetable = [...(s.timetable || [])];
+  timetable.splice(idx, 1);
+  saveS({timetable: timetable});
+  if (currentView === 'calendar') renderCalendar();
+  showToast('Class removed', 'info');
+}
+
+
+// ═══════════════════════════════════════════════
+// DAY PLANNER — drag-drop, custom tasks, check off
 // ═══════════════════════════════════════════════
 var _draggedPlanItem = null;
 var _pendingDrop = null;
@@ -5567,161 +5793,116 @@ function renderDayPlanner(dateStr) {
   dateStr = dateStr || new Date().toISOString().slice(0,10);
   var hours = []; for (var h = 6; h <= 23; h++) hours.push(h);
   var events = getEventsForDate(dateStr);
-  var dayPlan = JSON.parse(JSON.stringify((s.dayTimePlans && s.dayTimePlans[dateStr]) ? s.dayTimePlans[dateStr] : {}));
-  var customTasks = (s.plannerCustomTasks && s.plannerCustomTasks[dateStr]) || [];
-  var dailyData = (s.dailyPlans && s.dailyPlans[dateStr]) ? s.dailyPlans[dateStr] : {};
-  var selectedIds = dailyData.selectedTasks || [];
-  var allTasks = s.tasks || [];
-  var selectedTasks = selectedIds.map(function(id){ return allTasks.find(function(t){return t.id===id;}); }).filter(Boolean);
-  var unselectedPending = allTasks.filter(function(t){ return !t.done && selectedIds.indexOf(t.id)===-1; });
+  var dayPlan = (s.dayTimePlans && s.dayTimePlans[dateStr]) ? s.dayTimePlans[dateStr] : {};
   var now = new Date();
   var isToday = dateStr === now.toISOString().slice(0,10);
-  var nowMins = now.getHours()*60+now.getMinutes();
-  var slotH = 60;
+  var nowMins = now.getHours()*60 + now.getMinutes();
+  var slotH = 56;
+
+  var customTasks = (s.plannerCustomTasks && s.plannerCustomTasks[dateStr]) || [];
+  var pendingTasks = s.tasks.filter(function(t){ return !t.done; });
 
   var html = '<div class="planner-wrap">';
 
-  // ── Timeline ─────────────────────────────────
-  html += '<div class="planner-timeline">';
-  // Current time line
+  // ── Timeline ──────────────────────────────────
+  html += '<div class="planner-timeline" style="position:relative">';
   if (isToday && nowMins >= 360 && nowMins <= 1380) {
-    var topPx = ((nowMins - 360)/60)*slotH;
-    html += '<div class="current-time-indicator" style="top:' + topPx + 'px"></div>';
+    var topPx = ((nowMins - 360) / 60) * slotH;
+    html += '<div class="current-time-line" style="top:' + topPx + 'px"></div>';
   }
 
-  // Track which hours are "covered" by multi-hour blocks
-  var coveredHours = {};
   hours.forEach(function(h) {
-    var timeStr = String(h).padStart(2,'0')+':00';
+    var timeStr = String(h).padStart(2,'0') + ':00';
     var blocks = Array.isArray(dayPlan[timeStr]) ? dayPlan[timeStr] : [];
-    blocks.forEach(function(b) {
-      if (b.duration && b.duration > 60) {
-        var extraHours = Math.floor(b.duration/60) - 1;
-        for (var x = 1; x <= extraHours; x++) {
-          coveredHours[h+x] = true;
-        }
-      }
-    });
-  });
+    var isCurrentHour = isToday && now.getHours() === h;
+    var slotEvents = events.filter(function(e){ return e.time && parseInt(e.time.split(':')[0]) === h; });
 
-  hours.forEach(function(h) {
-    if (coveredHours[h]) return; // Skip hours covered by a multi-hour block above
-    var timeStr = String(h).padStart(2,'0')+':00';
-    var blocks = Array.isArray(dayPlan[timeStr]) ? dayPlan[timeStr] : [];
-    var isCurrentHour = isToday && now.getHours()===h;
-    var slotEvents = events.filter(function(e){ return e.time && parseInt(e.time.split(':')[0])===h; });
+    var rowAttrs = ' ondragover="plannerDragOver(event)"' +
+      ' ondragleave="plannerDragLeave(event)"' +
+      ' ondrop="plannerDrop(event,\'' + dateStr + '\',' + h + ')"';
 
-    // Calculate min-height based on longest block duration
-    var maxDurH = 1;
-    blocks.forEach(function(b){ if(b.duration>60) maxDurH = Math.max(maxDurH, b.duration/60); });
-    var rowH = Math.max(slotH, maxDurH*slotH);
-
-    var dropOnclick = 'plannerDrop(event,\'' + dateStr + '\',' + h + ')';
-    html += '<div class="planner-hour-row' + (isCurrentHour?' is-current':'') + '"' +
-      ' style="min-height:' + rowH + 'px"' +
-      ' ondragover="plannerDragOver(event)" ondragleave="plannerDragLeave(event)"' +
-      ' ondrop="' + dropOnclick + '">';
-    html += '<div class="planner-time-label' + (isCurrentHour?' is-current':'') + '">' + timeStr + '</div>';
+    html += '<div class="planner-hour-row' + (isCurrentHour ? ' current-hour' : '') + '"' + rowAttrs + '>';
+    html += '<div class="planner-time-label' + (isCurrentHour ? ' current-hour-label' : '') + '">' + timeStr + '</div>';
     html += '<div class="planner-slot">';
 
-    // Calendar events
+    // Calendar events (read-only)
     slotEvents.forEach(function(e) {
       var lbl = getLabelById(e.labelId);
       var col = e.colour || (lbl ? lbl.colour : 'var(--accent)');
-      html += '<div class="planner-block" style="background:'+col+'18;color:'+col+';border-color:'+col+'44">' +
-        '<span style="flex-shrink:0">📅</span>' +
-        '<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(e.title) + (e.location?' · 📍'+esc(e.location):'') + '</span>' +
-        (e.endtime?'<span class="planner-dur">'+e.time+'–'+e.endtime+'</span>':'') +
-      '</div>';
+      html += '<div class="planner-block" style="background:' + col + '18;color:' + col + ';border-color:' + col + '44">' +
+        '<span>📅</span><span style="flex:1">' + esc(e.title) + (e.location ? ' · 📍' + esc(e.location) : '') + '</span>' +
+        (e.endtime ? '<span class="planner-block-duration">' + e.time + '–' + e.endtime + '</span>' : '') +
+        '</div>';
     });
 
     // Planned blocks
     blocks.forEach(function(block, bi) {
       var col = block.color || 'var(--accent)';
-      if (col === 'var(--accent)') col = '#b85c38';
-      var checkOC = 'togglePlanBlock(\'' + dateStr + '\',\'' + timeStr + '\',' + bi + ')';
-      var delOC = 'deletePlanBlock(\'' + dateStr + '\',\'' + timeStr + '\',' + bi + ')';
-      var dragOC = 'plannerBlockDragStart(event,\'' + dateStr + '\',\'' + timeStr + '\',' + bi + ')';
-      var blockH = block.duration && block.duration > 60 ? (block.duration/60)*slotH - 8 : null;
-      html += '<div class="planner-block' + (block.done?' done':'') + '"' +
-        ' draggable="true" ondragstart="' + dragOC + '"' +
-        ' style="background:' + col + '20;color:' + col + ';border-color:' + col + '44;' + (blockH?'min-height:'+blockH+'px;align-items:flex-start;':'') + '">' +
-        '<div class="planner-check' + (block.done?' checked':'') + '" onclick="' + checkOC + '" style="' + (blockH?'margin-top:2px':'') + '">' + (block.done?'✓':'') + '</div>' +
-        '<div style="flex:1;min-width:0">' +
-          '<div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(block.title) + '</div>' +
-          (block.duration?'<div style="font-size:9px;opacity:0.6;margin-top:2px;font-family:var(--mono)">'+formatPlanDuration(block.duration)+'</div>':'') +
-        '</div>' +
-        '<button class="planner-del" onclick="' + delOC + '" title="Remove">✕</button>' +
-      '</div>';
+      var checkOnclick = 'togglePlanBlock(\'' + dateStr + '\',\'' + timeStr + '\',' + bi + ')';
+      var delOnclick = 'deletePlanBlock(\'' + dateStr + '\',\'' + timeStr + '\',' + bi + ')';
+      var dragStart = 'plannerBlockDragStart(event,\'' + dateStr + '\',\'' + timeStr + '\',' + bi + ')';
+      html += '<div class="planner-block' + (block.done ? ' done-block' : '') + '"' +
+        ' draggable="true" ondragstart="' + dragStart + '"' +
+        ' style="background:' + col + '18;color:' + col + ';border-color:' + col + '44">' +
+        '<div class="planner-block-check' + (block.done ? ' checked' : '') + '" onclick="' + checkOnclick + '">' + (block.done ? '✓' : '') + '</div>' +
+        '<span style="flex:1">' + esc(block.title) + '</span>' +
+        (block.duration ? '<span class="planner-block-duration">' + formatDuration(block.duration) + '</span>' : '') +
+        '<button class="planner-block-del" onclick="' + delOnclick + '">✕</button>' +
+        '</div>';
     });
 
-    // Quick add input
-    var qaOC = 'plannerQuickAdd(event,\'' + dateStr + '\',\'' + timeStr + '\')';
-    html += '<input class="planner-quick" placeholder="+ quick add..." onkeydown="' + qaOC + '" />';
+    // Quick-add input
+    var qaOnkey = 'plannerQuickAdd(event,\'' + dateStr + '\',\'' + timeStr + '\')';
+    html += '<input class="planner-quick-input" placeholder="+ type and Enter..." onkeydown="' + qaOnkey + '" />';
     html += '</div></div>';
   });
 
   html += '</div>'; // end timeline
 
-  // ── Sidebar ─────────────────────────────────
+  // ── Sidebar ───────────────────────────────────
+  var custOnkey = 'addPlannerCustomTask(event,\'' + dateStr + '\')';
   html += '<div class="planner-sidebar">';
+  html += '<div style="font-size:9px;color:var(--text3);font-family:var(--mono);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px">Drag tasks to timeline →</div>';
+  html += '<input class="input" id="plannerCustomInput" placeholder="+ Custom task (Enter)" style="font-size:11px;padding:6px 10px;margin-bottom:8px" onkeydown="' + custOnkey + '" />';
 
-  // Section 1: Selected tasks for the day
-  html += '<div style="font-size:9px;font-weight:700;color:var(--text);font-family:var(--mono);text-transform:uppercase;margin-bottom:8px">📋 Today\'s Tasks</div>';
-
-  selectedTasks.forEach(function(t) {
-    var lbl = getLabelById(t.labelId);
-    var col = t.done ? '#888' : (lbl ? lbl.colour : 'var(--accent)');
-    var tData = JSON.stringify({title:t.title,id:t.id,color:lbl?lbl.colour:'#b85c38',isCustom:false});
-    var doneOC = 'markTaskDoneFromPlanner(\'' + t.id + '\',\'' + dateStr + '\')';
-    var removeOC = 'removeFromDayPlan(\'' + dateStr + '\',\'' + t.id + '\')';
-    html += '<div class="plan-task-pill' + (t.done?' done-pill':'') + '"' +
-      ' draggable="true" ondragstart="sidebarDragStart(event,' + JSON.stringify(tData) + ')">' +
-      '<div class="planner-check' + (t.done?' checked':'') + '" onclick="' + doneOC + '" style="border-color:'+col+';flex-shrink:0">' + (t.done?'✓':'') + '</div>' +
-      '<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(t.title) + '</span>' +
-      '<button onclick="' + removeOC + '" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:13px;flex-shrink:0" title="Remove from today">✕</button>' +
-    '</div>';
-  });
-
-  // Add task from list
-  if (unselectedPending.length > 0) {
-    var addOC = 'addTaskToDayPlan(\'' + dateStr + '\')';
-    html += '<select class="input" id="plannerTaskSel" style="font-size:11px;padding:5px 8px;margin-bottom:4px" onchange="' + addOC + '">' +
-      '<option value="">+ Add task for today...</option>' +
-      unselectedPending.map(function(t){ return '<option value="'+t.id+'">'+esc(t.title)+'</option>'; }).join('') +
-    '</select>';
-  } else if (selectedTasks.length === 0) {
-    html += '<div style="font-size:11px;color:var(--text3);padding:4px 0 8px">All tasks completed! 🎉</div>';
+  if (customTasks.length > 0) {
+    html += '<div style="font-size:9px;color:var(--text3);font-family:var(--mono);text-transform:uppercase;margin-bottom:5px">Custom for today</div>';
+    customTasks.forEach(function(ct, ci) {
+      var ctData = JSON.stringify({title:ct.title,id:'c'+ci,color:'var(--accent)',isCustom:true});
+      var toggleOnclick = 'toggleCustomTask(\'' + dateStr + '\',' + ci + ')';
+      var delOnclick = 'deleteCustomTask(\'' + dateStr + '\',' + ci + ')';
+      html += '<div class="plan-task-item plan-custom-item' + (ct.done ? ' done-task' : '') + '"' +
+        ' draggable="true" ondragstart="sidebarDragStart(event,' + JSON.stringify(ctData) + ')">' +
+        '<div class="planner-block-check' + (ct.done ? ' checked' : '') + '" onclick="' + toggleOnclick + '" style="border-color:var(--accent);flex-shrink:0">' + (ct.done ? '✓' : '') + '</div>' +
+        '<span style="flex:1">' + esc(ct.title) + '</span>' +
+        '<button onclick="' + delOnclick + '" style="background:none;border:none;cursor:pointer;color:var(--accent);font-size:11px;opacity:0.5">✕</button>' +
+        '</div>';
+    });
   }
 
-  // Section 2: Custom tasks
-  html += '<div style="border-top:1px solid var(--border);margin:10px 0 8px"></div>';
-  html += '<div style="font-size:9px;font-weight:700;color:var(--text);font-family:var(--mono);text-transform:uppercase;margin-bottom:6px">➕ Custom for today</div>';
+  if (pendingTasks.length > 0) {
+    html += '<div style="font-size:9px;color:var(--text3);font-family:var(--mono);text-transform:uppercase;margin:10px 0 5px">From tasks</div>';
+    pendingTasks.slice(0,15).forEach(function(t) {
+      var lbl = getLabelById(t.labelId);
+      var col = lbl ? lbl.colour : 'var(--accent)';
+      var tData = JSON.stringify({title:t.title,id:t.id,color:col,isCustom:false});
+      html += '<div class="plan-task-item" draggable="true" ondragstart="sidebarDragStart(event,' + JSON.stringify(tData) + ')">' +
+        '<div style="width:8px;height:8px;border-radius:50%;background:' + col + ';flex-shrink:0"></div>' +
+        '<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(t.title) + '</span>' +
+        (t.due ? '<span style="font-size:9px;opacity:0.5;font-family:var(--mono)">' + fmtDate(t.due) + '</span>' : '') +
+        '</div>';
+    });
+  }
 
-  customTasks.forEach(function(ct, ci) {
-    var ctData = JSON.stringify({title:ct.title,id:'custom_'+ci,color:'#b85c38',isCustom:true});
-    var togOC = 'toggleCustomTask(\'' + dateStr + '\',' + ci + ')';
-    var delOC = 'deleteCustomTask(\'' + dateStr + '\',' + ci + ')';
-    html += '<div class="plan-task-pill plan-custom-pill' + (ct.done?' done-pill':'') + '"' +
-      ' draggable="true" ondragstart="sidebarDragStart(event,' + JSON.stringify(ctData) + ')">' +
-      '<div class="planner-check' + (ct.done?' checked':'') + '" onclick="' + togOC + '" style="border-color:var(--accent);flex-shrink:0">' + (ct.done?'✓':'') + '</div>' +
-      '<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(ct.title) + '</span>' +
-      '<button onclick="' + delOC + '" style="background:none;border:none;cursor:pointer;color:var(--accent);font-size:13px;opacity:0.6;flex-shrink:0">✕</button>' +
-    '</div>';
-  });
-
-  var custOC = 'addPlannerCustomTask(event,\'' + dateStr + '\')';
-  html += '<input class="input" id="plannerCustomInput" placeholder="+ Custom task, press Enter" style="font-size:11px;padding:6px 10px" onkeydown="' + custOC + '" />';
-  html += '<div style="font-size:9px;color:var(--text3);margin-top:10px;line-height:1.6">Drag any task to a time slot →<br/>then choose how long to allocate</div>';
-  html += '</div></div>';
+  html += '</div></div>'; // end sidebar + wrap
   return html;
 }
 
-function formatPlanDuration(mins) {
+function formatDuration(mins) {
   if (!mins) return '';
   if (mins < 60) return mins + 'm';
-  var h = Math.floor(mins/60), m = mins%60;
-  return h + 'h' + (m ? m+'m' : '');
+  var h = Math.floor(mins/60), m = mins % 60;
+  return h + 'h' + (m ? m + 'm' : '');
 }
 
 function sidebarDragStart(event, itemJson) {
@@ -5731,9 +5912,9 @@ function sidebarDragStart(event, itemJson) {
 
 function plannerBlockDragStart(event, dateStr, timeStr, bi) {
   var s = getS();
-  var slot = ((s.dayTimePlans||{})[dateStr]||{})[timeStr];
-  if (!Array.isArray(slot) || !slot[bi]) return;
-  _draggedPlanItem = Object.assign({}, slot[bi], {_moveFrom:{dateStr:dateStr,timeStr:timeStr,bi:bi}});
+  var blocks = ((s.dayTimePlans || {})[dateStr] || {})[timeStr];
+  if (!blocks || !blocks[bi]) return;
+  _draggedPlanItem = Object.assign({}, blocks[bi], {_moveFrom: {dateStr: dateStr, timeStr: timeStr, bi: bi}});
   event.dataTransfer.effectAllowed = 'move';
 }
 
@@ -5750,16 +5931,10 @@ function plannerDrop(event, dateStr, h) {
   event.preventDefault();
   event.currentTarget.classList.remove('drag-over');
   if (!_draggedPlanItem) return;
-  _pendingDrop = {dateStr:dateStr, hour:h};
+  _pendingDrop = {dateStr: dateStr, hour: h};
   var popup = document.getElementById('durationPopup');
-  popup.style.top = (event.clientY - 10) + 'px';
-  popup.style.left = (event.clientX + 14) + 'px';
-  // Keep popup on screen
-  setTimeout(function() {
-    var rect = popup.getBoundingClientRect();
-    if (rect.right > window.innerWidth) popup.style.left = (event.clientX - rect.width - 10) + 'px';
-    if (rect.bottom > window.innerHeight) popup.style.top = (event.clientY - rect.height - 10) + 'px';
-  }, 0);
+  popup.style.top = (event.clientY - 20) + 'px';
+  popup.style.left = (event.clientX + 10) + 'px';
   popup.classList.add('show');
 }
 
@@ -5768,163 +5943,89 @@ function confirmDrop(duration) {
   if (!_draggedPlanItem || !_pendingDrop) return;
   var timeStr = String(_pendingDrop.hour).padStart(2,'0') + ':00';
   var s = getS();
-  var dtp = JSON.parse(JSON.stringify(s.dayTimePlans || {}));
+  var dtp = s.dayTimePlans || {};
   dtp[_pendingDrop.dateStr] = dtp[_pendingDrop.dateStr] || {};
-  if (!Array.isArray(dtp[_pendingDrop.dateStr][timeStr])) dtp[_pendingDrop.dateStr][timeStr] = [];
-  // Remove from old slot if moving
+  dtp[_pendingDrop.dateStr][timeStr] = dtp[_pendingDrop.dateStr][timeStr] || [];
   if (_draggedPlanItem._moveFrom) {
     var mf = _draggedPlanItem._moveFrom;
-    if (dtp[mf.dateStr] && Array.isArray(dtp[mf.dateStr][mf.timeStr])) {
-      dtp[mf.dateStr][mf.timeStr].splice(mf.bi, 1);
-    }
+    if (dtp[mf.dateStr] && dtp[mf.dateStr][mf.timeStr]) dtp[mf.dateStr][mf.timeStr].splice(mf.bi, 1);
   }
   dtp[_pendingDrop.dateStr][timeStr].push({
-    id: _draggedPlanItem.id || ('b'+Date.now()),
-    title: _draggedPlanItem.title,
-    color: _draggedPlanItem.color || '#b85c38',
-    isCustom: _draggedPlanItem.isCustom || false,
-    duration: duration || null,
-    done: false
+    id: _draggedPlanItem.id, title: _draggedPlanItem.title,
+    color: _draggedPlanItem.color, isCustom: _draggedPlanItem.isCustom,
+    duration: duration || null, done: false
   });
   saveS({dayTimePlans: dtp});
-  _draggedPlanItem = null;
-  _pendingDrop = null;
+  _draggedPlanItem = null; _pendingDrop = null;
   renderPlanning();
-  showToast('Scheduled at ' + timeStr + (duration?' · '+formatPlanDuration(duration):''), 'success');
+  showToast('Added to ' + timeStr, 'success');
 }
 
 function cancelDrop() {
   document.getElementById('durationPopup').classList.remove('show');
-  _draggedPlanItem = null;
-  _pendingDrop = null;
+  _draggedPlanItem = null; _pendingDrop = null;
 }
 
 function plannerQuickAdd(event, dateStr, timeStr) {
   if (event.key !== 'Enter') return;
-  var val = event.target.value.trim();
-  if (!val) return;
-  var s = getS();
-  var dtp = JSON.parse(JSON.stringify(s.dayTimePlans || {}));
-  dtp[dateStr] = dtp[dateStr] || {};
-  if (!Array.isArray(dtp[dateStr][timeStr])) dtp[dateStr][timeStr] = [];
-  dtp[dateStr][timeStr].push({id:'q'+Date.now(), title:val, color:'#b85c38', isCustom:true, done:false, duration:null});
-  saveS({dayTimePlans: dtp});
-  event.target.value = '';
-  renderPlanning();
-}
-
-function addTaskToDayPlan(dateStr) {
-  var sel = document.getElementById('plannerTaskSel');
-  if (!sel || !sel.value) return;
-  var taskId = sel.value;
-  var s = getS();
-  var dailyPlans = JSON.parse(JSON.stringify(s.dailyPlans || {}));
-  dailyPlans[dateStr] = dailyPlans[dateStr] || {};
-  var selected = dailyPlans[dateStr].selectedTasks || [];
-  if (selected.indexOf(taskId) === -1) selected.push(taskId);
-  dailyPlans[dateStr].selectedTasks = selected;
-  saveS({dailyPlans: dailyPlans});
-  renderPlanning();
-}
-
-function removeFromDayPlan(dateStr, taskId) {
-  var s = getS();
-  var dailyPlans = JSON.parse(JSON.stringify(s.dailyPlans || {}));
-  if (!dailyPlans[dateStr]) return;
-  dailyPlans[dateStr].selectedTasks = (dailyPlans[dateStr].selectedTasks || []).filter(function(id){ return id !== taskId; });
-  saveS({dailyPlans: dailyPlans});
-  renderPlanning();
-}
-
-function markTaskDoneFromPlanner(taskId, dateStr) {
-  var s = getS();
-  var task = s.tasks.find(function(t){ return t.id === taskId; });
-  var completedTask = (s.completedTasks||[]).find(function(t){ return t.id === taskId; });
-  if (!task && !completedTask) return;
-  if (task && !task.done) {
-    // Mark complete — move to completedTasks
-    var newTasks = s.tasks.filter(function(t){ return t.id !== taskId; });
-    var done = Object.assign({}, task, {done:true, doneDate:new Date().toISOString()});
-    saveS({tasks:newTasks, completedTasks:[done,...(s.completedTasks||[])]});
-    showToast('✓ ' + task.title, 'success');
-  } else if (completedTask) {
-    // Unmark — move back
-    var newCompleted = (s.completedTasks||[]).filter(function(t){ return t.id !== taskId; });
-    var restored = Object.assign({}, completedTask, {done:false, doneDate:null});
-    saveS({tasks:[...s.tasks, restored], completedTasks:newCompleted});
-    showToast('Task restored', 'info');
-  }
-  updateSidebarStats();
-  renderPlanning();
+  var val = event.target.value.trim(); if (!val) return;
+  var s = getS(); var dtp = s.dayTimePlans || {};
+  dtp[dateStr] = dtp[dateStr] || {}; dtp[dateStr][timeStr] = dtp[dateStr][timeStr] || [];
+  dtp[dateStr][timeStr].push({id:'q'+Date.now(), title:val, color:'var(--accent)', isCustom:true, done:false});
+  saveS({dayTimePlans: dtp}); event.target.value = ''; renderPlanning();
 }
 
 function addPlannerCustomTask(event, dateStr) {
   if (event.key !== 'Enter') return;
   var input = document.getElementById('plannerCustomInput');
-  var val = input ? input.value.trim() : '';
-  if (!val) return;
-  var s = getS();
-  var pct = JSON.parse(JSON.stringify(s.plannerCustomTasks || {}));
+  var val = input ? input.value.trim() : ''; if (!val) return;
+  var s = getS(); var pct = s.plannerCustomTasks || {};
   pct[dateStr] = pct[dateStr] || [];
   pct[dateStr].push({title:val, done:false, id:'c'+Date.now()});
-  saveS({plannerCustomTasks: pct});
-  if (input) input.value = '';
-  renderPlanning();
+  saveS({plannerCustomTasks: pct}); if (input) input.value = ''; renderPlanning();
 }
 
 function toggleCustomTask(dateStr, idx) {
-  var s = getS();
-  var pct = JSON.parse(JSON.stringify(s.plannerCustomTasks || {}));
+  var s = getS(); var pct = s.plannerCustomTasks || {};
   var tasks = pct[dateStr] || [];
   if (tasks[idx]) tasks[idx].done = !tasks[idx].done;
-  pct[dateStr] = tasks;
-  saveS({plannerCustomTasks: pct});
-  renderPlanning();
+  pct[dateStr] = tasks; saveS({plannerCustomTasks: pct}); renderPlanning();
 }
 
 function deleteCustomTask(dateStr, idx) {
-  var s = getS();
-  var pct = JSON.parse(JSON.stringify(s.plannerCustomTasks || {}));
-  pct[dateStr] = (pct[dateStr]||[]).filter(function(_,i){ return i !== idx; });
-  saveS({plannerCustomTasks: pct});
-  renderPlanning();
+  var s = getS(); var pct = s.plannerCustomTasks || {};
+  pct[dateStr] = (pct[dateStr] || []).filter(function(_,i){ return i !== idx; });
+  saveS({plannerCustomTasks: pct}); renderPlanning();
 }
 
 function togglePlanBlock(dateStr, timeStr, bi) {
-  var s = getS();
-  var dtp = JSON.parse(JSON.stringify(s.dayTimePlans || {}));
+  var s = getS(); var dtp = s.dayTimePlans || {};
   var block = dtp[dateStr] && dtp[dateStr][timeStr] && dtp[dateStr][timeStr][bi];
   if (!block) return;
-  block.done = !block.done;
-  saveS({dayTimePlans: dtp});
-  renderPlanning();
+  block.done = !block.done; saveS({dayTimePlans: dtp}); renderPlanning();
 }
 
 function deletePlanBlock(dateStr, timeStr, bi) {
-  var s = getS();
-  var dtp = JSON.parse(JSON.stringify(s.dayTimePlans || {}));
-  if (dtp[dateStr] && Array.isArray(dtp[dateStr][timeStr])) {
+  var s = getS(); var dtp = s.dayTimePlans || {};
+  if (dtp[dateStr] && dtp[dateStr][timeStr]) {
     dtp[dateStr][timeStr].splice(bi, 1);
-    saveS({dayTimePlans: dtp});
-    renderPlanning();
+    saveS({dayTimePlans: dtp}); renderPlanning();
   }
 }
 
 function saveDayTimeSlot(dateStr, timeKey, value) {
-  // Legacy compat — no-op in new system
+  var s = getS(); var dtp = s.dayTimePlans || {};
+  dtp[dateStr] = dtp[dateStr] || {};
+  if (!Array.isArray(dtp[dateStr][timeKey])) dtp[dateStr][timeKey] = [];
+  saveS({dayTimePlans: dtp});
 }
 
 document.addEventListener('click', function(e) {
   if (!e.target.closest('#durationPopup') && !e.target.closest('.planner-hour-row')) {
-    var p = document.getElementById('durationPopup');
-    if (p) p.classList.remove('show');
+    var p = document.getElementById('durationPopup'); if (p) p.classList.remove('show');
   }
 });
 
-
-// ═══════════════════════════════════════════════
-// WEEKLY PLANNER GRID
-// ═══════════════════════════════════════════════
 function renderWeekGrid() {
   var today = new Date();
   var startOfWeek = new Date(today);
@@ -6326,55 +6427,39 @@ window.addEventListener('load', function(){
 
 
 
+
 // ═══════════════════════════════════════════════
-// PDF UPLOAD + VIEWER + ANNOTATIONS
+// PDF VIEWER + ANNOTATIONS
 // ═══════════════════════════════════════════════
 var pdfCurrentDoc = null;
 var pdfCurrentPage = 1;
 var pdfTotalPages = 0;
 var pdfCurrentId = null;
 var pdfScale = 1.4;
-
-// IndexedDB for PDF storage (localStorage has 5MB limit, PDFs are larger)
 var pdfDB = null;
+var pdfTool = 'select';
+var pdfColor = '#ffeb3b';
+var pdfAnnotations = {};
+var pdfDrawing = false;
+var pdfDrawPath = [];
+var pdfDrawCtx = null;
+var pdfDrawCanvas = null;
 
 function initPdfDB(callback) {
   if (pdfDB) { callback(pdfDB); return; }
   var req = indexedDB.open('DurghaPDFs', 1);
-  req.onupgradeneeded = function(e) {
-    e.target.result.createObjectStore('pdfs', { keyPath: 'id' });
-  };
-  req.onsuccess = function(e) {
-    pdfDB = e.target.result;
-    callback(pdfDB);
-  };
-  req.onerror = function() {
-    showToast('Could not open PDF storage', 'error');
-  };
+  req.onupgradeneeded = function(e) { e.target.result.createObjectStore('pdfs', { keyPath: 'id' }); };
+  req.onsuccess = function(e) { pdfDB = e.target.result; callback(pdfDB); };
+  req.onerror = function() { showToast('Could not open PDF storage', 'error'); };
 }
-
 function storePdfData(pdfId, dataUrl, callback) {
-  initPdfDB(function(db) {
-    var tx = db.transaction('pdfs', 'readwrite');
-    tx.objectStore('pdfs').put({ id: pdfId, data: dataUrl });
-    tx.oncomplete = callback;
-  });
+  initPdfDB(function(db) { var tx = db.transaction('pdfs', 'readwrite'); tx.objectStore('pdfs').put({ id: pdfId, data: dataUrl }); tx.oncomplete = callback; });
 }
-
 function loadPdfData(pdfId, callback) {
-  initPdfDB(function(db) {
-    var tx = db.transaction('pdfs', 'readonly');
-    var req = tx.objectStore('pdfs').get(pdfId);
-    req.onsuccess = function() { callback(req.result ? req.result.data : null); };
-    req.onerror = function() { callback(null); };
-  });
+  initPdfDB(function(db) { var tx = db.transaction('pdfs', 'readonly'); var req = tx.objectStore('pdfs').get(pdfId); req.onsuccess = function() { callback(req.result ? req.result.data : null); }; req.onerror = function() { callback(null); }; });
 }
-
 function deletePdfData(pdfId) {
-  initPdfDB(function(db) {
-    var tx = db.transaction('pdfs', 'readwrite');
-    tx.objectStore('pdfs').delete(pdfId);
-  });
+  initPdfDB(function(db) { var tx = db.transaction('pdfs', 'readwrite'); tx.objectStore('pdfs').delete(pdfId); });
 }
 
 function uploadPdfForSubject(subjectId, input) {
@@ -6386,16 +6471,13 @@ function uploadPdfForSubject(subjectId, input) {
   reader.onload = function(e) {
     var pdfId = 'pdf' + Date.now();
     storePdfData(pdfId, e.target.result, function() {
-      var s = getS();
-      var pdfFiles = s.pdfFiles || {};
+      var s = getS(); var pdfFiles = s.pdfFiles || {};
       pdfFiles[subjectId] = pdfFiles[subjectId] || [];
       pdfFiles[subjectId].push({ id: pdfId, name: file.name, uploaded: new Date().toISOString() });
       saveS({ pdfFiles: pdfFiles });
-      // Also push PDF to Supabase for cross-device access
       pushPdfToSupabase(pdfId, subjectId, file.name, e.target.result).catch(function(){});
       showToast('PDF uploaded: ' + file.name, 'success');
-      renderPdfList(subjectId);
-      input.value = '';
+      renderPdfList(subjectId); input.value = '';
     });
   };
   reader.readAsDataURL(file);
@@ -6404,63 +6486,56 @@ function uploadPdfForSubject(subjectId, input) {
 function renderPdfList(subjectId) {
   var el = document.getElementById('pdfList_' + subjectId);
   if (!el) return;
-  var s = getS();
-  var pdfs = (s.pdfFiles && s.pdfFiles[subjectId]) || [];
-  if (pdfs.length === 0) {
-    el.innerHTML = '<div style="font-size:11px;color:var(--text3);padding:8px 0">No PDFs attached yet.</div>';
-    return;
-  }
-  var html = '';
-  for (var i = 0; i < pdfs.length; i++) {
-    var pdf = pdfs[i];
-    html += '<div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--surface);border:1px solid var(--border);border-radius:8px;margin-bottom:6px">' +
+  var s = getS(); var pdfs = (s.pdfFiles && s.pdfFiles[subjectId]) || [];
+  if (pdfs.length === 0) { el.innerHTML = '<div style="font-size:11px;color:var(--text3);padding:8px 0">No PDFs attached yet.</div>'; return; }
+  el.innerHTML = pdfs.map(function(pdf, i) {
+    return '<div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--surface);border:1px solid var(--border);border-radius:8px;margin-bottom:6px">' +
       '<span style="font-size:18px">📄</span>' +
-      '<div style="flex:1;min-width:0">' +
-        '<div style="font-size:12px;font-weight:500;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + pdf.name + '</div>' +
-        '<div style="font-size:9px;color:var(--text3);font-family:var(--mono)">' + new Date(pdf.uploaded).toLocaleDateString() + '</div>' +
-      '</div>' +
+      '<div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:500;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(pdf.name) + '</div>' +
+      '<div style="font-size:9px;color:var(--text3);font-family:var(--mono)">' + new Date(pdf.uploaded).toLocaleDateString() + '</div></div>' +
       '<button class="btn btn-primary btn-xs" onclick="openPdfByIndex(' + JSON.stringify(subjectId) + ',' + i + ')">Open</button>' +
-      '<button onclick="deletePdf(' + JSON.stringify(subjectId) + ',' + i + ')" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:12px;padding:4px">✕</button>' +
-    '</div>';
-  }
-  el.innerHTML = html;
+      '<button onclick="deletePdf(' + JSON.stringify(subjectId) + ',' + i + ')" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:18px;padding:4px 8px;line-height:1" title="Delete">✕</button></div>';
+  }).join('');
 }
 
 function deletePdf(subjectId, idx) {
-  if (!confirm('Remove this PDF?')) return;
-  var s = getS();
-  var pdfFiles = s.pdfFiles || {};
-  var pdfs = pdfFiles[subjectId] || [];
-  if (pdfs[idx]) {
-    deletePdfData(pdfs[idx].id);
-    deletePdfFromSupabase(pdfs[idx].id).catch(function(){});
-  }
+  var s = getS(); var pdfFiles = s.pdfFiles || {}; var pdfs = pdfFiles[subjectId] || [];
+  if (!pdfs[idx]) return;
+  var pdf = pdfs[idx];
+  deletePdfData(pdf.id);
+  deletePdfFromSupabase(pdf.id).catch(function(){});
   pdfFiles[subjectId] = pdfs.filter(function(_, i) { return i !== idx; });
-  saveS({ pdfFiles: pdfFiles });
-  renderPdfList(subjectId);
-  showToast('PDF removed', 'info');
+  saveS({ pdfFiles: pdfFiles }); renderPdfList(subjectId);
+  showToast('PDF removed: ' + pdf.name, 'info');
 }
 
 function openPdfByIndex(subjectId, idx) {
-  var s = getS();
-  var pdfs = (s.pdfFiles && s.pdfFiles[subjectId]) || [];
-  if (!pdfs[idx]) return;
+  var s = getS(); var pdfs = (s.pdfFiles && s.pdfFiles[subjectId]) || [];
+  if (!pdfs[idx]) { showToast('PDF record not found', 'error'); return; }
   var pdf = pdfs[idx];
   showToast('Opening ' + pdf.name + '...', 'info');
-  // Try IndexedDB first (fastest), then fall back to Supabase
+
+  // Check PDF.js loaded first
+  if (typeof pdfjsLib === 'undefined') {
+    showToast('PDF.js library not loaded — check internet connection', 'error');
+    return;
+  }
+
   loadPdfData(pdf.id, function(dataUrl) {
     if (dataUrl) {
       openPdfViewer(dataUrl, pdf.name, pdf.id);
     } else {
-      showToast('Loading from cloud...', 'info');
+      // Not in IndexedDB — try Supabase
+      showToast('Not cached locally, loading from cloud...', 'info');
       loadPdfFromSupabase(pdf.id).then(function(remoteData) {
         if (remoteData) {
-          // Cache locally for next time
           storePdfData(pdf.id, remoteData, function(){});
           openPdfViewer(remoteData, pdf.name, pdf.id);
         } else {
-          showToast('PDF not found. Please re-upload.', 'error');
+          showToast('PDF data not found — please delete and re-upload this PDF', 'error');
         }
+      }).catch(function(err) {
+        showToast('Cloud load failed: ' + err.message, 'error');
       });
     }
   });
@@ -6472,15 +6547,23 @@ function openPdfViewer(dataUrl, name, pdfId) {
   document.getElementById('pdfOverlay').classList.add('show');
   document.getElementById('pdfCanvasWrap').innerHTML = '<div style="padding:60px;text-align:center;color:#aaa;font-size:14px">Loading PDF...</div>';
   pdfCurrentPage = 1;
+  setPdfTool('select');
+
+  var s = getS();
+  pdfAnnotations = (s.pdfAnnotations && s.pdfAnnotations[pdfId]) ? JSON.parse(JSON.stringify(s.pdfAnnotations[pdfId])) : {};
 
   if (typeof pdfjsLib === 'undefined') {
-    document.getElementById('pdfCanvasWrap').innerHTML = '<div style="padding:40px;color:red;text-align:center">PDF.js failed to load. Check your internet connection.</div>';
+    document.getElementById('pdfCanvasWrap').innerHTML = '<div style="padding:40px;color:red;text-align:center">PDF.js not loaded. Check internet connection and reload page.</div>';
     return;
   }
 
   pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
   try {
+    if (!dataUrl || dataUrl.indexOf(',') === -1) {
+      document.getElementById('pdfCanvasWrap').innerHTML = '<div style="padding:40px;color:red;text-align:center">Invalid PDF data. Please re-upload the file.</div>';
+      return;
+    }
     var base64 = dataUrl.split(',')[1];
     var binary = atob(base64);
     var bytes = new Uint8Array(binary.length);
@@ -6491,41 +6574,235 @@ function openPdfViewer(dataUrl, name, pdfId) {
       pdfTotalPages = doc.numPages;
       renderPdfPage(1);
     }).catch(function(err) {
-      document.getElementById('pdfCanvasWrap').innerHTML = '<div style="padding:40px;color:red;text-align:center">Could not render PDF: ' + err.message + '</div>';
+      document.getElementById('pdfCanvasWrap').innerHTML =
+        '<div style="padding:40px;color:red;text-align:center">' +
+        'Could not render PDF: ' + err.message + '<br><br>' +
+        '<small style="color:#aaa">This usually means the file is corrupted or password-protected.<br>Try re-uploading the PDF.</small></div>';
     });
   } catch(err) {
-    document.getElementById('pdfCanvasWrap').innerHTML = '<div style="padding:40px;color:red;text-align:center">Error reading PDF: ' + err.message + '</div>';
+    document.getElementById('pdfCanvasWrap').innerHTML =
+      '<div style="padding:40px;color:red;text-align:center">Error: ' + err.message + '</div>';
   }
 }
 
 function renderPdfPage(pageNum) {
   if (!pdfCurrentDoc) return;
   pdfCurrentDoc.getPage(pageNum).then(function(page) {
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
     var viewport = page.getViewport({ scale: pdfScale });
+    var container = document.createElement('div');
+    container.className = 'pdf-page-container';
+    container.style.width = viewport.width + 'px';
+    container.style.height = viewport.height + 'px';
     var canvas = document.createElement('canvas');
-    canvas.width = viewport.width;
-    canvas.height = viewport.height;
-    canvas.style.display = 'block';
-    canvas.style.boxShadow = '0 4px 24px rgba(0,0,0,0.4)';
+    canvas.width = Math.floor(viewport.width * dpr);
+    canvas.height = Math.floor(viewport.height * dpr);
+    canvas.style.width = viewport.width + 'px';
+    canvas.style.height = viewport.height + 'px';
     var ctx = canvas.getContext('2d');
+    ctx.scale(dpr, dpr);
+    var drawCanvas = document.createElement('canvas');
+    drawCanvas.width = Math.floor(viewport.width * dpr);
+    drawCanvas.height = Math.floor(viewport.height * dpr);
+    drawCanvas.style.width = viewport.width + 'px';
+    drawCanvas.style.height = viewport.height + 'px';
+    drawCanvas.className = 'pdf-draw-canvas active';
+    drawCanvas.style.position = 'absolute';
+    drawCanvas.style.top = '0'; drawCanvas.style.left = '0';
+    container.appendChild(canvas); container.appendChild(drawCanvas);
     page.render({ canvasContext: ctx, viewport: viewport }).promise.then(function() {
       var wrap = document.getElementById('pdfCanvasWrap');
-      wrap.innerHTML = '';
-      wrap.appendChild(canvas);
+      wrap.innerHTML = ''; wrap.appendChild(container);
+      pdfDrawCanvas = drawCanvas; pdfDrawCtx = drawCanvas.getContext('2d');
+      pdfDrawCtx.scale(dpr, dpr);
+      redrawAnnotations(pageNum);
+      wireDrawEvents(drawCanvas, dpr);
     });
     document.getElementById('pdfPageInfo').textContent = pageNum + ' / ' + pdfTotalPages;
     pdfCurrentPage = pageNum;
+    renderAnnotSidebar();
+  }).catch(function(err) { showToast('Could not render page: ' + err.message, 'error'); });
+}
+
+function wireDrawEvents(canvas, dpr) {
+  function getPos(e) {
+    var rect = canvas.getBoundingClientRect();
+    var touch = e.touches ? e.touches[0] : e;
+    return { x: (touch.clientX - rect.left), y: (touch.clientY - rect.top) };
+  }
+  canvas.onmousedown = canvas.ontouchstart = function(e) {
+    e.preventDefault();
+    if (pdfTool === 'select') return;
+    if (pdfTool === 'note') { addStickyNote(e); return; }
+    if (pdfTool === 'eraser') { eraseAt(getPos(e)); return; }
+    pdfDrawing = true; pdfDrawPath = [];
+    var pos = getPos(e); pdfDrawPath.push(pos);
+  };
+  canvas.onmousemove = canvas.ontouchmove = function(e) {
+    e.preventDefault();
+    if (!pdfDrawing || (pdfTool !== 'pen' && pdfTool !== 'highlight')) return;
+    var pos = getPos(e); pdfDrawPath.push(pos);
+    pdfDrawCtx.save();
+    pdfDrawCtx.lineCap = 'round'; pdfDrawCtx.lineJoin = 'round';
+    pdfDrawCtx.strokeStyle = pdfColor;
+    if (pdfTool === 'highlight') { pdfDrawCtx.globalAlpha = 0.35; pdfDrawCtx.lineWidth = 14; }
+    else { pdfDrawCtx.globalAlpha = 1; pdfDrawCtx.lineWidth = 2.5; }
+    var pts = pdfDrawPath;
+    if (pts.length > 1) {
+      pdfDrawCtx.beginPath();
+      pdfDrawCtx.moveTo(pts[pts.length-2].x, pts[pts.length-2].y);
+      pdfDrawCtx.lineTo(pts[pts.length-1].x, pts[pts.length-1].y);
+      pdfDrawCtx.stroke();
+    }
+    pdfDrawCtx.restore();
+  };
+  canvas.onmouseup = canvas.ontouchend = function() {
+    if (!pdfDrawing) return; pdfDrawing = false;
+    if (pdfDrawPath.length < 2) return;
+    saveDrawingAnnotation(pdfCurrentPage, pdfTool, pdfColor, pdfDrawPath.map(function(p){return[p.x,p.y];}));
+    pdfDrawPath = [];
+  };
+}
+
+function eraseAt(pos) {
+  pdfAnnotations[pdfCurrentPage] = (pdfAnnotations[pdfCurrentPage] || []).filter(function(a) {
+    if (a.type !== 'pen' && a.type !== 'highlight') return true;
+    return !a.path.some(function(p) { return Math.abs(p[0]-pos.x) < 20 && Math.abs(p[1]-pos.y) < 20; });
   });
+  savePdfAnnotations(); redrawAnnotations(pdfCurrentPage);
+}
+
+function setPdfTool(tool) {
+  pdfTool = tool;
+  ['select','highlight','pen','note','eraser'].forEach(function(t) {
+    var btn = document.getElementById('pdfTool' + t.charAt(0).toUpperCase() + t.slice(1));
+    if (btn) btn.classList.toggle('active', t === tool);
+  });
+  var wrap = document.getElementById('pdfCanvasWrap');
+  if (wrap) wrap.className = 'pdf-canvas-wrap' + (tool !== 'select' ? ' tool-' + tool : '');
+  var cp = document.getElementById('pdfColorPicker');
+  if (cp) cp.style.display = (tool === 'pen' || tool === 'highlight') ? 'flex' : 'none';
+  if (tool === 'highlight') setPdfColor('#ffeb3b');
+  if (tool === 'pen') setPdfColor('#1a1a1a');
+}
+
+function setPdfColor(col) {
+  pdfColor = col;
+  document.querySelectorAll('[id^="pdfCol_"]').forEach(function(el) {
+    el.style.outline = (el.style.background === col || el.style.backgroundColor === col) ? '2px solid white' : 'none';
+  });
+}
+
+function saveDrawingAnnotation(page, type, color, path) {
+  if (!pdfAnnotations[page]) pdfAnnotations[page] = [];
+  pdfAnnotations[page].push({ type: type, color: color, path: path, id: 'a' + Date.now() });
+  savePdfAnnotations(); renderAnnotSidebar();
+}
+
+function savePdfAnnotations() {
+  if (!pdfCurrentId) return;
+  var s = getS(); var allAnnots = s.pdfAnnotations || {};
+  allAnnots[pdfCurrentId] = pdfAnnotations;
+  saveS({ pdfAnnotations: allAnnots });
+}
+
+function redrawAnnotations(page) {
+  if (!pdfDrawCtx || !pdfDrawCanvas) return;
+  pdfDrawCtx.clearRect(0, 0, pdfDrawCanvas.width, pdfDrawCanvas.height);
+  (pdfAnnotations[page] || []).forEach(function(a) {
+    if ((a.type === 'pen' || a.type === 'highlight') && a.path && a.path.length > 1) {
+      pdfDrawCtx.save();
+      pdfDrawCtx.lineCap = 'round'; pdfDrawCtx.lineJoin = 'round';
+      pdfDrawCtx.strokeStyle = a.color;
+      if (a.type === 'highlight') { pdfDrawCtx.globalAlpha = 0.35; pdfDrawCtx.lineWidth = 14; }
+      else { pdfDrawCtx.globalAlpha = 1; pdfDrawCtx.lineWidth = 2.5; }
+      pdfDrawCtx.beginPath();
+      pdfDrawCtx.moveTo(a.path[0][0], a.path[0][1]);
+      for (var i = 1; i < a.path.length; i++) pdfDrawCtx.lineTo(a.path[i][0], a.path[i][1]);
+      pdfDrawCtx.stroke(); pdfDrawCtx.restore();
+    }
+  });
+  renderStickyNotes(page);
+}
+
+function addStickyNote(e) {
+  var container = document.querySelector('.pdf-page-container');
+  if (!container) return;
+  var cr = container.getBoundingClientRect();
+  var touch = e.touches ? e.touches[0] : e;
+  var relX = touch.clientX - cr.left; var relY = touch.clientY - cr.top;
+  var note = { type: 'note', x: relX, y: relY, text: '', id: 'n' + Date.now(), color: '#ffeb3b' };
+  if (!pdfAnnotations[pdfCurrentPage]) pdfAnnotations[pdfCurrentPage] = [];
+  pdfAnnotations[pdfCurrentPage].push(note);
+  savePdfAnnotations(); renderStickyNotes(pdfCurrentPage);
+  setTimeout(function() { var el = document.getElementById('sticky_' + note.id); if (el) el.focus(); }, 50);
+}
+
+function renderStickyNotes(page) {
+  var container = document.querySelector('.pdf-page-container');
+  if (!container) return;
+  container.querySelectorAll('.pdf-sticky-note').forEach(function(el) { el.remove(); });
+  (pdfAnnotations[page] || []).filter(function(a) { return a.type === 'note'; }).forEach(function(note) {
+    var el = document.createElement('textarea');
+    el.className = 'pdf-sticky-note'; el.id = 'sticky_' + note.id;
+    el.value = note.text || ''; el.placeholder = 'Type note...';
+    el.style.left = note.x + 'px'; el.style.top = note.y + 'px';
+    el.style.background = note.color || '#ffeb3b';
+    el.oninput = function() { note.text = el.value; savePdfAnnotations(); renderAnnotSidebar(); };
+    el.onmousedown = function(ev) {
+      var startX = ev.clientX - note.x, startY = ev.clientY - note.y;
+      var onMove = function(mv) { note.x = mv.clientX - startX; note.y = mv.clientY - startY; el.style.left = note.x + 'px'; el.style.top = note.y + 'px'; };
+      var onUp = function() { document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onUp); savePdfAnnotations(); };
+      document.addEventListener('mousemove', onMove); document.addEventListener('mouseup', onUp);
+    };
+    el.ondblclick = function() {
+      pdfAnnotations[page] = (pdfAnnotations[page] || []).filter(function(a) { return a.id !== note.id; });
+      savePdfAnnotations(); el.remove(); renderAnnotSidebar();
+    };
+    container.appendChild(el);
+  });
+}
+
+function renderAnnotSidebar() {
+  var el = document.getElementById('pdfAnnotList');
+  if (!el) return;
+  var all = [];
+  Object.keys(pdfAnnotations).forEach(function(pg) {
+    (pdfAnnotations[pg] || []).forEach(function(a) { all.push(Object.assign({}, a, { page: parseInt(pg) })); });
+  });
+  if (!all.length) { el.innerHTML = '<div style="font-size:11px;color:var(--text3)">No annotations yet.<br/>Use tools above to highlight, draw or add notes.</div>'; return; }
+  el.innerHTML = all.sort(function(a,b){return(a.page||0)-(b.page||0);}).map(function(a) {
+    var typeLabel = a.type === 'highlight' ? 'Highlight' : a.type === 'pen' ? 'Drawing' : 'Note';
+    var typeClass = a.type === 'note' ? 'note' : a.type === 'pen' ? 'drawing' : 'highlight';
+    var preview = a.type === 'note' ? (a.text || '(empty note)') : (typeLabel + ' on page ' + a.page);
+    return '<div class="pdf-annot-item" onclick="renderPdfPage(' + a.page + ')" style="position:relative">' +
+      '<span class="annot-type ' + typeClass + '">' + typeLabel + '</span>' +
+      '<div style="margin-top:2px">' + esc(preview.slice(0,50)) + '</div>' +
+      '<div class="annot-page">Page ' + a.page + '</div>' +
+      '<button onclick="event.stopPropagation();deleteAnnotation(\''+a.id+'\','+a.page+')" style="position:absolute;top:6px;right:6px;background:none;border:none;cursor:pointer;color:var(--text3);font-size:12px">✕</button>' +
+    '</div>';
+  }).join('');
+}
+
+function deleteAnnotation(id, page) {
+  pdfAnnotations[page] = (pdfAnnotations[page] || []).filter(function(a) { return a.id !== id; });
+  savePdfAnnotations(); redrawAnnotations(page); renderAnnotSidebar();
+}
+
+function clearPageAnnotations() {
+  pdfAnnotations[pdfCurrentPage] = [];
+  savePdfAnnotations(); redrawAnnotations(pdfCurrentPage); renderAnnotSidebar();
+  showToast('Page annotations cleared', 'info');
 }
 
 function pdfPrevPage() { if (pdfCurrentPage > 1) renderPdfPage(pdfCurrentPage - 1); }
 function pdfNextPage() { if (pdfCurrentPage < pdfTotalPages) renderPdfPage(pdfCurrentPage + 1); }
-function pdfZoom(delta) { pdfScale = Math.max(0.5, Math.min(3, pdfScale + delta)); renderPdfPage(pdfCurrentPage); }
+function pdfZoom(delta) { pdfScale = Math.max(0.5, Math.min(4, pdfScale + delta)); renderPdfPage(pdfCurrentPage); }
 function pdfResetZoom() { pdfScale = 1.4; renderPdfPage(pdfCurrentPage); }
 
 function closePdfViewer() {
   document.getElementById('pdfOverlay').classList.remove('show');
-  pdfCurrentDoc = null; pdfCurrentId = null;
+  pdfCurrentDoc = null; pdfCurrentId = null; pdfDrawCanvas = null; pdfDrawCtx = null;
   document.getElementById('pdfCanvasWrap').innerHTML = '';
 }
 
@@ -8433,7 +8710,6 @@ function seedClassEvents(){
 }
 
 applyFontSize();
-initTheme();
 // Fix mobile display on resize / orientation change
 window.addEventListener('resize', function(){
   var app = document.getElementById('mainApp');
