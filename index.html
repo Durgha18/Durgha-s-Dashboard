@@ -3876,6 +3876,52 @@ let calYear=new Date().getFullYear();
 let calMonth=new Date().getMonth();
 let selectedDay=null;
 
+// ═══════════════════════════════════════════════
+// CALENDAR HELPERS
+// ═══════════════════════════════════════════════
+function isRecurringOnDate(ev, dateStr) {
+  if (!ev.recurring || ev.recurring === 'none' || !ev.date) return false;
+  var origin = new Date(ev.date + 'T00:00:00');
+  var target = new Date(dateStr + 'T00:00:00');
+  if (target < origin) return false;
+  if (ev.recurringEnd && target > new Date(ev.recurringEnd + 'T00:00:00')) return false;
+  var diff = Math.round((target - origin) / 86400000);
+  if (ev.recurring === 'daily')    return true;
+  if (ev.recurring === 'weekly')   return diff % 7 === 0;
+  if (ev.recurring === 'biweekly') return diff % 14 === 0;
+  if (ev.recurring === 'monthly')  return target.getDate() === origin.getDate();
+  return false;
+}
+
+function getEventsForDate(dateStr) {
+  var s = getS();
+  var dayOfWeek = new Date(dateStr + 'T00:00:00').getDay();
+  // Regular + recurring calendar events
+  var calEvents = (s.events || []).filter(function(e) {
+    return e.date === dateStr || isRecurringOnDate(e, dateStr);
+  });
+  // Timetable classes
+  var ttEvents = (s.timetable || [])
+    .filter(function(tt) { return (tt.days || []).indexOf(dayOfWeek) !== -1; })
+    .map(function(tt) {
+      var lbl = getLabelById(tt.labelId);
+      return {
+        id: 'tt_' + tt.id + '_' + dateStr,
+        title: tt.title,
+        date: dateStr,
+        time: tt.time,
+        endtime: tt.endtime,
+        location: tt.location,
+        labelId: tt.labelId,
+        colour: lbl ? lbl.colour : 'var(--blue)',
+        isTimetable: true
+      };
+    });
+  return calEvents.concat(ttEvents).sort(function(a, b) {
+    return (a.time || '').localeCompare(b.time || '');
+  });
+}
+
 function renderCalendar(){
   const s=getS();
   const now=new Date();
