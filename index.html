@@ -2487,48 +2487,51 @@ setInterval(refreshAuthToken, 45*60*1000);
 
 // ── DATA SYNC ───────────────────────────────────
 
-var _lastLocalSave = null; // timestamp of last saveS() call
+var _lastLocalSave = null;
+var _isSyncing = false; // true while a push is in flight
 
 function pushToSupabase(data){
   if(!_userId) return;
   clearTimeout(_syncTimer);
+  _syncTimer = null;
   _lastLocalSave = new Date().toISOString();
   _syncTimer = setTimeout(async function(){
-    // Refresh token if it expires within 5 minutes
+    _syncTimer = null; // Clear so polling knows push completed
+    // Refresh token if expiring soon
     if(_authSession){
       var expiry=(_authSession.expires_at||0)*1000;
       if(!expiry&&_authSession.expires_in){expiry=Date.now()+(_authSession.expires_in*1000);}
       if(expiry&&Date.now()>expiry-5*60*1000){await refreshAuthToken();}
     }
-    _syncStatus = 'syncing';
+    _syncStatus='syncing'; _isSyncing=true;
     updateSyncIndicator();
     try{
-      var pushTime = new Date().toISOString();
-      var r = await fetch(SUPA_URL+'/rest/v1/app_data',{
+      var pushTime=new Date().toISOString();
+      var r=await fetch(SUPA_URL+'/rest/v1/app_data',{
         method:'POST',
         headers:Object.assign({},supaHeaders(true),{'Prefer':'resolution=merge-duplicates,return=minimal'}),
-        body:JSON.stringify({id:_userId, data:data, updated_at:pushTime})
+        body:JSON.stringify({id:_userId,data:data,updated_at:pushTime})
       });
       if(r.ok){
-        _syncStatus = 'idle';
-        _lastSyncedAt = pushTime; // Mark remote as up to date
+        _syncStatus='idle';
+        _lastSyncedAt=pushTime;
       } else if(r.status===401){
-        // Token expired — try refresh and retry once
         await refreshAuthToken();
         if(_authSession){
-          var pushTime2 = new Date().toISOString();
+          var pushTime2=new Date().toISOString();
           var r2=await fetch(SUPA_URL+'/rest/v1/app_data',{
             method:'POST',
             headers:Object.assign({},supaHeaders(true),{'Prefer':'resolution=merge-duplicates,return=minimal'}),
             body:JSON.stringify({id:_userId,data:data,updated_at:pushTime2})
           });
           _syncStatus=r2.ok?'idle':'error';
-          if(r2.ok) _lastSyncedAt = pushTime2;
+          if(r2.ok) _lastSyncedAt=pushTime2;
         }
       } else {
-        _syncStatus = 'error';
+        _syncStatus='error';
       }
     }catch(e){_syncStatus='error';}
+    _isSyncing=false;
     updateSyncIndicator();
   }, 1500);
 }
@@ -2536,47 +2539,45 @@ function pushToSupabase(data){
 async function pullFromSupabase(){
   if(!_userId) return null;
   try{
-    var r = await fetch(SUPA_URL+'/rest/v1/app_data?id=eq.'+encodeURIComponent(_userId)+'&select=data,updated_at',{
+    var r=await fetch(SUPA_URL+'/rest/v1/app_data?id=eq.'+encodeURIComponent(_userId)+'&select=data,updated_at',{
       headers:supaHeaders(true)
     });
     if(!r.ok) return null;
-    var rows = await r.json();
+    var rows=await r.json();
     if(rows&&rows[0]&&rows[0].data&&Object.keys(rows[0].data).length>0){
-      _lastSyncedAt = rows[0].updated_at;
+      _lastSyncedAt=rows[0].updated_at;
       return rows[0].data;
     }
   }catch(e){console.warn('Supabase pull failed:',e.message);}
   return null;
 }
 
-// Poll every 30 seconds — only pull if remote is newer AND no pending local saves
+// Poll every 30s — pull if remote is newer and no local save pending
 function startRealtimePolling(){
   clearInterval(_realtimeTimer);
-  _realtimeTimer = setInterval(async function(){
+  _realtimeTimer=setInterval(async function(){
     if(!_userId||document.hidden) return;
-    // Don't pull if we have a pending local save (debounce buffer)
-    if(_syncTimer) return;
+    if(_syncTimer!==null||_isSyncing) return; // push in flight — skip
     try{
-      var r = await fetch(SUPA_URL+'/rest/v1/app_data?id=eq.'+encodeURIComponent(_userId)+'&select=updated_at',{
+      var r=await fetch(SUPA_URL+'/rest/v1/app_data?id=eq.'+encodeURIComponent(_userId)+'&select=updated_at',{
         headers:supaHeaders(true)
       });
       if(!r.ok) return;
-      var rows = await r.json();
+      var rows=await r.json();
       if(!rows||!rows[0]) return;
-      var remoteTime = rows[0].updated_at;
-      // Only pull if remote is strictly newer than our last known sync
-      if(_lastSyncedAt && remoteTime <= _lastSyncedAt) return;
-      // Also skip if we saved locally very recently (within 5 seconds)
-      if(_lastLocalSave && (Date.now() - new Date(_lastLocalSave).getTime()) < 5000) return;
-      var full = await pullFromSupabase();
+      var remoteTime=rows[0].updated_at;
+      if(_lastSyncedAt&&remoteTime<=_lastSyncedAt) return;
+      // Skip if saved locally in the last 3 seconds
+      if(_lastLocalSave&&(Date.now()-new Date(_lastLocalSave).getTime())<3000) return;
+      var full=await pullFromSupabase();
       if(full){
-        localStorage.setItem('dd_v2', JSON.stringify(full));
-        _lastSyncedAt = remoteTime;
+        localStorage.setItem('dd_v2',JSON.stringify(full));
+        _lastSyncedAt=remoteTime;
         refreshCurrentView();
         updateSyncIndicator();
       }
     }catch(e){}
-  }, 30000);
+  },30000);
 }
 
 function refreshCurrentView(){
@@ -3869,6 +3870,14 @@ function saveTimetableModal(){
 
 // Override old prompt-based function
 function addTimetableEntry(){ openTimetableModal(); }
+
+function deleteTimetableEntry(idx) {
+  var s = getS();
+  var timetable = (s.timetable || []).filter(function(_, i){ return i !== idx; });
+  saveS({timetable: timetable});
+  showToast('Class removed', 'info');
+  if (currentView === 'planning') renderPlanning();
+}
 
 // ═══════════════════════════════════════════════
 // CALENDAR (continued)
@@ -5992,6 +6001,74 @@ document.addEventListener('click', function(e) {
 // ═══════════════════════════════════════════════
 // WEEKLY PLANNER GRID
 // ═══════════════════════════════════════════════
+function renderTimetable() {
+  var s = getS();
+  var timetable = s.timetable || [];
+  var days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  if (timetable.length === 0) {
+    return '<div class="card" style="text-align:center;padding:30px">' +
+      '<div style="font-size:24px;margin-bottom:8px">🗓️</div>' +
+      '<div style="font-size:13px;color:var(--text3)">No classes added yet.</div>' +
+      '<button class="btn btn-primary btn-sm" style="margin-top:12px" onclick="openModal(\'timetableModal\')">+ Add Class</button>' +
+    '</div>';
+  }
+  // Build week grid
+  var hours = [];
+  for (var h = 7; h <= 21; h++) hours.push(h);
+  var html = '<div style="margin-bottom:12px;display:flex;justify-content:flex-end">' +
+    '<button class="btn btn-primary btn-sm" onclick="openModal(\'timetableModal\')">+ Add Class</button></div>';
+  html += '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;min-width:600px">';
+  // Header
+  html += '<thead><tr><th style="width:50px;padding:6px;font-size:10px;color:var(--text3);font-family:var(--mono);border-bottom:2px solid var(--border)">Time</th>';
+  days.forEach(function(d,i) {
+    html += '<th style="padding:6px;font-size:11px;color:var(--text);font-family:var(--sans);border-bottom:2px solid var(--border);text-align:center">' + d + '</th>';
+  });
+  html += '</tr></thead><tbody>';
+  hours.forEach(function(h) {
+    var timeStr = String(h).padStart(2,'0') + ':00';
+    html += '<tr>';
+    html += '<td style="padding:4px 6px;font-size:9px;color:var(--text3);font-family:var(--mono);border-bottom:1px solid var(--border);vertical-align:top;white-space:nowrap">' + timeStr + '</td>';
+    days.forEach(function(d,di) {
+      var classes = timetable.filter(function(tt) {
+        if (!(tt.days||[]).includes(di)) return false;
+        if (!tt.time) return false;
+        var th = parseInt(tt.time.split(':')[0]);
+        return th === h;
+      });
+      html += '<td style="padding:3px;border-bottom:1px solid var(--border);border-left:1px solid var(--border);vertical-align:top;min-width:80px">';
+      classes.forEach(function(tt) {
+        var lbl = getLabelById(tt.labelId);
+        var col = lbl ? lbl.colour : 'var(--accent)';
+        html += '<div style="background:' + col + '18;border-left:3px solid ' + col + ';border-radius:0 4px 4px 0;padding:3px 5px;margin-bottom:2px">' +
+          '<div style="font-size:10px;font-weight:600;color:' + col + '">' + esc(tt.title) + '</div>' +
+          (tt.location ? '<div style="font-size:9px;color:var(--text3)">📍' + esc(tt.location) + '</div>' : '') +
+          (tt.endtime ? '<div style="font-size:9px;color:var(--text3);font-family:var(--mono)">' + tt.time + '–' + tt.endtime + '</div>' : '') +
+        '</div>';
+      });
+      html += '</td>';
+    });
+    html += '</tr>';
+  });
+  html += '</tbody></table></div>';
+  // List view
+  html += '<div class="card" style="margin-top:14px"><div class="card-header"><div class="card-title">All Classes</div></div>';
+  timetable.forEach(function(tt, i) {
+    var lbl = getLabelById(tt.labelId);
+    var col = lbl ? lbl.colour : 'var(--accent)';
+    var dayNames = (tt.days||[]).map(function(d){return days[d];}).join(', ');
+    html += '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">' +
+      '<div style="width:4px;height:36px;border-radius:2px;background:' + col + ';flex-shrink:0"></div>' +
+      '<div style="flex:1">' +
+        '<div style="font-size:13px;font-weight:500;color:var(--text)">' + esc(tt.title) + '</div>' +
+        '<div style="font-size:10px;color:var(--text3);font-family:var(--mono)">' + dayNames + (tt.time?' · '+tt.time+(tt.endtime?'–'+tt.endtime:''):'') + (tt.location?' · 📍'+esc(tt.location):'') + '</div>' +
+      '</div>' +
+      '<button onclick="deleteTimetableEntry(' + i + ')" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:13px">✕</button>' +
+    '</div>';
+  });
+  html += '</div>';
+  return html;
+}
+
 function renderWeekGrid() {
   var today = new Date();
   var startOfWeek = new Date(today);
@@ -6249,6 +6326,21 @@ function startGCalAutoSync(){
   _gcalSyncInterval = setInterval(function(){
     if(!document.hidden && isGCalConnected()) fetchGCalEvents();
   }, 15*60*1000);
+}
+
+function recurringToRRULE(ev) {
+  if (!ev.recurring || ev.recurring === 'none') return null;
+  var rule = '';
+  if (ev.recurring === 'daily')    rule = 'RRULE:FREQ=DAILY';
+  if (ev.recurring === 'weekly')   rule = 'RRULE:FREQ=WEEKLY';
+  if (ev.recurring === 'biweekly') rule = 'RRULE:FREQ=WEEKLY;INTERVAL=2';
+  if (ev.recurring === 'monthly')  rule = 'RRULE:FREQ=MONTHLY';
+  if (!rule) return null;
+  if (ev.recurringEnd) {
+    var until = ev.recurringEnd.replace(/-/g,'') + 'T235959Z';
+    rule += ';UNTIL=' + until;
+  }
+  return [rule];
 }
 
 async function addEventToGCal(ev){
@@ -6531,12 +6623,37 @@ function openPdfByIndex(subjectId, idx) {
   });
 }
 
+function setPdfTool(tool) {
+  pdfTool = tool;
+  ['select','highlight','pen','note','eraser'].forEach(function(t) {
+    var btn = document.getElementById('pdfTool' + t.charAt(0).toUpperCase() + t.slice(1));
+    if (btn) btn.classList.toggle('active', t === tool);
+  });
+  var wrap = document.getElementById('pdfCanvasWrap');
+  if (wrap) wrap.className = 'pdf-canvas-wrap' + (tool !== 'select' ? ' tool-' + tool : '');
+  var cp = document.getElementById('pdfColorPicker');
+  if (cp) cp.style.display = (tool === 'pen' || tool === 'highlight') ? 'flex' : 'none';
+  if (tool === 'highlight') setPdfColor('#ffeb3b');
+  if (tool === 'pen') setPdfColor('#1a1a1a');
+}
+
+function setPdfColor(col) {
+  pdfColor = col;
+  document.querySelectorAll('[id^="pdfCol_"]').forEach(function(el) {
+    el.style.outline = (el.style.backgroundColor === col) ? '2px solid white' : 'none';
+  });
+}
+
 function openPdfViewer(dataUrl, name, pdfId) {
   pdfCurrentId = pdfId;
   document.getElementById('pdfTitle').textContent = name;
   document.getElementById('pdfOverlay').classList.add('show');
   document.getElementById('pdfCanvasWrap').innerHTML = '<div style="padding:60px;text-align:center;color:#aaa;font-size:14px">Loading PDF...</div>';
   pdfCurrentPage = 1;
+  setPdfTool('select');
+  // Load saved annotations for this PDF
+  var s = getS();
+  _pdfAnnotations = (s.pdfAnnotations && s.pdfAnnotations[pdfId]) ? JSON.parse(JSON.stringify(s.pdfAnnotations[pdfId])) : {};
 
   if (typeof pdfjsLib === 'undefined') {
     document.getElementById('pdfCanvasWrap').innerHTML = '<div style="padding:40px;color:red;text-align:center">PDF.js failed to load. Check your internet connection.</div>';
@@ -6566,21 +6683,51 @@ function openPdfViewer(dataUrl, name, pdfId) {
 function renderPdfPage(pageNum) {
   if (!pdfCurrentDoc) return;
   pdfCurrentDoc.getPage(pageNum).then(function(page) {
+    var dpr = Math.min(window.devicePixelRatio||1, 2);
     var viewport = page.getViewport({ scale: pdfScale });
+
+    // Container holds pdf canvas + draw canvas stacked
+    var container = document.createElement('div');
+    container.className = 'pdf-page-container';
+    container.style.width = viewport.width + 'px';
+    container.style.height = viewport.height + 'px';
+
+    // PDF canvas (hi-DPI)
     var canvas = document.createElement('canvas');
-    canvas.width = viewport.width;
-    canvas.height = viewport.height;
-    canvas.style.display = 'block';
-    canvas.style.boxShadow = '0 4px 24px rgba(0,0,0,0.4)';
+    canvas.width = Math.floor(viewport.width * dpr);
+    canvas.height = Math.floor(viewport.height * dpr);
+    canvas.style.width = viewport.width + 'px';
+    canvas.style.height = viewport.height + 'px';
     var ctx = canvas.getContext('2d');
+    ctx.scale(dpr, dpr);
+
+    // Draw canvas for annotations
+    var drawCanvas = document.createElement('canvas');
+    drawCanvas.width = Math.floor(viewport.width * dpr);
+    drawCanvas.height = Math.floor(viewport.height * dpr);
+    drawCanvas.style.width = viewport.width + 'px';
+    drawCanvas.style.height = viewport.height + 'px';
+    drawCanvas.style.position = 'absolute';
+    drawCanvas.style.top = '0'; drawCanvas.style.left = '0';
+    drawCanvas.className = 'pdf-draw-canvas active';
+
+    container.appendChild(canvas);
+    container.appendChild(drawCanvas);
+
     page.render({ canvasContext: ctx, viewport: viewport }).promise.then(function() {
       var wrap = document.getElementById('pdfCanvasWrap');
       wrap.innerHTML = '';
-      wrap.appendChild(canvas);
+      wrap.appendChild(container);
+      _pdfDrawCanvas = drawCanvas;
+      _pdfDrawCtx = drawCanvas.getContext('2d');
+      _pdfDrawCtx.scale(dpr, dpr);
+      redrawAnnotations(pageNum);
+      wireDrawEvents(drawCanvas, dpr);
     });
     document.getElementById('pdfPageInfo').textContent = pageNum + ' / ' + pdfTotalPages;
     pdfCurrentPage = pageNum;
-  });
+    renderAnnotSidebar();
+  }).catch(function(err){ showToast('Page render error: '+err.message,'error'); });
 }
 
 function pdfPrevPage() { if (pdfCurrentPage > 1) renderPdfPage(pdfCurrentPage - 1); }
@@ -6595,9 +6742,196 @@ function closePdfViewer() {
 }
 
 
-// ═══════════════════════════════════════════════
-// GLOBAL SEARCH (Ctrl/Cmd+K)
-// ═══════════════════════════════════════════════
+function saveBudgetModal(){ saveBudgets(); } // alias
+
+function checkDeadlineCountdown(){
+  var s = getS();
+  var now = new Date();
+  var upcoming = (s.tasks||[]).filter(function(t){
+    if(t.done||!t.due) return false;
+    var d = daysUntil(t.due);
+    return d !== null && d <= 3 && d >= 0;
+  });
+  if(upcoming.length > 0 && Notification && Notification.permission === 'granted'){
+    upcoming.forEach(function(t){
+      var d = daysUntil(t.due);
+      var msg = d === 0 ? 'Due TODAY: ' + t.title : 'Due in ' + d + ' day' + (d!==1?'s':'') + ': ' + t.title;
+      sendBrowserNotif('📋 Task Due Soon', msg);
+    });
+  }
+}
+
+function toggleThemeOption(el, theme){
+  document.querySelectorAll('.theme-option').forEach(function(o){ o.classList.remove('active'); });
+  if(el) el.classList.add('active');
+  var s = getS();
+  var cfg = Object.assign({}, s.appConfig||{}, {theme: theme});
+  saveS({appConfig: cfg});
+  initTheme();
+}
+
+// ── PDF ANNOTATION ENGINE ─────────────────────────────────
+var _pdfTool = 'select';
+var _pdfColor = '#ffeb3b';
+var _pdfAnnotations = {};
+var _pdfDrawing = false;
+var _pdfDrawPath = [];
+var _pdfDrawCtx = null;
+var _pdfDrawCanvas = null;
+// (pdfTool and pdfColor are set by setPdfTool/setPdfColor)
+
+function wireDrawEvents(canvas, dpr) {
+  dpr = dpr || 1;
+  function getPos(e) {
+    var rect = canvas.getBoundingClientRect();
+    var touch = e.touches ? e.touches[0] : e;
+    return { x: (touch.clientX - rect.left), y: (touch.clientY - rect.top) };
+  }
+  canvas.onmousedown = canvas.ontouchstart = function(e) {
+    e.preventDefault();
+    if (pdfTool === 'select') return;
+    if (pdfTool === 'note') { addStickyNote(e); return; }
+    if (pdfTool === 'eraser') { eraseAt(getPos(e)); return; }
+    _pdfDrawing = true; _pdfDrawPath = [];
+    _pdfDrawPath.push(getPos(e));
+  };
+  canvas.onmousemove = canvas.ontouchmove = function(e) {
+    e.preventDefault();
+    if (!_pdfDrawing || (pdfTool !== 'pen' && pdfTool !== 'highlight')) return;
+    var pos = getPos(e); _pdfDrawPath.push(pos);
+    if (!_pdfDrawCtx) return;
+    _pdfDrawCtx.save();
+    _pdfDrawCtx.lineCap = 'round'; _pdfDrawCtx.lineJoin = 'round';
+    _pdfDrawCtx.strokeStyle = pdfColor;
+    if (pdfTool === 'highlight') { _pdfDrawCtx.globalAlpha = 0.35; _pdfDrawCtx.lineWidth = 14; }
+    else { _pdfDrawCtx.globalAlpha = 1; _pdfDrawCtx.lineWidth = 2.5; }
+    var pts = _pdfDrawPath;
+    if (pts.length > 1) {
+      _pdfDrawCtx.beginPath();
+      _pdfDrawCtx.moveTo(pts[pts.length-2].x, pts[pts.length-2].y);
+      _pdfDrawCtx.lineTo(pts[pts.length-1].x, pts[pts.length-1].y);
+      _pdfDrawCtx.stroke();
+    }
+    _pdfDrawCtx.restore();
+  };
+  canvas.onmouseup = canvas.ontouchend = function() {
+    if (!_pdfDrawing) return; _pdfDrawing = false;
+    if (_pdfDrawPath.length < 2) return;
+    saveDrawingAnnotation(pdfCurrentPage, pdfTool, pdfColor, _pdfDrawPath.map(function(p){return[p.x,p.y];}));
+    _pdfDrawPath = [];
+  };
+}
+
+function eraseAt(pos) {
+  if (!_pdfAnnotations[pdfCurrentPage]) return;
+  _pdfAnnotations[pdfCurrentPage] = _pdfAnnotations[pdfCurrentPage].filter(function(a) {
+    if (a.type !== 'pen' && a.type !== 'highlight') return true;
+    return !(a.path||[]).some(function(p){ return Math.abs(p[0]-pos.x)<20 && Math.abs(p[1]-pos.y)<20; });
+  });
+  savePdfAnnotations(); redrawAnnotations(pdfCurrentPage);
+}
+
+function saveDrawingAnnotation(page, type, color, path) {
+  if (!_pdfAnnotations[page]) _pdfAnnotations[page] = [];
+  _pdfAnnotations[page].push({ type:type, color:color, path:path, id:'a'+Date.now() });
+  savePdfAnnotations(); renderAnnotSidebar();
+}
+
+function savePdfAnnotations() {
+  if (!pdfCurrentId) return;
+  var s = getS(); var allAnnots = s.pdfAnnotations || {};
+  allAnnots[pdfCurrentId] = _pdfAnnotations;
+  saveS({ pdfAnnotations: allAnnots });
+}
+
+function redrawAnnotations(page) {
+  if (!_pdfDrawCtx || !_pdfDrawCanvas) return;
+  _pdfDrawCtx.clearRect(0, 0, _pdfDrawCanvas.width, _pdfDrawCanvas.height);
+  (_pdfAnnotations[page]||[]).forEach(function(a) {
+    if ((a.type==='pen'||a.type==='highlight') && a.path && a.path.length>1) {
+      _pdfDrawCtx.save();
+      _pdfDrawCtx.lineCap='round'; _pdfDrawCtx.lineJoin='round';
+      _pdfDrawCtx.strokeStyle = a.color;
+      if (a.type==='highlight'){_pdfDrawCtx.globalAlpha=0.35;_pdfDrawCtx.lineWidth=14;}
+      else{_pdfDrawCtx.globalAlpha=1;_pdfDrawCtx.lineWidth=2.5;}
+      _pdfDrawCtx.beginPath();
+      _pdfDrawCtx.moveTo(a.path[0][0], a.path[0][1]);
+      for (var i=1;i<a.path.length;i++) _pdfDrawCtx.lineTo(a.path[i][0], a.path[i][1]);
+      _pdfDrawCtx.stroke(); _pdfDrawCtx.restore();
+    }
+  });
+  renderStickyNotes(page);
+}
+
+function addStickyNote(e) {
+  var container = document.querySelector('.pdf-page-container');
+  if (!container) return;
+  var cr = container.getBoundingClientRect();
+  var touch = e.touches ? e.touches[0] : e;
+  var note = { type:'note', x:touch.clientX-cr.left, y:touch.clientY-cr.top, text:'', id:'n'+Date.now(), color:'#ffeb3b' };
+  if (!_pdfAnnotations[pdfCurrentPage]) _pdfAnnotations[pdfCurrentPage] = [];
+  _pdfAnnotations[pdfCurrentPage].push(note);
+  savePdfAnnotations(); renderStickyNotes(pdfCurrentPage);
+  setTimeout(function(){ var el=document.getElementById('sticky_'+note.id); if(el)el.focus(); }, 50);
+}
+
+function renderStickyNotes(page) {
+  var container = document.querySelector('.pdf-page-container');
+  if (!container) return;
+  container.querySelectorAll('.pdf-sticky-note').forEach(function(el){ el.remove(); });
+  (_pdfAnnotations[page]||[]).filter(function(a){return a.type==='note';}).forEach(function(note) {
+    var el = document.createElement('textarea');
+    el.className = 'pdf-sticky-note'; el.id = 'sticky_'+note.id;
+    el.value = note.text||''; el.placeholder = 'Type note...';
+    el.style.left = note.x+'px'; el.style.top = note.y+'px';
+    el.style.background = note.color||'#ffeb3b';
+    el.oninput = function(){ note.text=el.value; savePdfAnnotations(); renderAnnotSidebar(); };
+    el.onmousedown = function(ev){
+      var sx=ev.clientX-note.x, sy=ev.clientY-note.y;
+      var onMove=function(mv){note.x=mv.clientX-sx;note.y=mv.clientY-sy;el.style.left=note.x+'px';el.style.top=note.y+'px';};
+      var onUp=function(){document.removeEventListener('mousemove',onMove);document.removeEventListener('mouseup',onUp);savePdfAnnotations();};
+      document.addEventListener('mousemove',onMove); document.addEventListener('mouseup',onUp);
+    };
+    el.ondblclick = function(){
+      _pdfAnnotations[page]=(_pdfAnnotations[page]||[]).filter(function(a){return a.id!==note.id;});
+      savePdfAnnotations(); el.remove(); renderAnnotSidebar();
+    };
+    container.appendChild(el);
+  });
+}
+
+function renderAnnotSidebar() {
+  var el = document.getElementById('pdfAnnotList');
+  if (!el) return;
+  var all = [];
+  Object.keys(_pdfAnnotations).forEach(function(pg) {
+    (_pdfAnnotations[pg]||[]).forEach(function(a){ all.push(Object.assign({},a,{page:parseInt(pg)})); });
+  });
+  if (!all.length) { el.innerHTML='<div style="font-size:11px;color:var(--text3)">No annotations yet. Use tools above.</div>'; return; }
+  el.innerHTML = all.sort(function(a,b){return(a.page||0)-(b.page||0);}).map(function(a){
+    var typeLabel = a.type==='highlight'?'Highlight':a.type==='pen'?'Drawing':'Note';
+    var typeClass = a.type==='note'?'note':a.type==='pen'?'drawing':'highlight';
+    var preview = a.type==='note'?(a.text||'(empty)'):(typeLabel+' on p.'+a.page);
+    return '<div class="pdf-annot-item" onclick="renderPdfPage('+a.page+')" style="position:relative">'+
+      '<span class="annot-type '+typeClass+'">'+typeLabel+'</span>'+
+      '<div style="margin-top:2px;font-size:11px">'+esc(preview.slice(0,50))+'</div>'+
+      '<div class="annot-page">Page '+a.page+'</div>'+
+      '<button onclick="event.stopPropagation();deleteAnnotation(\''+a.id+'\','+a.page+')" style="position:absolute;top:6px;right:6px;background:none;border:none;cursor:pointer;color:var(--text3);font-size:12px">✕</button>'+
+    '</div>';
+  }).join('');
+}
+
+function deleteAnnotation(id, page) {
+  _pdfAnnotations[page]=(_pdfAnnotations[page]||[]).filter(function(a){return a.id!==id;});
+  savePdfAnnotations(); redrawAnnotations(page); renderAnnotSidebar();
+}
+
+function clearPageAnnotations() {
+  _pdfAnnotations[pdfCurrentPage]=[];
+  savePdfAnnotations(); redrawAnnotations(pdfCurrentPage); renderAnnotSidebar();
+  showToast('Page annotations cleared','info');
+}
+// ── END PDF ANNOTATION ENGINE ─────────────────────────────
 var searchSelectedIdx = -1;
 
 function openSearch() {
