@@ -1917,6 +1917,7 @@ select.input{cursor:pointer;appearance:none;}
             <button class="btn btn-ghost btn-sm" onclick="nav('planning')" title="Day/Week planner">🗓️ Planner</button>
             <button class="btn btn-ghost btn-sm" id="gcalBtn" onclick="handleGCalBtn()">☁️ Google Cal</button>
             <button class="btn btn-ghost btn-sm" onclick="fetchGCalEvents()" id="gcalSync" style="display:none">↻ Sync</button>
+            <button class="btn btn-ghost btn-sm" onclick="pushTimetableToGCal()" id="gcalPushClasses" style="display:none" title="Push your class timetable to Google Calendar">📤 Push Classes</button>
           </div>
         </div>
         <div class="cal-grid" id="calGrid"></div>
@@ -2567,10 +2568,20 @@ function startRealtimePolling(){
       if(!rows||!rows[0]) return;
       var remoteTime=rows[0].updated_at;
       if(_lastSyncedAt&&remoteTime<=_lastSyncedAt) return;
-      // Skip if saved locally in the last 3 seconds
-      if(_lastLocalSave&&(Date.now()-new Date(_lastLocalSave).getTime())<3000) return;
+      // CRITICAL: Never pull if we saved locally in the last 10 seconds
+      // This prevents the poll from overwriting unsaved local changes
+      if(_lastLocalSave&&(Date.now()-new Date(_lastLocalSave).getTime())<10000) return;
       var full=await pullFromSupabase();
       if(full){
+        // Extra safety: only overwrite if remote has more data than local
+        var local=getS();
+        var localEventCount=(local.events||[]).length+(local.tasks||[]).length+(local.notes||[]).length;
+        var remoteEventCount=(full.events||[]).length+(full.tasks||[]).length+(full.notes||[]).length;
+        if(remoteEventCount < localEventCount - 5){
+          // Remote has significantly less data — skip to avoid data loss
+          console.warn('Skipping pull: remote has less data than local');
+          return;
+        }
         localStorage.setItem('dd_v2',JSON.stringify(full));
         _lastSyncedAt=remoteTime;
         refreshCurrentView();
@@ -2659,14 +2670,25 @@ function getS(){
   catch(e){return Object.assign({},_DEFAULT_STATE);}
 }
 
-// saveS — writes to localStorage immediately, pushes to Supabase async
+// saveS — deep merges patch into current state, saves immediately to localStorage, then pushes async
 function saveS(patch){
-  const s=Object.assign({},getS(),patch);
-  localStorage.setItem('dd_v2',JSON.stringify(s));
+  // Deep read current state
+  var current = getS();
+  // Merge — patch values override current
+  var s = Object.assign({}, current, patch);
+  // Write to localStorage immediately — this is the source of truth
+  try {
+    localStorage.setItem('dd_v2', JSON.stringify(s));
+  } catch(e) {
+    // localStorage full — warn user
+    showToast('⚠️ Storage full! Clear some pasted images from notes.', 'error');
+    return s;
+  }
+  // Push to Supabase async (debounced)
   pushToSupabase(s);
-  // Flash the sync indicator so user knows save happened
-  var ind=document.getElementById('syncIndicator');
-  if(ind){ind.textContent='💾';ind.style.color='var(--green)';}
+  // Flash save indicator
+  var ind = document.getElementById('syncIndicator');
+  if(ind){ ind.textContent='💾'; ind.style.color='var(--green)'; }
   return s;
 }
 
@@ -6300,19 +6322,33 @@ async function fetchGCalEvents(){
 
     var s=getS();
     var localEvents=(s.events||[]).filter(function(e){return !e.fromGCal;});
-    // Build a map of existing GCal events so we can preserve local colour overrides
+
+    // Build set of GCal event IDs that were pushed FROM this app
+    // These come back from GCal as gcal_XXX but we already have them locally
+    var pushedGCalIds = new Set();
+    localEvents.forEach(function(e){
+      if(e.gcalEventId) pushedGCalIds.add(e.gcalEventId);
+    });
+
+    // Remove GCal events that are duplicates of locally-created events
+    allGcalEvents = allGcalEvents.filter(function(ev){
+      // Skip if this GCal event was originally pushed from our app
+      return !pushedGCalIds.has(ev.gcalEventId);
+    });
+
+    // Preserve local colour overrides on GCal events
     var existingGCalMap={};
     (s.events||[]).filter(function(e){return e.fromGCal;}).forEach(function(e){
       existingGCalMap[e.id]=e;
     });
-    // Preserve any local colour the user set on a GCal event
     allGcalEvents=allGcalEvents.map(function(ev){
       var existing=existingGCalMap[ev.id];
       if(existing&&existing.colour) ev.colour=existing.colour;
       return ev;
     });
+
     saveS({events:[...localEvents,...allGcalEvents]});
-    showToast('✓ Synced '+allGcalEvents.length+' events from '+calendars.length+' Google calendar'+(calendars.length!==1?'s':''),'success');
+    showToast('✓ Synced '+allGcalEvents.length+' events from Google Calendar','success');
     if(currentView==='calendar') renderCalendar();
   }catch(e){
     showToast('Could not sync Google Calendar: '+e.message,'error');
@@ -6449,6 +6485,31 @@ function showGCalExpiredBanner(){
   setTimeout(function(){if(el.parentNode)el.remove();},15000);
 }
 
+async function pushTimetableToGCal() {
+  if (!isGCalConnected()) {
+    showToast('Connect Google Calendar first', 'error');
+    return;
+  }
+  var s = getS();
+  var events = (s.events || []).filter(function(e) {
+    return e.id && e.id.indexOf('tt-') === 0 && !e.gcalEventId;
+  });
+  if (events.length === 0) {
+    showToast('All classes already pushed to Google Calendar', 'info');
+    return;
+  }
+  showToast('Pushing ' + events.length + ' classes to Google Calendar...', 'info');
+  var pushed = 0;
+  for (var i = 0; i < events.length; i++) {
+    try {
+      await addEventToGCal(events[i]);
+      pushed++;
+    } catch(e) { console.warn('Failed to push', events[i].title, e); }
+  }
+  showToast('✓ Pushed ' + pushed + ' classes to Google Calendar!', 'success');
+  if (currentView === 'calendar') renderCalendar();
+}
+
 function handleGCalBtn(){
   if(isGCalConnected()){
     if(confirm('Google Calendar is connected. Disconnect?')) disconnectGCal();
@@ -6460,17 +6521,25 @@ function handleGCalBtn(){
 function updateGCalUI(){
   var btn=document.getElementById('gcalBtn');
   var sync=document.getElementById('gcalSync');
+  var pushBtn=document.getElementById('gcalPushClasses');
   if(!btn) return;
   if(isGCalConnected()){
     btn.textContent='☁️ GCal ✓';
     btn.style.color='var(--green)';
     btn.style.borderColor='var(--green)';
     if(sync)sync.style.display='inline-flex';
+    // Show push classes button only if there are unpushed timetable events
+    if(pushBtn){
+      var s=getS();
+      var unpushed=(s.events||[]).filter(function(e){return e.id&&e.id.indexOf('tt-')===0&&!e.gcalEventId;});
+      pushBtn.style.display=unpushed.length>0?'inline-flex':'none';
+    }
   } else {
     btn.textContent='☁️ Google Cal';
     btn.style.color='';
     btn.style.borderColor='';
     if(sync)sync.style.display='none';
+    if(pushBtn)pushBtn.style.display='none';
   }
 }
 
