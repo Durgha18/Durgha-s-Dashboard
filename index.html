@@ -6259,6 +6259,14 @@ async function fetchGCalEvents(){
     showToast('Syncing Google Calendar…','info');
     var now = new Date().toISOString();
     var end = new Date(Date.now() + 365*86400000).toISOString();
+
+    // Fetch colour definitions from Google Calendar API
+    var gcalColorMap = {
+      '1':'#a4bdfc','2':'#7ae7bf','3':'#dbadff','4':'#ff887c',
+      '5':'#fbd75b','6':'#ffb878','7':'#46d6db','8':'#e1e1e1',
+      '9':'#5484ed','10':'#51b749','11':'#dc2127'
+    };
+
     // Fetch calendar list
     var calListRes = await fetch(
       'https://www.googleapis.com/calendar/v3/users/me/calendarList?minAccessRole=reader',
@@ -6267,7 +6275,6 @@ async function fetchGCalEvents(){
     if(calListRes.status===401){
       GCAL_TOKEN=''; localStorage.removeItem('dd_gcal_token');
       updateGCalUI();
-      // Show reconnect banner in calendar view
       showGCalExpiredBanner();
       return;
     }
@@ -6291,7 +6298,6 @@ async function fetchGCalEvents(){
           if(item.status==='cancelled') return;
           var start = item.start.dateTime||item.start.date;
           var startDate = start?start.slice(0,10):'';
-          // Parse time in local timezone
           var startTime='', endTime='';
           if(item.start.dateTime){
             var sd = new Date(item.start.dateTime);
@@ -6301,6 +6307,19 @@ async function fetchGCalEvents(){
             var ed = new Date(item.end.dateTime);
             endTime = ed.getHours().toString().padStart(2,'0')+':'+ed.getMinutes().toString().padStart(2,'0');
           }
+          // Resolve colour: per-event colour > calendar colour
+          // item.colorId = 1-11 means per-event colour override
+          // item.backgroundColor = direct hex (rare)
+          // cal.backgroundColor = the calendar's colour (fallback)
+          var eventColour = '';
+          if(item.colorId && gcalColorMap[item.colorId]){
+            eventColour = gcalColorMap[item.colorId];
+          } else if(item.backgroundColor){
+            eventColour = item.backgroundColor;
+          } else {
+            eventColour = cal.backgroundColor || '';
+          }
+
           allGcalEvents.push({
             id:'gcal_'+item.id,
             title:item.summary||'(No title)',
@@ -6310,7 +6329,7 @@ async function fetchGCalEvents(){
             location:item.location||'',
             notes:item.description||'',
             calendarName:cal.summary||'',
-            colour:cal.backgroundColor||'',
+            colour:eventColour,
             labelId:'',
             fromGCal:true,
             gcalCalendarId:cal.id,
