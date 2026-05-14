@@ -776,6 +776,16 @@ select.input{cursor:pointer;appearance:none;}
 .dur-btn{padding:6px 12px;border-radius:6px;border:1px solid var(--border);background:none;cursor:pointer;font-size:11px;font-family:var(--sans);transition:all 0.12s;margin:2px;}
 .dur-btn:hover{background:var(--accent);color:#fff;border-color:var(--accent);}
 
+/* ── QUICK-ADD BAR ── */
+.quick-add-bar{display:flex;align-items:center;gap:8px;padding:8px 14px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;}
+.quick-add-input{flex:1;border:1px solid var(--border);border-radius:8px;padding:7px 12px;font-size:13px;font-family:var(--sans);background:var(--bg);color:var(--text);outline:none;transition:border-color 0.15s;}
+.quick-add-input:focus{border-color:var(--accent);}
+.quick-add-input::placeholder{color:var(--text3);}
+.quick-add-btn{padding:7px 14px;border-radius:8px;border:1px solid var(--border);background:none;cursor:pointer;font-size:12px;color:var(--text3);font-family:var(--sans);transition:all 0.15s;white-space:nowrap;}
+.quick-add-btn:hover{border-color:var(--accent);color:var(--accent);}
+.quick-add-hint{font-size:10px;color:var(--text3);font-family:var(--mono);white-space:nowrap;}
+@media(max-width:768px){.quick-add-hint{display:none;}}
+
 /* ── DARK MODE ── */
 [data-theme="dark"]{
   --bg:#1a1410;--surface:#231c15;--surface2:#2d231a;
@@ -1224,70 +1234,81 @@ select.input{cursor:pointer;appearance:none;}
   </div>
 </div>
 <div class="modal-overlay" id="taskModal">
-  <div class="modal">
+  <div class="modal" style="max-width:440px">
     <div class="modal-title">Add Task</div>
-    <div class="field"><div class="input-label">Title</div><input class="input" id="t-title" placeholder="What needs to be done?"/></div>
-    <div class="grid-2">
-      <div class="field">
-        <div class="input-label">Project</div>
-        <select class="input" id="t-space"></select>
-      </div>
-      <div class="field">
-        <div class="input-label">Label</div>
-        <select class="input" id="t-label"></select>
-      </div>
+    <div class="field">
+      <input class="input" id="t-title" placeholder="What needs to be done?" style="font-size:15px;padding:10px 12px" onkeydown="if(event.key==='Enter')saveTask()"/>
     </div>
-    <div class="grid-2">
-      <div class="field"><div class="input-label">Due Date</div><input class="input" type="date" id="t-due"/></div>
-      <div class="field">
-        <div class="input-label">Priority</div>
-        <select class="input" id="t-priority">
-          <option value="high">🔴 High</option>
-          <option value="medium" selected>🟡 Medium</option>
-          <option value="low">🟢 Low</option>
-        </select>
-      </div>
+    <div class="field">
+      <select class="input" id="t-space" style="font-size:13px">
+        <option value="">No project</option>
+      </select>
     </div>
-    <div class="field"><div class="input-label">Sub-task / Notes (optional)</div><input class="input" id="t-subject" placeholder="e.g. Chapter 3, Group B, Part 1..."/></div>
-    <!-- Assignment toggle -->
-    <div class="field" style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;cursor:pointer" onclick="toggleAssignmentFields()">
-      <input type="checkbox" id="t-is-assignment" style="width:16px;height:16px;cursor:pointer;accent-color:var(--accent)"/>
-      <label style="font-size:13px;font-weight:500;color:var(--text);cursor:pointer">This is an assignment / graded task</label>
-    </div>
-    <div id="assignmentFields" style="display:none">
-      <div class="grid-2" style="margin-top:10px">
-        <div class="field">
-          <div class="input-label">Assignment Type</div>
-          <select class="input" id="t-assign-type">
-            <option value="assignment">Assignment</option>
-            <option value="exam">Exam / Test</option>
-            <option value="quiz">Quiz</option>
-            <option value="presentation">Presentation</option>
-            <option value="project">Group Project</option>
-            <option value="other">Other</option>
-          </select>
-        </div>
-        <div class="field">
-          <div class="input-label">Weightage (%)</div>
-          <input class="input" type="number" id="t-weightage" placeholder="e.g. 20" min="0" max="100"/>
-        </div>
+    <!-- Collapsed extras -->
+    <div id="taskExtras" style="display:none">
+      <div class="grid-2">
+        <div class="field"><div class="input-label">Label</div><select class="input" id="t-label"></select></div>
+        <div class="field"><div class="input-label">Due Date</div><input class="input" type="date" id="t-due"/></div>
       </div>
       <div class="grid-2">
         <div class="field">
-          <div class="input-label">Target Grade</div>
-          <select class="input" id="t-target-grade">
-            <option value="">No target</option>
-            <option>A+</option><option>A</option><option>A-</option>
-            <option>B+</option><option>B</option><option>B-</option>
-            <option>C+</option><option>C</option>
+          <div class="input-label">Priority</div>
+          <select class="input" id="t-priority">
+            <option value="high">🔴 High</option>
+            <option value="medium" selected>🟡 Medium</option>
+            <option value="low">🟢 Low</option>
           </select>
         </div>
-        <div class="field">
-          <div class="input-label">Actual Grade (after)</div>
-          <input class="input" id="t-actual-grade" placeholder="Leave blank until graded"/>
+        <div class="field"><div class="input-label">Notes</div><input class="input" id="t-subject" placeholder="Chapter, group, part..."/></div>
+      </div>
+      <div class="field" style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;cursor:pointer" onclick="toggleAssignmentFields()">
+        <input type="checkbox" id="t-is-assignment" style="width:16px;height:16px;cursor:pointer;accent-color:var(--accent)"/>
+        <label style="font-size:13px;font-weight:500;color:var(--text);cursor:pointer">This is a graded assignment</label>
+      </div>
+      <div id="assignmentFields" style="display:none">
+        <div class="grid-2" style="margin-top:10px">
+          <div class="field">
+            <div class="input-label">Type</div>
+            <select class="input" id="t-assign-type">
+              <option value="assignment">Assignment</option>
+              <option value="exam">Exam / Test</option>
+              <option value="quiz">Quiz</option>
+              <option value="presentation">Presentation</option>
+              <option value="project">Group Project</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div class="field">
+            <div class="input-label">Weightage (%)</div>
+            <input class="input" type="number" id="t-weightage" placeholder="e.g. 20" min="0" max="100"/>
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="field">
+            <div class="input-label">Target Grade</div>
+            <select class="input" id="t-target-grade">
+              <option value="">No target</option>
+              <option>A+</option><option>A</option><option>A-</option>
+              <option>B+</option><option>B</option><option>B-</option>
+              <option>C+</option><option>C</option>
+            </select>
+          </div>
+          <div class="field">
+            <div class="input-label">Actual Grade</div>
+            <input class="input" id="t-actual-grade" placeholder="Leave blank until graded"/>
+          </div>
         </div>
       </div>
     </div>
+    <div class="modal-footer" style="justify-content:space-between">
+      <button class="btn btn-ghost btn-sm" onclick="document.getElementById('taskExtras').style.display=document.getElementById('taskExtras').style.display==='none'?'block':'none';this.textContent=document.getElementById('taskExtras').style.display==='none'?'+ More options':'− Less'">+ More options</button>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-ghost btn-sm" onclick="closeModal('taskModal')">Cancel</button>
+        <button class="btn btn-primary btn-sm" onclick="saveTask()">Add Task</button>
+      </div>
+    </div>
+  </div>
+</div>
     <div class="field"><div class="input-label">Notes (optional)</div><textarea class="input" id="t-notes" style="min-height:50px" placeholder="Add context..."></textarea></div>
     <div class="modal-footer">
       <button class="btn btn-ghost btn-sm" onclick="closeModal('taskModal')">Cancel</button>
@@ -1755,6 +1776,13 @@ select.input{cursor:pointer;appearance:none;}
   </aside>
 
   <main class="main">
+      <!-- Global quick-add bar — always visible -->
+      <div class="quick-add-bar" id="quickAddBar">
+        <input class="quick-add-input" id="quickAddInput" placeholder="Quick add: type a task or event and press Enter…" onkeydown="handleQuickAdd(event)" autocomplete="off"/>
+        <button class="quick-add-btn" onclick="openModal('taskModal')" title="New task (T)">+ Task</button>
+        <button class="quick-add-btn" onclick="openAddEvent()" title="New event (E)">+ Event</button>
+        <span class="quick-add-hint">T · E · ⌘K</span>
+      </div>
     <div class="mobile-overlay" id="mobileOverlay" onclick="closeMobileMenu()"></div>
 
     <!-- MORNING -->
@@ -2489,53 +2517,71 @@ setInterval(refreshAuthToken, 45*60*1000);
 // ── DATA SYNC ───────────────────────────────────
 
 var _lastLocalSave = null;
-var _isSyncing = false; // true while a push is in flight
+var _isSyncing = false;
+var _pendingPushData = null; // data waiting to push when tab becomes visible again
 
 function pushToSupabase(data){
-  if(!_userId) return;
+  if(!_userId){ _pendingPushData = data; return; }
   clearTimeout(_syncTimer);
   _syncTimer = null;
   _lastLocalSave = new Date().toISOString();
+  _pendingPushData = data;
   _syncTimer = setTimeout(async function(){
-    _syncTimer = null; // Clear so polling knows push completed
-    // Refresh token if expiring soon
-    if(_authSession){
-      var expiry=(_authSession.expires_at||0)*1000;
-      if(!expiry&&_authSession.expires_in){expiry=Date.now()+(_authSession.expires_in*1000);}
-      if(expiry&&Date.now()>expiry-5*60*1000){await refreshAuthToken();}
-    }
-    _syncStatus='syncing'; _isSyncing=true;
-    updateSyncIndicator();
-    try{
-      var pushTime=new Date().toISOString();
-      var r=await fetch(SUPA_URL+'/rest/v1/app_data',{
-        method:'POST',
-        headers:Object.assign({},supaHeaders(true),{'Prefer':'resolution=merge-duplicates,return=minimal'}),
-        body:JSON.stringify({id:_userId,data:data,updated_at:pushTime})
-      });
-      if(r.ok){
-        _syncStatus='idle';
-        _lastSyncedAt=pushTime;
-      } else if(r.status===401){
-        await refreshAuthToken();
-        if(_authSession){
-          var pushTime2=new Date().toISOString();
-          var r2=await fetch(SUPA_URL+'/rest/v1/app_data',{
-            method:'POST',
-            headers:Object.assign({},supaHeaders(true),{'Prefer':'resolution=merge-duplicates,return=minimal'}),
-            body:JSON.stringify({id:_userId,data:data,updated_at:pushTime2})
-          });
-          _syncStatus=r2.ok?'idle':'error';
-          if(r2.ok) _lastSyncedAt=pushTime2;
-        }
-      } else {
-        _syncStatus='error';
-      }
-    }catch(e){_syncStatus='error';}
-    _isSyncing=false;
-    updateSyncIndicator();
+    _syncTimer = null;
+    await _doPush(_pendingPushData);
   }, 1500);
 }
+
+async function _doPush(data){
+  if(!data || !_userId) return;
+  // Refresh token if expiring within 5 min
+  if(_authSession){
+    var expiry=(_authSession.expires_at||0)*1000;
+    if(!expiry&&_authSession.expires_in){expiry=Date.now()+(_authSession.expires_in*1000);}
+    if(expiry&&Date.now()>expiry-5*60*1000){await refreshAuthToken();}
+  }
+  _syncStatus='syncing'; _isSyncing=true;
+  updateSyncIndicator();
+  var success = false;
+  try{
+    var pushTime=new Date().toISOString();
+    var r=await fetch(SUPA_URL+'/rest/v1/app_data',{
+      method:'POST',
+      headers:Object.assign({},supaHeaders(true),{'Prefer':'resolution=merge-duplicates,return=minimal'}),
+      body:JSON.stringify({id:_userId,data:data,updated_at:pushTime})
+    });
+    if(r.ok){
+      _syncStatus='idle'; _lastSyncedAt=pushTime; success=true; _pendingPushData=null;
+    } else if(r.status===401){
+      await refreshAuthToken();
+      if(_authSession){
+        var pushTime2=new Date().toISOString();
+        var r2=await fetch(SUPA_URL+'/rest/v1/app_data',{
+          method:'POST',
+          headers:Object.assign({},supaHeaders(true),{'Prefer':'resolution=merge-duplicates,return=minimal'}),
+          body:JSON.stringify({id:_userId,data:data,updated_at:pushTime2})
+        });
+        if(r2.ok){ _syncStatus='idle'; _lastSyncedAt=pushTime2; success=true; _pendingPushData=null; }
+        else { _syncStatus='error'; }
+      }
+    } else {
+      _syncStatus='error';
+    }
+  }catch(e){ _syncStatus='error'; }
+  _isSyncing=false;
+  updateSyncIndicator();
+  // If failed, retry in 30 seconds
+  if(!success && _pendingPushData && _userId){
+    setTimeout(function(){ if(_pendingPushData) _doPush(_pendingPushData); }, 30000);
+  }
+}
+
+// When user comes back to the tab/app, push any pending saves immediately
+document.addEventListener('visibilitychange', function(){
+  if(!document.hidden && _pendingPushData && _userId && !_isSyncing){
+    _doPush(_pendingPushData);
+  }
+});
 
 async function pullFromSupabase(){
   if(!_userId) return null;
@@ -2589,6 +2635,41 @@ function startRealtimePolling(){
       }
     }catch(e){}
   },30000);
+}
+
+// ── QUICK-ADD BAR ─────────────────────────────
+function handleQuickAdd(event) {
+  if (event.key !== 'Enter') return;
+  var val = event.target.value.trim();
+  if (!val) return;
+  event.target.value = '';
+
+  // Detect if it looks like an event (has time-like pattern or keywords)
+  var eventKeywords = /\b(\d{1,2}(:\d{2})?\s*(am|pm)|tomorrow|today|monday|tuesday|wednesday|thursday|friday|saturday|sunday|next week|\d{1,2}(st|nd|rd|th))\b/i;
+  var isEvent = eventKeywords.test(val);
+
+  if (isEvent) {
+    // Pre-fill event modal with the text
+    openAddEvent();
+    setTimeout(function() {
+      var titleEl = document.getElementById('ev-title');
+      if (titleEl) { titleEl.value = val; titleEl.focus(); }
+    }, 80);
+  } else {
+    // Create task directly — no modal needed for simple tasks
+    var s = getS();
+    var task = {
+      id: 'task' + Date.now(),
+      title: val,
+      done: false,
+      priority: 'medium',
+      created: new Date().toISOString()
+    };
+    saveS({ tasks: [task, ...s.tasks] });
+    showToast('✓ Task added: ' + val, 'success');
+    if (currentView === 'tasks') renderTasks();
+    updateSidebarStats();
+  }
 }
 
 function refreshCurrentView(){
@@ -2665,30 +2746,41 @@ var _DEFAULT_STATE = {
 };
 
 // getS — reads from localStorage (always fast, no await needed)
+// ── SAVE ENGINE ─────────────────────────────────
+// Single source of truth — all saves go through here
+var _saveInProgress = false;
+var _saveQueue = null; // holds latest data if a save is queued while one is in progress
+
 function getS(){
-  try{return Object.assign({},_DEFAULT_STATE,JSON.parse(localStorage.getItem('dd_v2')||'{}'));}
-  catch(e){return Object.assign({},_DEFAULT_STATE);}
+  try{ return Object.assign({},_DEFAULT_STATE,JSON.parse(localStorage.getItem('dd_v2')||'{}')); }
+  catch(e){ return Object.assign({},_DEFAULT_STATE); }
 }
 
-// saveS — deep merges patch into current state, saves immediately to localStorage, then pushes async
+// saveS — atomic write to localStorage, then async push to Supabase
 function saveS(patch){
-  // Deep read current state
-  var current = getS();
-  // Merge — patch values override current
-  var s = Object.assign({}, current, patch);
-  // Write to localStorage immediately — this is the source of truth
-  try {
-    localStorage.setItem('dd_v2', JSON.stringify(s));
-  } catch(e) {
-    // localStorage full — warn user
-    showToast('⚠️ Storage full! Clear some pasted images from notes.', 'error');
-    return s;
+  // Always read the LATEST localStorage state (never stale memory)
+  var current;
+  try{ current = JSON.parse(localStorage.getItem('dd_v2')||'{}'); }
+  catch(e){ current = {}; }
+
+  // Merge patch into current
+  var s = Object.assign({}, _DEFAULT_STATE, current, patch);
+
+  // Write to localStorage SYNCHRONOUSLY — this is immediate and never fails except when full
+  try{
+    var serialized = JSON.stringify(s);
+    localStorage.setItem('dd_v2', serialized);
+  } catch(e){
+    showToast('⚠️ Storage full — clear pasted images from notes', 'error');
+    return Object.assign({}, _DEFAULT_STATE, current);
   }
-  // Push to Supabase async (debounced)
-  pushToSupabase(s);
-  // Flash save indicator
+
+  // Update sync indicator immediately
   var ind = document.getElementById('syncIndicator');
-  if(ind){ ind.textContent='💾'; ind.style.color='var(--green)'; }
+  if(ind){ ind.textContent='💾 Saving…'; ind.style.color='var(--text3)'; }
+
+  // Push to Supabase (debounced 1.5s)
+  pushToSupabase(s);
   return s;
 }
 
