@@ -137,7 +137,8 @@ select.input{cursor:pointer;appearance:none;}
 .empty-text{font-size:12px;line-height:1.6;}
 
 /* ── MODAL ── */
-.modal-overlay{position:fixed;inset:0;background:rgba(42,31,20,0.45);backdrop-filter:blur(4px);z-index:200;display:none;align-items:center;justify-content:center;padding:20px;}
+.modal-overlay{position:fixed;inset:0;background:rgba(42,31,20,0.45);backdrop-filter:blur(4px);z-index:200;display:none;align-items:center;justify-content:center;padding:20px;overflow-y:auto;}
+.modal-overlay.show{display:flex;}
 .modal-overlay.show{display:flex;}
 .modal{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px;max-width:500px;width:100%;max-height:85vh;overflow-y:auto;box-shadow:var(--shadow-lg);animation:fadeIn 0.2s ease;}
 .modal-title{font-family:var(--serif);font-size:18px;font-weight:700;margin-bottom:16px;color:var(--text);}
@@ -549,7 +550,7 @@ select.input{cursor:pointer;appearance:none;}
 
 /* ── TEXT SIZE SLIDER (replaces old data-size modes) ── */
 /* Modals and overlays inherit zoom from mainApp via CSS variable */
-.modal-overlay,.colour-panel,.detail-page,.focus-overlay,.flashcard-overlay,.lecture-mode-overlay,.pdf-overlay{
+.colour-panel,.detail-page,.focus-overlay,.flashcard-overlay,.lecture-mode-overlay{
   zoom:var(--app-zoom,1);
 }
 .size-slider-wrap{display:flex;flex-direction:column;gap:6px;}
